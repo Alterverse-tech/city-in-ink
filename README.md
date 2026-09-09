@@ -35,6 +35,7 @@ Open http://localhost:8790/. What to expect in standalone mode:
 - The city, the bird picker, gull flight routes and the **mini map** all work from the saved public event data in `data/`.
 - Event poster images from `cdn.tech-week.com` fail with CORS errors in the console on `localhost`; the game falls back to its own posters. Cosmetic.
 - `/events.json` returns 404 from a plain static server, so the calendar shows the saved snapshot instead of a live refresh. To test live refresh, run `node calendar-server.mjs` (see [Calendar service](#calendar-service)) behind a reverse proxy that maps `/events.json` to it. Not required for development.
+- `/assets/airship.glb` and `/assets/brand/techweek-logo.svg` return 404. The repository has no `assets/` directory; both are optional (the airship is an optional Blender export with a procedural fallback, the logo renders as text) and they 404 on the live Chrona build as well.
 - Sign-in and multiplayer use the standalone `chrona/chrona-connect.js` path (Supabase auth, control plane `https://multiplayer.13-216-49-19.sslip.io`, which is the **test** multiplayer environment, `livemode: false`). Inside Chrona the account is supplied by the host frame instead.
 
 ## Repository layout
