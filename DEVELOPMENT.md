@@ -204,11 +204,17 @@ Discord "!address <link> <street>" ──▶ bot ──▶ ─────┘   
 INK_ADDRESS_PORT=8139 INK_ADDRESS_DATA=.cache INK_ADDRESS_TOKEN=$SECRET \
   node services/address-service.mjs
 
-DISCORD_BOT_TOKEN=$BOT_TOKEN INK_DISCORD_CHANNEL_ID=$CHANNEL \
-INK_DISCORD_REVIEW_CHANNEL=$REVIEW_CHANNEL INK_DISCORD_MODERATOR_ROLE=$ROLE \
+DISCORD_BOT_TOKEN=$BOT_TOKEN INK_DISCORD_GUILD_ID=$GUILD \
+INK_DISCORD_CHANNEL_NAME=find-event-venues INK_DISCORD_MODERATOR_ROLE_NAME=Staff \
 INK_ADDRESS_URL=http://127.0.0.1:8139 INK_ADDRESS_TOKEN=$SECRET \
   node services/discord-address-bot.mjs
 ```
+
+Channels and roles may be given by name (`INK_DISCORD_CHANNEL_NAME`,
+`INK_DISCORD_MODERATOR_ROLE_NAME`) instead of ids — the bot resolves them
+against the guild at startup. Approving publishes the **building**, never the
+door: house numbers and any floor/suite are stripped from `/addresses.json`, so
+the exact door stays in Discord where a person can ask for it.
 
 The bot needs the **Message Content** privileged intent, and `addresses.json`
 must be routed like the calendar feed (`/integrations/city-in-ink/addresses.json`

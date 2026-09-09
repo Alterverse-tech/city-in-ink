@@ -25,16 +25,23 @@
 // The bot needs the MESSAGE CONTENT intent (Developer Portal → Bot →
 // Privileged Gateway Intents) and, in the channel, View Channel + Send Messages.
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
-const LISTEN_CHANNEL = process.env.INK_DISCORD_CHANNEL_ID;
-const REVIEW_CHANNEL = process.env.INK_DISCORD_REVIEW_CHANNEL || LISTEN_CHANNEL;
-const MOD_ROLE = process.env.INK_DISCORD_MODERATOR_ROLE || '';
+// Channels and roles can be named rather than pasted as ids: the bot resolves
+// them against the guild at startup, which is one less thing to copy out of
+// Discord's developer mode and one less thing to get wrong.
+const GUILD_ID = process.env.INK_DISCORD_GUILD_ID || '';
+const CHANNEL_NAME = process.env.INK_DISCORD_CHANNEL_NAME || '';
+const REVIEW_NAME = process.env.INK_DISCORD_REVIEW_CHANNEL_NAME || '';
+const MOD_ROLE_NAME = process.env.INK_DISCORD_MODERATOR_ROLE_NAME || '';
+let LISTEN_CHANNEL = process.env.INK_DISCORD_CHANNEL_ID || '';
+let REVIEW_CHANNEL = process.env.INK_DISCORD_REVIEW_CHANNEL || LISTEN_CHANNEL;
+let MOD_ROLE = process.env.INK_DISCORD_MODERATOR_ROLE || '';
 const SERVICE = (process.env.INK_ADDRESS_URL || 'http://127.0.0.1:8139').replace(/\/$/, '');
 const SERVICE_TOKEN = process.env.INK_ADDRESS_TOKEN || '';
 const API = 'https://discord.com/api/v10';
 const MANAGE_GUILD = 1n << 5n;
 
-if (!TOKEN || !LISTEN_CHANNEL) {
-  console.error('Set DISCORD_BOT_TOKEN and INK_DISCORD_CHANNEL_ID before starting the bot.');
+if (!TOKEN || (!LISTEN_CHANNEL && !(GUILD_ID && CHANNEL_NAME))) {
+  console.error('Set DISCORD_BOT_TOKEN, and either INK_DISCORD_CHANNEL_ID or INK_DISCORD_GUILD_ID + INK_DISCORD_CHANNEL_NAME.');
   process.exit(1);
 }
 
@@ -69,6 +76,31 @@ async function service(path, { method = 'GET', body } = {}) {
   try { parsed = JSON.parse(text); } catch { /* keep the raw text for the error */ }
   if (!response.ok) throw new Error(`address service ${response.status}: ${(parsed && parsed.error) || text}`.slice(0, 200));
   return parsed;
+}
+
+
+/* --------------------------------------------- names → ids, once, at startup */
+const byName = (list, name) => list.find(entry => entry.name?.toLowerCase() === name.toLowerCase())
+  || list.find(entry => entry.name?.toLowerCase().includes(name.toLowerCase()));
+
+async function resolveTargets() {
+  if (!GUILD_ID) return;
+  if (!LISTEN_CHANNEL || (!REVIEW_CHANNEL && REVIEW_NAME) || (!MOD_ROLE && MOD_ROLE_NAME)) {
+    const channels = await discord(`/guilds/${GUILD_ID}/channels`);
+    if (!LISTEN_CHANNEL && CHANNEL_NAME) {
+      const found = byName(channels, CHANNEL_NAME);
+      if (!found) throw new Error(`no channel named ${CHANNEL_NAME} in this guild`);
+      LISTEN_CHANNEL = found.id;
+    }
+    if (REVIEW_NAME) { const found = byName(channels, REVIEW_NAME); if (found) REVIEW_CHANNEL = found.id; }
+    if (!REVIEW_CHANNEL) REVIEW_CHANNEL = LISTEN_CHANNEL;
+    if (!MOD_ROLE && MOD_ROLE_NAME) {
+      const roles = await discord(`/guilds/${GUILD_ID}/roles`);
+      const found = byName(roles, MOD_ROLE_NAME);
+      if (found) MOD_ROLE = found.id;
+      else console.warn(`[bot] no role named ${MOD_ROLE_NAME}; falling back to the Manage Server permission`);
+    }
+  }
 }
 
 /* ------------------------------------------------------------- parsing */
@@ -267,7 +299,8 @@ function connect() {
 
     if (t === 'READY') {
       sessionId = d.session_id; resumeUrl = d.resume_gateway_url; backoff = 1000;
-      console.log(`[bot] ready as ${d.user.username} · listening in ${LISTEN_CHANNEL} · reviews in ${REVIEW_CHANNEL}`);
+      await resolveTargets().catch(error => console.error('[bot] could not resolve names:', error.message));
+      console.log(`[bot] ready as ${d.user.username} · listening in ${LISTEN_CHANNEL} · reviews in ${REVIEW_CHANNEL}${MOD_ROLE ? ` · moderators ${MOD_ROLE}` : ''}`);
       return;
     }
     if (t === 'RESUMED') { backoff = 1000; console.log('[bot] resumed'); return; }

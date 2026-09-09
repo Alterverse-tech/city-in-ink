@@ -63,11 +63,26 @@ async function readParts(base) {
   return data;
 }
 
+// The enriched snapshot is about 8 MB and ships as ordered parts. One hiccup
+// fetching it used to drop the whole city to the 48-event baseline — or, if
+// that missed too, to an empty world with no explanation. Retry it before
+// settling for less: an empty sky is a much worse answer than a slow one.
 async function readSaved() {
-  for(const read of [() => readParts('tech-week-enriched'), () => readJson(new URL('./data/tech-week-enriched.json',import.meta.url)), () => readJson(new URL('./data/tech-week-first.json',import.meta.url))]) {
-    try { const data=await read(); if(validFeed(data))return data; } catch { /* Try the next form, then the immutable baseline. */ }
+  const load = async (file) => {
+    const data = await readJson(new URL('./data/' + file, import.meta.url));
+    return validFeed(data) ? data : null;
+  };
+  const full = async () => {
+    // Parts are the current on-disk form; the single file is the older one.
+    try { const data = await readParts('tech-week-enriched'); if (validFeed(data)) return data; } catch { /* try the single file */ }
+    return load('tech-week-enriched.json');
+  };
+  for (const attempt of [0, 1, 2]) {
+    try { const data = await full(); if (data) return data; } catch { /* retry below */ }
+    if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 400 * (attempt + 1)));
   }
-  return null;
+  console.warn('[events] the full snapshot did not load; falling back to the saved baseline');
+  try { return await load('tech-week-first.json'); } catch { return null; }
 }
 
 const NEIGHBORHOOD_HINTS = {
@@ -205,8 +220,12 @@ function applyApprovedAddresses(events, addresses) {
   return events.map(event => {
     const entry = byId.get(event.id) || byUrl.get(event.url) || byUrl.get(event.sourceUrl);
     if (!entry) return event;
+    // The queue publishes the building, never the door: `street` has the house
+    // number and any floor/suite stripped out, and that is all the world shows.
+    // Whoever wants the exact door asks in the Discord.
     const patched = { ...event, addressSource: 'community-approved', approvedAddressAt: entry.approvedAt };
-    if (entry.address) patched.address = entry.address;
+    const street = entry.street || entry.address;
+    if (street) patched.address = street;
     if (entry.venue) patched.venue = entry.venue;
     if (Number.isFinite(entry.lat) && Number.isFinite(entry.lng)) {
       // A reviewed address is exact: drop the neighbourhood approximation.
@@ -229,6 +248,31 @@ async function submitClaim(claim) {
   return response.json();
 }
 
+
+// Host-authored detail for our own event. The public calendar carries no
+// speaker list for it, and this is the host telling us rather than something
+// crawled — so it lives in code, not in the saved snapshot, which is
+// regenerated from public sources and would drop it.
+const HOST_EVENT_DETAIL = {
+  'hgyN4UiBL4s3vA0ATTbr': {
+    speakers: [{ name: 'Yiqi Zhao', role: 'Product Design Lead, Meta \u00b7 spatial intelligence and AI at the edge' }],
+    speakerBio: [
+      'Speaker \u2014 Yiqi Zhao, Product Design Lead at Meta, driving spatial intelligence and AI at the edge: AI that understands you and the world, not just words.',
+      'Her team has delivered human-centric innovations for all modality AI experiences across wearable devices, personal agents, and generative platforms \u2014 shipping AI-native OS systems, runtime engine, world models, coding agent, and agentic media creation to 4B+ users from Meta AI mobile, web, desktop, Meta Quest and Meta AI Glasses.',
+      'With a research background at Harvard and MIT Media Lab, Yiqi began her journey in brain-computer interfaces (EEG) and wearable AI with hardware. Previously, she led Unity\u2019s AI and XR platforms, including the visionOS deal for Apple Vision Pro. She also made her mark in the gaming sector with Destiny 2. Additionally, she leads Deepcake, an AI media institute with 200 million monthly views and 30+ awards.',
+    ].join('\n\n'),
+  },
+};
+function applyHostDetail(events) {
+  return events.map(event => {
+    const key = Object.keys(HOST_EVENT_DETAIL).find(slug => `${event.url || ''}${event.sourceUrl || ''}${event.id || ''}`.includes(slug));
+    if (!key) return event;
+    const detail = HOST_EVENT_DETAIL[key];
+    const speakers = (event.speakers && event.speakers.length) ? event.speakers : detail.speakers;
+    return { ...event, speakers };
+  });
+}
+
 window.__sfEventFeed = {
   coverUrl,
   submitClaim,
@@ -241,6 +285,7 @@ window.__sfEventFeed = {
     const approvedAddresses = await readApprovedAddresses();
     const data = mergePublicFeeds(saved,cache);
     if (data && approvedAddresses.length) data.events = applyApprovedAddresses(data.events, approvedAddresses);
+    if (data) data.events = applyHostDetail(data.events);
     if(data)lastGood=data;
     const live = lastGood;
     showStatus(live ? {...live,error:cache.error} : cache, !!live);

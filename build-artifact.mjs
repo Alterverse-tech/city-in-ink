@@ -21,7 +21,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { renderGame } from './build.mjs';
-import { FEATURED_EVENT, HEAT_MIN } from './tuning-build.mjs';
+import { FEATURED_EVENT, RSVP_MIN } from './tuning-build.mjs';
+import { slimFeed } from './feed-slim.mjs';
 
 const url = path => new URL(path, import.meta.url);
 const POSITION_SCALE = 0.02; // metres — positions quantised to 2 cm steps (max error 1 cm)
@@ -84,8 +85,14 @@ const plan = {
 // rest keep their remote URL and fall back to the drawn ink poster.
 async function withEmbeddedPosters(feed) {
   if (process.env.SKIP_POSTERS) return feed;
-  const heatOf = e => (Number.isFinite(e.heatCount) ? e.heatCount : (e.rsvp || 0) + (e.interested || 0));
-  const wanted = feed.events.filter(e => e.image && (heatOf(e) > HEAT_MIN || `${e.url || ''}`.includes(FEATURED_EVENT)));
+  // Posters are the bulk of what this build can spend: every event on the map
+  // would be ~3 MB of JPEG and the page has a 16 MB ceiling. Take the featured
+  // event and then the busiest, and let the rest fall back to the drawn poster.
+  const POSTER_CAP = 110;
+  const onMap = feed.events.filter(e => e.image && ((e.rsvp || 0) > RSVP_MIN || e.lat != null || `${e.url || ''}`.includes(FEATURED_EVENT)));
+  const wanted = onMap
+    .sort((a, b) => (`${b.url || ''}`.includes(FEATURED_EVENT) ? 1 : 0) - (`${a.url || ''}`.includes(FEATURED_EVENT) ? 1 : 0) || (b.rsvp || 0) - (a.rsvp || 0))
+    .slice(0, POSTER_CAP);
   const { execFile } = await import('node:child_process');
   const { promisify } = await import('node:util');
   const run = promisify(execFile);
@@ -138,7 +145,7 @@ for (const [key, encoded] of Object.entries(assets)) {
 }
 for (const file of ['tech-week-enriched.json', 'tech-week-first.json']) {
   let bytes = await readFile(url('./data/' + file));
-  if (file === 'tech-week-enriched.json') bytes = Buffer.from(JSON.stringify(await withEmbeddedPosters(JSON.parse(bytes))));
+  if (file === 'tech-week-enriched.json') bytes = Buffer.from(JSON.stringify(slimFeed(await withEmbeddedPosters(JSON.parse(bytes)))));
   compact['/data/' + file] = gzipSync(bytes, { level: 9 }).toString('base64');
   after += compact['/data/' + file].length;
   console.log(`data/${file} ${bytes.length} → ${compact['/data/' + file].length}`);

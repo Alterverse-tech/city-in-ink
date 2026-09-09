@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { renderGame } from './build.mjs';
+import { slimFeedFile } from './feed-slim.mjs';
 const url = path => new URL(path, import.meta.url);
 const digest = value => createHash('sha256').update(value).digest('hex');
 let original;
@@ -26,4 +27,5 @@ await writeFile(url('./dist/index.html'),html);
 for (const name of ['chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','hosted-bootstrap.js','gull-cluster-route.mjs','city-extras.mjs','gull-cluster-route.mjs',]) {
   await cp(url('./'+name), url('./dist/'+name), {recursive:true});
 }
+{ const slim = await slimFeedFile(new URL('./dist/data/tech-week-enriched.json', import.meta.url)); console.log(`events feed ${slim.before} → ${slim.after} bytes (provenance stays in data/)`); }
 console.log(JSON.stringify({ build:'dist', originalSha256:digest(original), bytes:Buffer.byteLength(original), hostedProtocol:'chrona.host/v1' }));
