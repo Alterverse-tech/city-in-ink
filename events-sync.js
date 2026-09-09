@@ -134,6 +134,9 @@ function enrichWithFallbackCoordinates(events) {
       ...event,
       lat: source.lat,
       lng: source.lng,
+      // A neighbourhood centroid is a hint, not an address. The city layer
+      // spreads these across the district and never pins them to a building.
+      approxLocation: source.source !== 'event-field',
       __inferredLocation: true,
       __inferredLocationSource: source.source
     };

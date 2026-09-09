@@ -11,7 +11,7 @@ const original = (await Promise.all(manifest.parts.map(part => readFile(url('./s
 if (createHash('sha256').update(original).digest('hex') !== manifest.sha256) throw new Error('Source bytes changed. Run `node build-hosted.mjs --accept-source-update` first to refresh the manifest.');
 await mkdir(url('./dist-local/'), {recursive:true});
 await writeFile(url('./dist-local/index.html'), renderGame(original));
-for (const name of ['chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','gull-cluster-route.mjs']) {
+for (const name of ['chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','gull-cluster-route.mjs','city-extras.mjs']) {
   await cp(url('./'+name), url('./dist-local/'+name), {recursive:true});
 }
 console.log('Standalone build ready in dist-local/ — serve it with any static server; no Chrona host frame required.');
