@@ -162,7 +162,7 @@ node CLI publish --dir .                        # releases the live World
 
 ### The hosted build
 
-`npm run build` writes `dist/` for Chrona. It differs from the local build only by the handshake in `hosted-bootstrap.js`: the game runs inside Chrona's sandboxed iframe, receives the signed-in account and the authoritative room from the host, and stores preferences per account/World instead of in browser `localStorage`. `chrona/chrona-host.js` deliberately has no standalone fallback — a failed handshake never starts a separate login — so `dist/` renders only the error line and the mini map when opened outside Chrona. That is expected.
+`npm run build` writes `dist/` for Chrona. It differs from the local build only by the handshake in `hosted-bootstrap.js`: the game runs inside Chrona's sandboxed iframe, receives the signed-in account and the authoritative room from the host, and stores preferences per account/World instead of in browser `localStorage`. `chrona/chrona-host.js` deliberately has no standalone fallback — a failed handshake never starts a separate login — so `dist/` renders only the error line when opened outside Chrona. That is expected.
 
 ### Single-file preview build
 
