@@ -256,6 +256,23 @@ function updateRemotes(dt, time) {
     remote.label.textContent = `${player.name || 'Player'} · ${metres > 1000 ? (metres / 1000).toFixed(1) + ' km' : Math.round(metres) + ' m'}`;
   }
   for (const id of remotes.keys()) if (!active.has(id)) removeRemote(id);
+  publishRoster();
+}
+// A read-only view of who is flying and where, for the add-on layer
+// (city-extras.mjs draws the "fly beside someone" card from it). Names come
+// from the account profile; nothing here is written back to the network.
+function publishRoster() {
+  window.__sfNet = {
+    players: room.players.map(player => {
+      const remote = remotes.get(player.id);
+      return {
+        id: player.id, name: player.name || '', handle: player.handle || player.name || '',
+        self: !!player.self, connected: !!player.connected, color: colorFor(player.id),
+        position: player.self ? c?.flightCharacter?.position : (remote && remote.root.visible ? remote.position : null),
+      };
+    }),
+    count: room.count, state: room.state,
+  };
 }
 function updateLabels() {
   const width = c.renderer.domElement.clientWidth, height = c.renderer.domElement.clientHeight;

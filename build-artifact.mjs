@@ -21,6 +21,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { renderGame } from './build.mjs';
+import { FEATURED_EVENT, HEAT_MIN } from './tuning-build.mjs';
 
 const url = path => new URL(path, import.meta.url);
 const POSITION_SCALE = 0.02; // metres — positions quantised to 2 cm steps (max error 1 cm)
@@ -76,6 +77,42 @@ const plan = {
   '/data/terrain-heights.i16': ['i16', 1],
 };
 
+// ---- posters for the single-file preview ---------------------------------
+// A single-file host blocks every external origin, so a remote cover URL can
+// never load there. For the events that actually appear on the map we fetch
+// the cover once at build time, shrink it and inline it as a data URI; the
+// rest keep their remote URL and fall back to the drawn ink poster.
+async function withEmbeddedPosters(feed) {
+  if (process.env.SKIP_POSTERS) return feed;
+  const heatOf = e => (Number.isFinite(e.heatCount) ? e.heatCount : (e.rsvp || 0) + (e.interested || 0));
+  const wanted = feed.events.filter(e => e.image && (heatOf(e) > HEAT_MIN || `${e.url || ''}`.includes(FEATURED_EVENT)));
+  const { execFile } = await import('node:child_process');
+  const { promisify } = await import('node:util');
+  const run = promisify(execFile);
+  const { mkdtemp, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'tw-posters-'));
+  let ok = 0, bytes = 0;
+  await Promise.all(wanted.map(async (event, index) => {
+    try {
+      const response = await fetch(event.image, { signal: AbortSignal.timeout(20000) });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const raw = join(dir, `p${index}`), out = join(dir, `p${index}.jpg`);
+      await writeFile(raw, Buffer.from(await response.arrayBuffer()));
+      // 360 px wide is plenty for a banner texture and a card thumbnail.
+      await run('convert', [raw, '-auto-orient', '-resize', '360x520>', '-quality', '72', '-strip', out]);
+      const jpeg = await readFile(out);
+      if (jpeg.length > 260000) throw new Error('cover too large');
+      event.image = 'data:image/jpeg;base64,' + jpeg.toString('base64');
+      ok += 1; bytes += jpeg.length;
+    } catch { /* keep the remote URL; the drawn poster is the fallback */ }
+  }));
+  await rm(dir, { recursive: true, force: true });
+  console.log(`embedded ${ok}/${wanted.length} event posters (${(bytes / 1024).toFixed(0)} KB)`);
+  return feed;
+}
+
 // ---- reassemble the original and apply the standard add-on wiring ---------
 const manifest = JSON.parse(await readFile(url('./source/manifest.json'), 'utf8'));
 const original = (await Promise.all(manifest.parts.map(part => readFile(url('./source/' + part), 'utf8')))).join('');
@@ -100,7 +137,8 @@ for (const [key, encoded] of Object.entries(assets)) {
   console.log(`${key.padEnd(44)} ${String(encoded.length).padStart(10)} → ${String(size).padStart(10)}${spec ? '  (' + spec[0] + ' dzv)' : ''}`);
 }
 for (const file of ['tech-week-enriched.json', 'tech-week-first.json']) {
-  const bytes = await readFile(url('./data/' + file));
+  let bytes = await readFile(url('./data/' + file));
+  if (file === 'tech-week-enriched.json') bytes = Buffer.from(JSON.stringify(await withEmbeddedPosters(JSON.parse(bytes))));
   compact['/data/' + file] = gzipSync(bytes, { level: 9 }).toString('base64');
   after += compact['/data/' + file].length;
   console.log(`data/${file} ${bytes.length} → ${compact['/data/' + file].length}`);
@@ -117,10 +155,10 @@ const decoder = await readFile(url('./artifact-assets.js'), 'utf8');
 let page = html.slice(0, a0 + assetsOpen.length) + JSON.stringify(compact) + '</script>\n  <script>\n' + decoder + '\n  </script>' + html.slice(shimClose + '</script>'.length);
 
 // ---- inline the add-on modules and styles (no multiplayer) ----------------
-const imports = 'import "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\n';
+const imports = 'import "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./city-extras.mjs";\n';
 if (page.split(imports).length !== 2) throw new Error('Add-on import block not found; keep build.mjs and build-artifact.mjs in step.');
 let inline = '';
-for (const name of ['events-sync.js', 'gull-cluster-route.mjs']) {
+for (const name of ['events-sync.js', 'gull-cluster-route.mjs', 'city-extras.mjs']) {
   const code = await readFile(url('./' + name), 'utf8');
   if (/^\s*import\s/m.test(code)) throw new Error(`${name} imports another module; extend the inliner.`);
   inline += `<script type="module">\n${code}\n</script>\n`;
