@@ -1,0 +1,1039 @@
+ Space/C Up/Down · Shift Boost · U Hide UI":"WASD / Arrows Move \xB7 Space / C Up/Down \xB7 Shift Boost \xB7 Drag to look around"})]}),d&&(0,G.jsxs)("div",{className:"flight-touch-controls","aria-label":"Touch flight controls",children:[(0,G.jsxs)("fieldset",{className:"flight-direction","aria-label":"Horizontal movement",children:[(0,G.jsx)(ur,{action:"forward",label:gullAvatar==="gull"?"Flap faster":"Fly forward",className:"forward",onInput:L,children:(0,G.jsx)(io,{})}),(0,G.jsx)(ur,{action:"left",label:gullAvatar==="gull"?"Turn left":"Fly left",className:"left",onInput:L,children:(0,G.jsx)(Xl,{})}),(0,G.jsx)(ur,{action:"backward",label:gullAvatar==="gull"?"Slow down and glide":"Fly backward",className:"backward",onInput:L,children:(0,G.jsx)(no,{})}),(0,G.jsx)(ur,{action:"right",label:gullAvatar==="gull"?"Turn right":"Fly right",className:"right",onInput:L,children:(0,G.jsx)(Yl,{})})]}),(0,G.jsxs)("fieldset",{className:"flight-vertical","aria-label":"Altitude and speed",children:[(0,G.jsxs)(ur,{action:"up",label:"Climb",onInput:L,children:[(0,G.jsx)(io,{}),(0,G.jsx)("small",{children:"Up"})]}),(0,G.jsxs)(ur,{action:"boost",label:"Boost flight speed",className:"boost",onInput:L,children:[(0,G.jsx)(ru,{}),(0,G.jsx)("small",{children:"Boost"})]}),(0,G.jsxs)(ur,{action:"down",label:"Descend",onInput:L,children:[(0,G.jsx)(no,{}),(0,G.jsx)("small",{children:"Down"})]})]})]}),(0,G.jsxs)("div",{className:"corner-tools",children:[(0,G.jsx)("button",{type:"button",onClick:()=>{t.current?.clearFlightInput(),h(!0)},"aria-label":"Controls and help",children:(0,G.jsx)(mn,{})}),(0,G.jsx)("button",{type:"button",onClick:()=>{t.current?.clearFlightInput(),y(!0)},"aria-label":"Data and project details",children:(0,G.jsx)(Ql,{})})]}),(0,G.jsxs)("aside",{className:"data-note",children:[(0,G.jsx)("span",{children:"37.7955\xB0 N"}),(0,G.jsx)("span",{children:"122.4205\xB0 W"}),(0,G.jsx)("strong",{children:E.stats?`${E.stats.buildings.toLocaleString("en-US")} BUILDINGS \xB7 ${E.stats.streets.toLocaleString("en-US")} STREETS`:"WGS 84 \xB7 LOCAL METRES"})]}),(v||m)&&(0,G.jsx)("button",{className:"scrim",type:"button",onClick:()=>{t.current?.clearFlightInput(),y(!1),h(!1)},"aria-label":"Close panel"}),v&&(0,G.jsxs)("dialog",{open:!0,className:"info-panel","aria-label":"Data and project details",children:[(0,G.jsx)("button",{className:"panel-close",type:"button",onClick:()=>y(!1),"aria-label":"Close",children:(0,G.jsx)(Ws,{})}),(0,G.jsxs)("div",{className:"panel-kicker",children:[(0,G.jsx)(Jl,{})," CITY DATA PORTRAIT"]}),(0,G.jsx)("h2",{children:"A city, beyond blocks."}),(0,G.jsx)("p",{children:"Building footprints, elevations, roads and coastlines come from San Francisco open data. Over 13,000 downtown footprints retain source coordinates and courtyard boundaries. Major landmarks use public architectural references. Facade colors and window patterns are illustrative. Two-tone shading, fine ink lines and distance fog keep the city in its Sable-inspired palette."}),(0,G.jsxs)("dl",{children:[(0,G.jsxs)("div",{children:[(0,G.jsx)("dt",{children:"Buildings"}),(0,G.jsx)("dd",{children:E.stats?.buildings.toLocaleString("en-US")??"27,000+"})]}),(0,G.jsxs)("div",{children:[(0,G.jsx)("dt",{children:"Streets"}),(0,G.jsx)("dd",{children:E.stats?.streets.toLocaleString("en-US")??"4,427"})]}),(0,G.jsxs)("div",{children:[(0,G.jsx)("dt",{children:"Landmarks"}),(0,G.jsx)("dd",{children:"12 + GGB"})]})]}),(0,G.jsx)("h3",{children:"Open data"}),(0,G.jsxs)("div",{className:"source-list",children:[
+(0,G.jsx)("a",{href:"https://services3.arcgis.com/uknczv4rpevve42E/ArcGIS/rest/services/California_Cartographic_Coastal_Polygons/FeatureServer",target:"_blank",rel:"noreferrer",children:"NOAA / California CDT · Marin North Shore coastline"}),
+(0,G.jsx)("a",{href:"https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",target:"_blank",rel:"noreferrer",children:"USGS 3DEP · Marin North Shore elevation"}),(0,G.jsx)("a",{href:"https://data.sfgov.org/d/ynuv-fyni",target:"_blank",rel:"noreferrer",children:"DataSF \xB7 Building Footprints"}),(0,G.jsx)("a",{href:"https://data.sfgov.org/d/3mea-di5p",target:"_blank",rel:"noreferrer",children:"DataSF \xB7 Enterprise Addressing System"}),(0,G.jsx)("a",{href:"https://data.sfgov.org/d/3psu-pn9h",target:"_blank",rel:"noreferrer",children:"DataSF \xB7 Streets"}),(0,G.jsx)("a",{href:"https://data.sfgov.org/d/6d73-6c4f",target:"_blank",rel:"noreferrer",children:"DataSF \xB7 Elevation Contours"}),(0,G.jsx)("a",{href:"https://www.goldengate.org/bridge/history-research/statistics-data/design-construction-stats/",target:"_blank",rel:"noreferrer",children:"Golden Gate Bridge \xB7 Official dimensions"})]}),(0,G.jsx)("small",{children:"A visual reconstruction for art and education. Not intended for surveying, navigation or engineering decisions."})]}),m&&(0,G.jsxs)("dialog",{open:!0,className:"info-panel help-panel","aria-label":"Controls and help",children:[(0,G.jsx)("button",{className:"panel-close",type:"button",onClick:()=>h(!1),"aria-label":"Close",children:(0,G.jsx)(Ws,{})}),(0,G.jsxs)("div",{className:"panel-kicker",children:[(0,G.jsx)(mn,{})," EXPLORE THE CITY"]}),(0,G.jsx)("h2",{children:d&&gullAvatar==="gull"?"Ride the wind over San Francisco.":"Wander through a city in ink."}),(0,G.jsxs)("div",{className:"help-grid",children:[
+(0,G.jsx)("span",{children:"Play / Pause"}),(0,G.jsx)("b",{children:"A two-minute landmark film with daylight, sunset and night. Pause and resume anytime."}),
+
+(0,G.jsx)("span",{children:"U"}),(0,G.jsx)("b",{children:"Hide / show the interface and landmark labels"}),
+(0,G.jsx)("span",{children:"Fly as a Gull"}),(0,G.jsx)("b",{children:"Cruise forward automatically; release the keys to glide intermittently"}),
+(0,G.jsx)("span",{children:"Gull: W / S"}),(0,G.jsx)("b",{children:"Flap faster / slow down and glide"}),
+(0,G.jsx)("span",{children:"Gull: A / D"}),(0,G.jsx)("b",{children:"Turn left / right (or use arrow keys)"}),(0,G.jsx)("span",{children:"Drag"}),(0,G.jsx)("b",{children:"Orbit the city"}),(0,G.jsx)("span",{children:"Shift + drag"}),(0,G.jsx)("b",{children:"Pan the view"}),(0,G.jsx)("span",{children:"Scroll / pinch"}),(0,G.jsx)("b",{children:"Zoom in / out"}),(0,G.jsx)("span",{children:"W A S D"}),(0,G.jsx)("b",{children:"Move along the ground"}),(0,G.jsx)("span",{children:"In flight: W A S D"}),(0,G.jsx)("b",{children:"Fly forward, back, left or right"}),(0,G.jsx)("span",{children:"Space / C"}),(0,G.jsx)("b",{children:"Climb / descend"}),(0,G.jsx)("span",{children:"Shift"}),(0,G.jsx)("b",{children:"Boost flight speed"}),(0,G.jsx)("span",{children:"Esc"}),(0,G.jsx)("b",{children:"Pause the tour / exit flight"}),(0,G.jsx)("span",{children:"F"}),(0,G.jsx)("b",{children:"Toggle fullscreen"})]})]})]})}window.__sfGunzip=f_;var N1=document.getElementById("root");if(!N1)throw new Error("Missing standalone application root");(0,O1.createRoot)(N1).render(Ud.default.createElement(Ud.default.StrictMode,null,Ud.default.createElement(r0,null)));})();
+/*! Bundled license information:
+
+react/cjs/react.production.js:
+  (**
+   * @license React
+   * react.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+scheduler/cjs/scheduler.production.js:
+  (**
+   * @license React
+   * scheduler.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom.production.js:
+  (**
+   * @license React
+   * react-dom.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom-client.production.js:
+  (**
+   * @license React
+   * react-dom-client.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react/cjs/react-jsx-runtime.production.js:
+  (**
+   * @license React
+   * react-jsx-runtime.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/shared/src/utils/mergeClasses.mjs:
+lucide-react/dist/esm/shared/src/utils/toKebabCase.mjs:
+lucide-react/dist/esm/shared/src/utils/toCamelCase.mjs:
+lucide-react/dist/esm/shared/src/utils/toPascalCase.mjs:
+lucide-react/dist/esm/defaultAttributes.mjs:
+lucide-react/dist/esm/shared/src/utils/hasA11yProp.mjs:
+lucide-react/dist/esm/context.mjs:
+lucide-react/dist/esm/Icon.mjs:
+lucide-react/dist/esm/createLucideIcon.mjs:
+lucide-react/dist/esm/icons/arrow-down.mjs:
+lucide-react/dist/esm/icons/arrow-left.mjs:
+lucide-react/dist/esm/icons/arrow-right.mjs:
+lucide-react/dist/esm/icons/arrow-up.mjs:
+lucide-react/dist/esm/icons/circle-question-mark.mjs:
+lucide-react/dist/esm/icons/eye-off.mjs:
+lucide-react/dist/esm/icons/eye.mjs:
+lucide-react/dist/esm/icons/focus.mjs:
+lucide-react/dist/esm/icons/info.mjs:
+lucide-react/dist/esm/icons/map-pin.mjs:
+lucide-react/dist/esm/icons/maximize-2.mjs:
+lucide-react/dist/esm/icons/moon.mjs:
+lucide-react/dist/esm/icons/pause.mjs:
+lucide-react/dist/esm/icons/play.mjs:
+lucide-react/dist/esm/icons/search.mjs:
+lucide-react/dist/esm/icons/sun.mjs:
+lucide-react/dist/esm/icons/sunset.mjs:
+lucide-react/dist/esm/icons/wind.mjs:
+lucide-react/dist/esm/icons/x.mjs:
+lucide-react/dist/esm/icons/zap.mjs:
+lucide-react/dist/esm/lucide-react.mjs:
+  (**
+   * @license lucide-react v1.31.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+three/build/three.module.js:
+  (**
+   * @license
+   * Copyright 2010-2023 Three.js Authors
+   * SPDX-License-Identifier: MIT
+   *)
+*/
+</script>
+<script id="tw-events-seed" type="application/json">{"week": "SF Tech Week 2026 · Oct 5–11", "source": "seed — sample programme (real SF addresses, fictional hosts/speakers). The real calendar (tech-week.com/calendar) goes live Sep 8; run scrape-techweek.mjs to replace this file.", "fetchedAt": "2026-09-07T00:00:00-07:00", "schema": {"status": "open | waitlist | approval | full | closed", "cohosts": "string or {name,url}", "speakers": "{name, role}", "image": "cover image URL or assets/posters/<id>.jpg (same-origin avoids CORS)", "end": "ISO end time — the event leaves the city when it passes (Pacific time); defaults to start + 3h", "vehicle": "optional: airship | balloon | zeppelin | blimp (otherwise picked from the id)", "tint": "optional 0-2 livery variant", "fleet": "the world gives an airship/balloon only to the CFG.fleet (12) most-RSVP'd events; the others fly a small kite from the roof and get promoted as RSVPs grow"}, "events": [{"id": "tw-001", "title": "Tech Week Kickoff: Airships Over the Bay", "host": "SF Tech Week Citizens", "cohosts": ["Cloudpost Harbor"], "speakers": [{"name": "Maya Lindqvist", "role": "Founder, Cloudpost Harbor"}, {"name": "Devan Okafor", "role": "Partner, Bayline Ventures"}, {"name": "Priya Raman", "role": "Head of Community, SF Tech Week Citizens"}], "start": "2026-10-05T09:00:00-07:00", "end": "2026-10-05T11:00:00-07:00", "category": "founders", "venue": "Ferry Building", "address": "1 Ferry Building", "neighborhood": "Embarcadero", "lat": 37.7955, "lng": -122.3937, "rsvp": 412, "capacity": 600, "status": "open", "url": "https://partiful.com/", "description": "Coffee on the water, the week’s map, and the first airships going up.", "tags": ["opening"], "source": "seed"}, {"id": "tw-002", "title": "Agents That Ship: a live build session", "host": "Loopwright Labs", "cohosts": ["Frontier Tower"], "speakers": [{"name": "Tomás Herrera", "role": "CEO, Loopwright Labs"}, {"name": "Aiko Tanaka", "role": "Staff Engineer, Tidewater Compute"}], "start": "2026-10-05T12:00:00-07:00", "end": "2026-10-05T14:00:00-07:00", "category": "ai", "venue": "Frontier Tower", "address": "995 Market St", "neighborhood": "Mid-Market", "lat": 37.782255, "lng": -122.409955, "rsvp": 200, "capacity": 200, "status": "waitlist", "url": "https://lu.ma/", "description": "Two teams build and deploy an agent on stage in ninety minutes. No slides.", "tags": ["agents", "coding"], "source": "seed"}, {"id": "tw-003", "title": "Founders & Fog: opening night", "host": "Bayline Ventures", "cohosts": ["The Battery", "Late Fog Social"], "speakers": [], "start": "2026-10-05T18:00:00-07:00", "end": "2026-10-05T22:00:00-07:00", "category": "party", "venue": "The Battery", "address": "717 Battery St", "neighborhood": "Jackson Square", "lat": 37.797882, "lng": -122.401285, "rsvp": 340, "capacity": 350, "status": "approval", "url": "https://partiful.com/", "description": "Members-club opening party. Approval required, plus-ones welcome.", "tags": ["party"], "source": "seed"}, {"id": "tw-004", "title": "Seed Round Breakfast: what LPs want in 2027", "host": "Northshore Capital", "cohosts": ["Ledgerline"], "speakers": [{"name": "Jonah Feldman", "role": "GP, Northshore Capital"}, {"name": "Leila Haddad", "role": "LP relations, Ledgerline"}, {"name": "Marcus Bell", "role": "Founder, Kelp & Kilowatt"}, {"name": "Sofia Marchetti", "role": "Emerging manager"}], "start": "2026-10-06T08:30:00-07:00", "end": "2026-10-06T10:00:00-07:00", "category": "investors", "venue": "505 Howard", "address": "505 Howard St", "neighborhood": "SoMa", "lat": 37.788264, "lng": -122.39608, "rsvp": 96, "capacity": 120, "status": "open", "url": "https://lu.ma/", "tags": ["fundraising"], "source": "seed"}, {"id": "tw-005", "title": "GPU Kitchen: inference at the edge", "host": "Tidewater Compute", "cohosts": ["Weights & Wharves"], "speakers": [{"name": "Aiko Tanaka", "role": "Staff Engineer, Tidewater Compute"}, {"name": "Wei Zhang", "role": "Inference lead, Weights & Wharves"}, {"name": "Elena Petrova", "role": "Hardware, Fogline Robotics"}], "start": "2026-10-06T14:00:00-07:00", "end": "2026-10-06T16:00:00-07:00", "category": "infra", "venue": "Salesforce Tower", "address": "415 Mission St", "neighborhood": "Transbay", "lat": 37.789934, "lng": -122.397097, "rsvp": 221, "capacity": 260, "status": "open", "url": "https://lu.ma/", "description": "Latency budgets, quantization, and what actually runs on a phone.", "tags": ["infra", "gpu"], "source": "seed"}, {"id": "tw-006", "title": "Consumer AI Demo Night", "host": "Marina Product Club", "cohosts": ["Ink & Interface"], "speakers": [{"name": "Kwame Mensah", "role": "Founder, Ink & Interface"}, {"name": "Hana Sato", "role": "Product, Marina Product Club"}], "start": "2026-10-06T18:30:00-07:00", "end": "2026-10-06T21:00:00-07:00", "category": "consumer", "venue": "Palace of Fine Arts", "address": "3601 Lyon St", "neighborhood": "Marina", "lat": 37.803908, "lng": -122.448756, "rsvp": 388, "capacity": 500, "status": "open", "url": "https://partiful.com/", "description": "Twelve consumer apps, three minutes each, one rotunda.", "tags": ["demo"], "source": "seed"}, {"id": "tw-007", "title": "Robots Downtown: 12 demos on foot", "host": "Fogline Robotics", "cohosts": ["Moscone Center"], "speakers": [{"name": "Elena Petrova", "role": "Hardware, Fogline Robotics"}, {"name": "Ravi Iyer", "role": "Robotics, Tidewater Compute"}], "start": "2026-10-07T10:00:00-07:00", "end": "2026-10-07T12:30:00-07:00", "category": "infra", "venue": "Moscone Center", "address": "747 Howard St", "neighborhood": "SoMa", "lat": 37.78392, "lng": -122.401253, "rsvp": 154, "capacity": 200, "status": "open", "url": "https://lu.ma/", "tags": ["robotics"], "source": "seed"}, {"id": "tw-008", "title": "Bio × AI Lunch: wet lab to weights", "host": "Mission Bay Founders", "cohosts": [], "speakers": [{"name": "Nadia Karimi", "role": "Computational biology"}, {"name": "Oliver Grant", "role": "Founder, Mission Bay Founders"}], "start": "2026-10-07T13:00:00-07:00", "end": "2026-10-07T14:30:00-07:00", "category": "climate", "venue": "100 Hooper", "address": "100 Hooper St", "neighborhood": "Showplace Square", "lat": 37.768969, "lng": -122.398587, "rsvp": 90, "capacity": 90, "status": "full", "url": "https://lu.ma/", "tags": ["bio"], "source": "seed"}, {"id": "tw-009", "title": "Secret Wine & Wireframes", "host": "Untitled Studio", "cohosts": ["Ink & Interface"], "speakers": [{"name": "Beatriz Sousa", "role": "Design lead, Untitled Studio"}], "start": "2026-10-07T18:00:00-07:00", "end": "2026-10-07T20:30:00-07:00", "category": "consumer", "rsvp": 58, "capacity": 60, "status": "approval", "url": "https://partiful.com/", "description": "Location shared with approved guests. Bring one wireframe you’re unsure about.", "tags": ["design"], "source": "seed"}, {"id": "tw-010", "title": "Hayes Valley Jam: a live-coded concert", "host": "Chordline", "cohosts": ["SFJAZZ Center"], "speakers": [{"name": "Yusuf Demir", "role": "Live coder"}, {"name": "Grace Park", "role": "Cellist"}], "start": "2026-10-07T19:00:00-07:00", "end": "2026-10-07T22:00:00-07:00", "category": "party", "venue": "SFJAZZ Center", "address": "201 Franklin St", "neighborhood": "Hayes Valley", "lat": 37.776414, "lng": -122.421341, "rsvp": 265, "capacity": 300, "status": "open", "url": "https://partiful.com/", "tags": ["music"], "source": "seed"}, {"id": "tw-011", "title": "Climate Hardware Showcase", "host": "Kelp & Kilowatt", "cohosts": ["Fort Mason Center"], "speakers": [{"name": "Marcus Bell", "role": "Founder, Kelp & Kilowatt"}, {"name": "Dmitri Volkov", "role": "Grid systems"}, {"name": "Anika Sharma", "role": "Climate investor, Northshore Capital"}], "start": "2026-10-08T09:30:00-07:00", "end": "2026-10-08T12:00:00-07:00", "category": "climate", "venue": "Fort Mason Center", "address": "2 Marina Blvd", "neighborhood": "Marina", "lat": 37.805506, "lng": -122.431939, "rsvp": 133, "capacity": 220, "status": "open", "url": "https://lu.ma/", "tags": ["climate", "hardware"], "source": "seed"}, {"id": "tw-012", "title": "Fintech Office Hours with 8 operators", "host": "Ledgerline", "cohosts": [], "speakers": [{"name": "Leila Haddad", "role": "Ledgerline"}, {"name": "Lucas Moreau", "role": "Payments operator"}, {"name": "Ingrid Solberg", "role": "Risk operator"}], "start": "2026-10-08T12:00:00-07:00", "end": "2026-10-08T14:00:00-07:00", "category": "investors", "venue": "One Sansome", "address": "1 Sansome St", "neighborhood": "Financial District", "lat": 37.790485, "lng": -122.40094, "rsvp": 64, "capacity": 80, "status": "open", "url": "https://lu.ma/", "tags": ["fintech"], "source": "seed"}, {"id": "tw-013", "title": "Open-Source Model Meetup", "host": "Weights & Wharves", "cohosts": ["Loopwright Labs"], "speakers": [{"name": "Wei Zhang", "role": "Inference lead, Weights & Wharves"}, {"name": "Chidi Nwosu", "role": "Maintainer"}], "start": "2026-10-08T17:30:00-07:00", "end": "2026-10-08T20:00:00-07:00", "category": "ai", "venue": "Salesforce Tower", "address": "415 Mission St", "neighborhood": "Transbay", "lat": 37.789934, "lng": -122.397097, "rsvp": 250, "capacity": 250, "status": "waitlist", "url": "https://lu.ma/", "tags": ["open source"], "source": "seed"}, {"id": "tw-014", "title": "Crypto × AI Late Show", "host": "Nightwatch Collective", "cohosts": [], "speakers": [{"name": "Rosa Delgado", "role": "Protocol researcher"}], "start": "2026-10-08T19:00:00-07:00", "end": "2026-10-08T23:00:00-07:00", "category": "web3", "rsvp": 121, "capacity": 200, "status": "open", "url": "https://partiful.com/", "tags": ["web3"], "source": "seed"}, {"id": "tw-015", "title": "Rooftop Karaoke for Founders", "host": "Late Fog Social", "cohosts": ["Bayline Ventures"], "speakers": [], "start": "2026-10-08T20:00:00-07:00", "end": "2026-10-08T23:30:00-07:00", "category": "party", "venue": "1000 Van Ness", "address": "1000 Van Ness Ave", "neighborhood": "Civic Center", "lat": 37.785172, "lng": -122.420018, "rsvp": 180, "capacity": 180, "status": "full", "url": "https://partiful.com/", "tags": ["party"], "source": "seed"}, {"id": "tw-016", "title": "City Hall Roundtable: AI and the civic stack", "host": "Civic Interop Group", "cohosts": ["City of San Francisco · Office of Innovation"], "speakers": [{"name": "Priya Raman", "role": "Civic Interop Group"}, {"name": "Oliver Grant", "role": "Open data"}], "start": "2026-10-09T09:00:00-07:00", "end": "2026-10-09T11:00:00-07:00", "category": "infra", "venue": "San Francisco City Hall", "address": "1 Dr Carlton B Goodlett Pl", "neighborhood": "Civic Center", "lat": 37.779332, "lng": -122.418728, "rsvp": 88, "capacity": 140, "status": "approval", "url": "https://lu.ma/", "tags": ["civic"], "source": "seed"}, {"id": "tw-017", "title": "Design for Agents: UX crit session", "host": "Ink & Interface", "cohosts": ["Untitled Studio"], "speakers": [{"name": "Kwame Mensah", "role": "Founder, Ink & Interface"}, {"name": "Beatriz Sousa", "role": "Design lead, Untitled Studio"}, {"name": "Hana Sato", "role": "Product"}], "start": "2026-10-09T11:00:00-07:00", "end": "2026-10-09T13:00:00-07:00", "category": "consumer", "venue": "Frontier Tower", "address": "995 Market St", "neighborhood": "Mid-Market", "lat": 37.782255, "lng": -122.409955, "rsvp": 110, "capacity": 120, "status": "open", "url": "https://lu.ma/", "tags": ["design", "agents"], "source": "seed"}, {"id": "tw-018", "title": "Pre-seed Pitch Sprint: 12 teams, 3 minutes each", "host": "Bayline Ventures", "cohosts": ["Northshore Capital"], "speakers": [{"name": "Devan Okafor", "role": "Partner, Bayline Ventures"}, {"name": "Jonah Feldman", "role": "GP, Northshore Capital"}, {"name": "Anika Sharma", "role": "Judge"}], "start": "2026-10-09T15:00:00-07:00", "end": "2026-10-09T17:00:00-07:00", "category": "founders", "venue": "Transamerica Pyramid", "address": "600 Montgomery St", "neighborhood": "Financial District", "lat": 37.795157, "lng": -122.402732, "rsvp": 202, "capacity": 220, "status": "open", "url": "https://partiful.com/", "tags": ["pitch"], "source": "seed"}, {"id": "tw-019", "title": "Courtside Demo Day", "host": "Court Vision Founders", "cohosts": ["Chase Center", "Bayline Ventures"], "speakers": [{"name": "Tomás Herrera", "role": "Loopwright Labs"}, {"name": "Maya Lindqvist", "role": "Cloudpost Harbor"}, {"name": "Sofia Marchetti", "role": "Emerging manager"}, {"name": "Ravi Iyer", "role": "Tidewater Compute"}], "start": "2026-10-09T19:30:00-07:00", "end": "2026-10-09T22:00:00-07:00", "category": "founders", "venue": "Chase Center", "address": "1 Warriors Way", "neighborhood": "Mission Bay", "lat": 37.768003, "lng": -122.387564, "rsvp": 455, "capacity": 800, "status": "open", "url": "https://partiful.com/", "description": "Twenty demos on the arena floor. Doors 7, first demo 7:30 sharp.", "tags": ["demo day"], "source": "seed"}, {"id": "tw-020", "title": "Hackathon Finals: 24h Build-a-Bird", "host": "Loopwright Labs", "cohosts": ["Weights & Wharves"], "speakers": [{"name": "Chidi Nwosu", "role": "Judge"}, {"name": "Aiko Tanaka", "role": "Judge"}], "start": "2026-10-10T10:00:00-07:00", "end": "2026-10-10T13:00:00-07:00", "category": "ai", "venue": "Salesforce Tower", "address": "415 Mission St", "neighborhood": "Transbay", "lat": 37.789934, "lng": -122.397097, "rsvp": 143, "capacity": 160, "status": "open", "url": "https://lu.ma/", "tags": ["hackathon"], "source": "seed"}, {"id": "tw-021", "title": "Chrona: an AI-native persistent world — first public launch", "host": "Chrona", "cohosts": ["Seedance · Volcengine"], "speakers": [], "start": "2026-10-10T14:00:00-07:00", "end": "2026-10-10T17:00:00-07:00", "category": "ai", "rsvp": 64, "capacity": 80, "status": "approval", "url": "https://chrona.world", "description": "Eight creators demo the worlds they built with Codex and Claude Code. Nothing resets.", "tags": ["launch", "worlds", "co-build"], "source": "seed"}, {"id": "tw-022", "title": "Global Founders Bonfire", "host": "Letterman Society", "cohosts": [], "speakers": [], "start": "2026-10-10T18:00:00-07:00", "end": "2026-10-10T21:00:00-07:00", "category": "party", "venue": "Letterman Digital Arts Center", "address": "1 Letterman Dr", "neighborhood": "Presidio", "lat": 37.798082, "lng": -122.449702, "rsvp": 205, "capacity": 260, "status": "open", "url": "https://partiful.com/", "tags": ["party"], "source": "seed"}, {"id": "tw-023", "title": "Afterparty, location TBA", "host": "Late Fog Social", "cohosts": ["Nightwatch Collective"], "speakers": [], "start": "2026-10-10T21:00:00-07:00", "end": "2026-10-11T01:00:00-07:00", "category": "party", "rsvp": 310, "capacity": 400, "status": "open", "url": "https://partiful.com/", "tags": ["party"], "source": "seed"}, {"id": "tw-024", "title": "Closing Brunch & Leaderboard Awards", "host": "SF Tech Week Citizens", "cohosts": ["Cloudpost Harbor"], "speakers": [{"name": "Priya Raman", "role": "SF Tech Week Citizens"}], "start": "2026-10-11T11:00:00-07:00", "end": "2026-10-11T13:30:00-07:00", "category": "party", "venue": "2 Harrison", "address": "2 Harrison St", "neighborhood": "Rincon Hill", "lat": 37.789278, "lng": -122.389099, "rsvp": 167, "capacity": 200, "status": "open", "url": "https://partiful.com/", "tags": ["closing"], "source": "seed"}, {"id": "tw-025", "title": "Airship Regatta: the scenic fly-out", "host": "Citizens of the ink city", "cohosts": [], "speakers": [], "start": "2026-10-11T15:00:00-07:00", "end": "2026-10-11T17:00:00-07:00", "category": "consumer", "venue": "Pier 27", "address": "Pier 27, The Embarcadero", "neighborhood": "Embarcadero", "lat": 37.8025, "lng": -122.3944, "rsvp": 74, "capacity": 999, "status": "open", "url": "", "description": "In-world only: every bird flies the harbor loop at sunset.", "tags": ["in-world"], "source": "seed"}], "citizens": [{"name": "ink.gull", "bird": "gull", "rsvps": ["tw-001", "tw-002", "tw-003", "tw-005", "tw-013", "tw-018", "tw-019", "tw-021", "tw-024"], "sample": true}, {"name": "pelican_pete", "bird": "pelican", "rsvps": ["tw-001", "tw-006", "tw-011", "tw-019", "tw-022", "tw-025"], "sample": true}, {"name": "fogline", "bird": "peregrine", "rsvps": ["tw-004", "tw-005", "tw-007", "tw-012", "tw-016"], "sample": true}, {"name": "mira.builds", "bird": "hummingbird", "rsvps": ["tw-002", "tw-013", "tw-017", "tw-020", "tw-021", "tw-009"], "sample": true}, {"name": "raven_at_dusk", "bird": "raven", "rsvps": ["tw-003", "tw-010", "tw-014", "tw-015", "tw-023"], "sample": true}, {"name": "telegraph.hill", "bird": "parrot", "rsvps": ["tw-006", "tw-010", "tw-025"], "sample": true}, {"name": "seedlingSF", "bird": "gull", "rsvps": ["tw-004", "tw-018"], "sample": true}, {"name": "worldrunner", "bird": "peregrine", "rsvps": ["tw-021"], "sample": true}]}</script>
+<script id="tw-layer">/*! SF TECH WEEK × CITY IN INK — world layer v0.3 (2026-09-07)
+ *
+ * Runs on top of "San Francisco — City in Ink · Seagull Flight" (React 19 + Three r160, single file).
+ * The base bundle is untouched except for three one-line patches made by build.py that expose:
+ *   window.__sfCity   the scene controller (scene, camera, renderer, flight model, palette materials)
+ *   window.__SF_THREE the Three.js classes bundled inside the app (no second copy of three needed)
+ *   window.__sfGeo    lon/lat → local-metre projection, landmark table, flight constants, palettes
+ *
+ * Everything Tech Week lives in window.TW. Persistence is in-memory in v1: replace TW.backend
+ * (events / rsvp / claim / cobuild) with your own API (Supabase…) — the UI only talks to it.
+ */
+(function () {
+  'use strict';
+  const VERSION = '0.6.0';
+  const qs = new URLSearchParams(location.search);
+  const CFG = {
+    eventsUrl: qs.get('events') || 'events.json',            // produced by scrape-techweek.mjs; seed used when missing
+    airshipModel: qs.get('ship') || 'assets/airship.glb',    // optional Blender export (airship_blender.py)
+    brand: {                                                 // official Tech Week mark: local host-kit copy first, then the site's own file, then plain text
+      local: 'assets/brand/techweek-logo.svg', official: 'https://www.tech-week.com/marketing/logo-white.svg',
+      link: 'https://www.tech-week.com/calendar', hostKit: 'https://www.tech-week.com/host',
+    },
+    tz: 'America/Los_Angeles',
+    week: { start: '2026-10-05', days: 7, label: 'OCT 5–11, 2026' },
+    harbor: { lat: 37.8036, lng: -122.3828 },                // holding pattern over the bay for address-less events
+    mast: { lat: 37.7951, lng: -122.3957 },                  // leaderboard mast, Embarcadero Plaza
+    flagship: { lat: 37.7955, lng: -122.3937, y: 268 },      // week banner over the Ferry Building
+    spawn: { lat: 37.7975, lng: -122.3925, heading: -0.5 },  // where a new bird enters the city (Embarcadero, facing downtown)
+    shipAltitude: 108, shipScale: 1,
+    fleet: 12,                                               // only the most-RSVP'd events get an airship/balloon; the rest fly a kite from the roof
+    lod: { near: 900, mid: 2600 },                           // chip detail bands (metres from the camera)
+  };
+  const CATS = {
+    ai:        { key: 'ai',        label: 'AI',             color: '#3f7f8c', dark: '#2a5760' },
+    founders:  { key: 'founders',  label: 'Founders',       color: '#c6583c', dark: '#8a3d29' },
+    investors: { key: 'investors', label: 'Investors',      color: '#6b5b95', dark: '#473b66' },
+    infra:     { key: 'infra',     label: 'Infra & Robots', color: '#33405f', dark: '#1f2840' },
+    consumer:  { key: 'consumer',  label: 'Consumer',       color: '#d9a441', dark: '#9c752a' },
+    climate:   { key: 'climate',   label: 'Climate & Bio',  color: '#4e8a5a', dark: '#345d3d' },
+    party:     { key: 'party',     label: 'Party',          color: '#c46a8a', dark: '#87475e' },
+    web3:      { key: 'web3',      label: 'Web3',           color: '#a0623a', dark: '#6b4127' },
+    unclaimed: { key: 'unclaimed', label: 'Unclaimed',      color: '#9a9088', dark: '#645b55' },
+  };
+  const BIRDS = {
+    gull:        { name: 'Western Gull',          cn: '海鸥',     dot: '#f4edda', scale: 1.0,  blurb: 'The native. Steady, unbothered, everywhere.' },
+    pelican:     { name: 'Brown Pelican',         cn: '鹈鹕',     dot: '#cdbb9c', scale: 1.4,  bill: 2.1, colors: { white: '#cdbb9c', head: '#e9dfc6', gray: '#8c7b66', beak: '#d6ad63' }, roles: { white: 'tw-bird', head: 'tw-bird', gray: 'tw-bird', beak: 'tw-bird' }, blurb: 'Big wings, slow flaps. Looks great over the piers.' },
+    raven:       { name: 'Common Raven',          cn: '渡鸦',     dot: '#2a2430', scale: 0.92, colors: { white: '#2a2430', head: '#2a2430', gray: '#1d1922', beak: '#2a2430' }, roles: { white: 'void', head: 'void', gray: 'void', beak: 'void' }, blurb: 'Ink on ink. The Sutro Tower crowd.' },
+    hummingbird: { name: 'Anna’s Hummingbird',    cn: '蜂鸟',     dot: '#2f8a6d', scale: 0.5,  bill: 1.5, colors: { white: '#2f8a6d', head: '#c4457a', gray: '#22684f', beak: '#1b1b1b' }, roles: { white: 'tw-bird', head: 'tw-bird', gray: 'tw-bird', beak: 'hair' }, blurb: 'Tiny and fast to look at. Same flight model, half the bird.' },
+    peregrine:   { name: 'Peregrine Falcon',      cn: '游隼',     dot: '#5c636e', scale: 1.08, colors: { white: '#e7ddcb', head: '#3a3d45', gray: '#5c636e', beak: '#e0b74a' }, roles: { white: 'stone-light', head: 'hair', gray: 'metal', beak: 'tw-bird' }, blurb: 'Nests on the PG&E building downtown. Naturally.' },
+    parrot:      { name: 'Telegraph Hill Parrot', cn: '电报山鹦鹉', dot: '#3f9a4a', scale: 0.72, colors: { white: '#3f9a4a', head: '#c93a3a', gray: '#2f7a3a', beak: '#e8dcc0' }, roles: { white: 'tw-bird', head: 'tw-bird', gray: 'tw-bird', beak: 'tw-bird' }, blurb: 'The cherry-headed conure. Loud, local, beloved.' },
+  };
+  const NEIGHBORHOODS = [
+    ['Financial District', 37.7946, -122.3999], ['Embarcadero', 37.7993, -122.3977], ['Jackson Square', 37.7969, -122.4023],
+    ['SoMa', 37.7785, -122.4056], ['Mission Bay', 37.7708, -122.3917], ['Dogpatch', 37.7590, -122.3880],
+    ['Mission', 37.7599, -122.4148], ['Hayes Valley', 37.7759, -122.4245], ['Civic Center', 37.7793, -122.4193],
+    ['Nob Hill', 37.7930, -122.4161], ['Chinatown', 37.7941, -122.4078], ['North Beach', 37.8060, -122.4103],
+    ['Russian Hill', 37.8014, -122.4189], ['Marina', 37.8030, -122.4360], ['Presidio', 37.7989, -122.4662], ['Potrero Hill', 37.7605, -122.4005],
+  ];
+
+  const TW = window.TW = { version: VERSION, CFG, CATS, BIRDS };
+  let c, T, GEO, ROOT;
+  const SEED = (() => { try { return JSON.parse(document.getElementById('tw-events-seed').textContent); } catch (e) { return { events: [], citizens: [] }; } })();
+  const state = TW.state = {
+    events: [], citizens: [], clusters: [], source: '',
+    user: { name: '', bird: 'gull', rsvps: new Set(), cobuilds: new Set() },
+    selected: null, day: 'all', query: '', tab: 'events', board: 'events', sort: 'going', venues: [], shipModel: null, ready: false, view: 'chase', welcomed: false, past: [], clockOffset: 0, digestFor: '',
+  };
+  const log = (...a) => console.log('%c[TW]', 'color:#c6583c', ...a);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const ease = (t) => t * t * (3 - 2 * t);
+  const catOf = (ev) => (ev.claimed ? CATS[ev.category] || CATS.founders : CATS.unclaimed);
+  const rsvpCount = (ev) => (ev.rsvp | 0) + (state.user.rsvps.has(ev.id) ? 1 : 0);
+  // one number: RSVPs. Waitlisted / sold-out events break ties upward — that is the whole ranking.
+  const heat = (ev) => rsvpCount(ev) + (ev.status === 'waitlist' || ev.status === 'full' ? 0.5 : 0);
+  const personName = (p) => (typeof p === 'string' ? p : (p && (p.name || p.title)) || '');
+  const hostsOf = (ev) => [ev.host].concat((ev.cohosts || []).map(personName)).filter(Boolean);
+  const speakersOf = (ev) => (ev.speakers || []).map((s) => (typeof s === 'string' ? { name: s, role: '' } : s)).filter((s) => s.name);
+  function regStatus(ev) {
+    const cap = ev.capacity | 0, n = rsvpCount(ev); const key = ev.status || (cap && n >= cap ? 'full' : 'open'); const left = cap ? Math.max(0, cap - n) : null;
+    const label = key === 'full' ? 'Sold out' : key === 'waitlist' ? 'Waitlist open' : key === 'approval' ? 'RSVP · approval required' : key === 'closed' ? 'Registration closed' : left !== null ? (left ? `Open · ${left} spot${left === 1 ? '' : 's'} left` : 'Open') : 'Registration open';
+    return { key, left, label, cls: key === 'open' ? 'ok' : key === 'waitlist' || key === 'approval' ? 'warn' : 'no', open: key === 'open' || key === 'waitlist' || key === 'approval', short: key === 'full' ? 'sold out' : key === 'waitlist' ? 'waitlist' : key === 'closed' ? 'closed' : '', leftText: key === 'full' ? '' : left !== null ? `${left} left` : '' };
+  }
+  const mapsUrl = (ev) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ev.address && ev.claimed ? `${ev.address}, San Francisco, CA` : `${ev.lat},${ev.lng}`)}&travelmode=walking`;
+  const rsvpHost = (ev) => (/partiful/i.test(ev.url || '') ? 'Partiful' : /lu\.ma|luma/i.test(ev.url || '') ? 'Luma' : /eventbrite/i.test(ev.url || '') ? 'Eventbrite' : '');
+
+  /* ---------------------------------------------------------------- backend (swap me) */
+  const backend = TW.backend = {
+    async events() {
+      try {
+        const r = await fetch(CFG.eventsUrl, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status);
+        const j = await r.json(); const list = Array.isArray(j) ? j : j.events;
+        if (!Array.isArray(list) || !list.length) throw new Error('empty');
+        return { list, citizens: j.citizens || [], source: `${CFG.eventsUrl} · ${list.length} events${j.fetchedAt ? ' · fetched ' + j.fetchedAt.slice(0, 10) : ''}` };
+      } catch (e) { return { list: SEED.events, citizens: SEED.citizens || [], source: 'sample programme · the tech-week.com calendar goes live Sep 8 → run scrape-techweek.mjs' }; }
+    },
+    async rsvp(ev, user) { return { ok: true }; },
+    async claim(ev, place, user) { return { ok: true }; },
+    async cobuild(ev, user, form) { return { ok: true }; },
+  };
+
+  /* ---------------------------------------------------------------- time helpers */
+  const dtf = (opts) => new Intl.DateTimeFormat('en-US', Object.assign({ timeZone: CFG.tz }, opts));
+  const fmt = {
+    dayShort: (d) => dtf({ weekday: 'short' }).format(d), dayNum: (d) => dtf({ day: 'numeric' }).format(d),
+    time: (d) => dtf({ hour: 'numeric', minute: '2-digit' }).format(d).replace(' ', '\u202f'),
+    when: (ev) => `${fmt.dayShort(ev.startDate)} Oct ${fmt.dayNum(ev.startDate)} · ${fmt.time(ev.startDate)}`,
+    whenShort: (ev) => `${fmt.dayShort(ev.startDate)} ${fmt.time(ev.startDate)}`,
+    dayKey: (d) => `${fmt.dayShort(d)} ${fmt.dayNum(d)}`,
+    dateKey: (d) => dtf({ year: 'numeric', month: '2-digit', day: '2-digit' }).format(d),
+    clock: (d) => dtf({ weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(d).replace(/,/g, ' ·').toUpperCase() + ' PT',
+  };
+  const WEEK_DAYS = (() => {
+    const out = [{ key: 'all', label: 'All' }]; const start = new Date(CFG.week.start + 'T12:00:00-07:00');
+    for (let i = 0; i < CFG.week.days; i++) { const d = new Date(start.getTime() + i * 864e5); out.push({ key: fmt.dayKey(d), label: `${fmt.dayShort(d)} ${fmt.dayNum(d)}` }); }
+    return out;
+  })();
+
+  /* ---------------------------------------------------------------- the city runs on Pacific time; ?now=2026-10-07T15:00 previews any moment of the week */
+  const nowMs = () => Date.now() + state.clockOffset;
+  (function initClock() { const n = qs.get('now'); if (!n) return; const d = new Date(/[zZ]|[+-]\d\d:\d\d$/.test(n) ? n : `${n}${n.length === 10 ? 'T09:00' : ''}:00-07:00`.replace(/:00:00-07:00$/, ':00-07:00')); if (!isNaN(d)) state.clockOffset = d.getTime() - Date.now(); })();
+  const isPast = (ev) => ev.endDate.getTime() < nowMs();
+  const isToday = (ev) => fmt.dateKey(ev.startDate) === fmt.dateKey(new Date(nowMs()));
+  const ptMorning = (d) => { const k = fmt.dateKey(d).split('/'); return new Date(`${k[2]}-${k[0]}-${k[1]}T09:00:00-07:00`); };
+  const icsStamp = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const icsText = (t) => String(t).replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
+  const gcalUrl = (ev) => `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.title)}&dates=${icsStamp(ev.startDate)}/${icsStamp(ev.endDate)}&details=${encodeURIComponent([hostsOf(ev).join(' × '), ev.url || ''].filter(Boolean).join('\n'))}&location=${encodeURIComponent(ev.claimed && ev.address ? `${ev.address}, San Francisco, CA` : 'TBA')}&ctz=America/Los_Angeles`;
+  function downloadIcs(list, name) {                          // one .ics with a 9 AM PT day-of alarm per event = the daily reminder, without a server
+    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SF Tech Week x City in Ink//EN', 'CALSCALE:GREGORIAN'];
+    for (const ev of list) L.push('BEGIN:VEVENT', `UID:${ev.id}@sf-techweek-ink`, `DTSTAMP:${icsStamp(new Date())}`, `DTSTART:${icsStamp(ev.startDate)}`, `DTEND:${icsStamp(ev.endDate)}`, `SUMMARY:${icsText(ev.title)}`, `DESCRIPTION:${icsText([hostsOf(ev).join(' × '), speakersOf(ev).map((x) => x.name).join(', '), ev.url || ''].filter(Boolean).join('\n'))}`, `LOCATION:${icsText(ev.claimed && ev.address ? `${ev.address}, San Francisco, CA` : 'TBA')}`, ev.url ? `URL:${ev.url}` : 'X-TW-URL:', 'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText('Today in SF: ' + ev.title)}`, `TRIGGER;VALUE=DATE-TIME:${icsStamp(ptMorning(ev.startDate))}`, 'END:VALARM', 'END:VEVENT');
+    L.push('END:VCALENDAR');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\r\n')], { type: 'text/calendar' })); a.download = name || 'sf-tech-week-my-week.ics'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+
+  /* ---------------------------------------------------------------- geometry helpers */
+  const V3 = (x, y, z) => new T.Vector3(x, y, z);
+  const solid = (role, hex, opts) => c.createSolidMaterial(role, hex, opts || {});
+  function rod(a, b, r, mat) {
+    const d = new T.Vector3().subVectors(b, a); const len = d.length();
+    const m = new T.Mesh(new T.CylinderGeometry(r, r, len, 6, 1), mat);
+    m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(V3(0, 1, 0), d.normalize()); return m;
+  }
+  function pennantGeometry(w, h) { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute([0, 0, 0, 0, h, 0, w, h * 0.5, 0], 3)); g.setIndex([0, 1, 2]); g.computeVertexNormals(); return g; }
+  const ringGeometry = (r, h, seg) => new T.CylinderGeometry(r, r, h, seg || 40, 1, true);
+  let buildingsMesh = null;
+  function roofHeightAt(x, z, radius) {
+    if (!buildingsMesh) c.scene.traverse((o) => { if (!buildingsMesh && o.isMesh && /Refined DataSF footprints/.test(o.name)) buildingsMesh = o; });
+    let best = -Infinity;
+    if (buildingsMesh) {
+      const a = buildingsMesh.geometry.attributes.position.array, s = buildingsMesh.scale.x; const lx = x / s, lz = z / s, lr = radius / s, lr2 = lr * lr;
+      for (let i = 0; i < a.length; i += 3) { const dx = a[i] - lx; if (dx > lr || dx < -lr) continue; const dz = a[i + 2] - lz; if (dz > lr || dz < -lr) continue; if (dx * dx + dz * dz < lr2) { const y = a[i + 1] * s; if (y > best) best = y; } }
+    }
+    for (const lm of Object.values(GEO.ha || {})) { const p = GEO.Hn(lm.longitude, lm.latitude, 0); if ((p.x - x) ** 2 + (p.z - z) ** 2 < 95 * 95) best = Math.max(best, c.sampleTerrain(lm.longitude, lm.latitude) + lm.heightMeters); }
+    return best;
+  }
+
+  /* ---------------------------------------------------------------- poster: the airship banner = the event's cover + the numbers that matter */
+  function wrapLines(g, text, maxW) {
+    const out = []; const push = (l) => { if (l) out.push(l); };
+    for (const para of String(text).split('\n')) {
+      const hasSpaces = /\s/.test(para.trim()); const units = hasSpaces ? para.split(/\s+/) : Array.from(para); let cur = '';
+      for (const u of units) { const t = cur ? (hasSpaces ? cur + ' ' + u : cur + u) : u; if (g.measureText(t).width > maxW && cur) { push(cur); cur = u; } else cur = t; }
+      push(cur);
+    }
+    return out;
+  }
+  function fitText(g, text, x, y, maxW, size, family, weight, maxLines, minSize) {
+    let s = size, lines;
+    for (;;) { g.font = `${weight} ${s}px ${family}`; lines = wrapLines(g, text, maxW); if (lines.length <= maxLines || s <= (minSize || 24)) break; s -= 3; }
+    if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].replace(/.{2}$/, '…'); }
+    const lh = s * 1.08; lines.forEach((l, i) => g.fillText(l, x, y + i * lh)); return y + lines.length * lh;
+  }
+  const truncate = (g, text, maxW) => { let t = String(text); while (t.length > 4 && g.measureText(t).width > maxW) t = t.replace(/\s*\S*…?$/, '') + '…'; return t; };
+  function drawMark(g, x, y, s, color) {
+    g.save(); g.translate(x, y); g.strokeStyle = color; g.fillStyle = color; g.lineWidth = Math.max(2, s * 0.09);
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(0, s * 1.55); g.stroke(); g.beginPath(); g.moveTo(0, 0); g.lineTo(s, s * 0.32); g.lineTo(0, s * 0.64); g.closePath(); g.fill(); g.restore();
+  }
+  const hash = (s) => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  function drawCoverArt(g, ev, x, y, w, h) {                   // stand-in cover when the event has no image yet: ink rings in the category colour
+    const cat = catOf(ev); let seed = hash(ev.id); const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); g.fillStyle = cat.color; g.fillRect(x, y, w, h);
+    g.fillStyle = 'rgba(52,38,47,.10)'; for (let i = 0; i < h; i += 6) g.fillRect(x, y + i, w, 1);
+    for (let i = 0; i < 5; i++) { const r = 40 + rnd() * 120, cx = x + rnd() * w, cy = y + rnd() * h; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.strokeStyle = i % 2 ? '#f6ecd8' : cat.dark; g.lineWidth = 4 + rnd() * 6; g.stroke(); }
+    g.fillStyle = '#f6ecd8'; for (let i = 0; i < 60; i++) { g.beginPath(); g.arc(x + rnd() * w, y + rnd() * h, 1.5 + rnd() * 2, 0, Math.PI * 2); g.fill(); }
+    g.font = `700 ${Math.round(h * 0.62)}px Georgia, serif`; g.fillStyle = 'rgba(246,236,216,.16)'; g.textBaseline = 'alphabetic'; g.fillText(fmt.dayNum(ev.startDate), x + w * 0.08, y + h * 0.92);
+    g.restore();
+  }
+  function drawPoster(ev, cv) {
+    const W = 800, H = 450; cv = cv || document.createElement('canvas'); cv.width = W; cv.height = H;
+    const g = cv.getContext('2d'); const cat = catOf(ev); const st = regStatus(ev); const cw = 318, band = 68;
+    g.fillStyle = '#f6ecd8'; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(52,38,47,0.045)'; for (let yy = band; yy < H; yy += 7) g.fillRect(cw, yy, W - cw, 1);
+    g.fillStyle = cat.color; g.fillRect(0, 0, W, band);
+    if (ev.coverImg) { const im = ev.coverImg, tw = cw, th = H - band; g.fillStyle = cat.dark; g.fillRect(0, band, tw, th); const k = Math.min(tw / im.width, th / im.height); const dw = im.width * k, dh = im.height * k; g.drawImage(im, (tw - dw) / 2, band + (th - dh) / 2, dw, dh); }   // whole cover, letterboxed in the category colour
+    else drawCoverArt(g, ev, 0, band, cw, H - band);
+    g.lineWidth = 10; g.strokeStyle = '#34262f'; g.strokeRect(5, 5, W - 10, H - 10); g.lineWidth = 3; g.beginPath(); g.moveTo(cw, band); g.lineTo(cw, H); g.stroke();
+    g.textBaseline = 'middle'; g.fillStyle = '#f6ecd8'; g.font = '700 26px ui-monospace, Menlo, Consolas, monospace';
+    g.fillText(fmt.when(ev).toUpperCase(), 32, band / 2); g.textAlign = 'right'; g.fillText('SF TECH WEEK ’26', W - 32, band / 2); g.textAlign = 'left';
+    const x = cw + 26, maxW = W - x - 30; g.textBaseline = 'top'; g.fillStyle = '#34262f';
+    let y = fitText(g, ev.title, x, band + 22, maxW, 44, 'Georgia, "Times New Roman", "Songti SC", serif', 700, 3, 26);
+    g.fillStyle = '#6a5960'; g.font = '500 22px "Avenir Next", "PingFang SC", "Helvetica Neue", sans-serif'; g.fillText(truncate(g, hostsOf(ev).join(' × '), maxW), x, y + 8); y += 36;
+    const sp = speakersOf(ev); g.font = '600 19px ui-monospace, Menlo, monospace'; g.fillStyle = cat.dark; const sy = y + 4, maxLines = Math.max(1, Math.floor((H - 112 - sy) / 23));
+    if (!sp.length) g.fillText('Speakers TBA', x, sy);
+    else sp.slice(0, maxLines).forEach((sk, i, arr) => { const more = i === arr.length - 1 && sp.length > arr.length ? ` +${sp.length - arr.length} more` : ''; g.fillText(truncate(g, `${i === 0 ? 'Speakers: ' : ''}${sk.name}${sk.role ? ' — ' + sk.role : ''}${more}`, maxW), x, sy + i * 23); });
+    g.font = '700 40px Georgia, serif'; g.fillStyle = '#34262f'; g.textBaseline = 'alphabetic'; const num = `${rsvpCount(ev)}`; g.fillText(num, x, H - 92);
+    const nw = g.measureText(num).width; g.font = '700 19px ui-monospace, monospace'; g.fillText('RSVPS', x + nw + 10, H - 94);
+    const tail = [st.leftText, st.short].filter(Boolean).join(' · ').toUpperCase(); if (tail) { g.fillStyle = st.short ? '#8a3d29' : '#6a5960'; g.fillText(truncate(g, tail, maxW - nw - 120), x + nw + 108, H - 94); }
+    g.fillStyle = '#34262f'; g.font = '700 19px ui-monospace, monospace'; g.textBaseline = 'top';
+    g.fillText(truncate(g, ev.claimed ? [ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · ') : 'NO ADDRESS YET — CLAIM ONE FROM THE CITY', maxW - 60), x, H - 62);
+    drawMark(g, W - 62, H - 68, 30, cat.dark);
+    if (!ev.claimed) { g.save(); g.translate(cw / 2, H * 0.62); g.rotate(-0.2); g.strokeStyle = 'rgba(246,236,216,.9)'; g.lineWidth = 5; g.strokeRect(-150, -28, 300, 56); g.fillStyle = 'rgba(246,236,216,.9)'; g.font = '700 30px ui-monospace, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('UNCLAIMED', 0, 1); g.restore(); }
+    return cv;
+  }
+  function posterTexture(ev) {
+    if (!ev.posterCanvas) { ev.posterCanvas = drawPoster(ev); const t = new T.Texture(ev.posterCanvas); t.anisotropy = 4; t.needsUpdate = true; ev.tex = t; }
+    else { drawPoster(ev, ev.posterCanvas); ev.tex.needsUpdate = true; }
+    return ev.tex;
+  }
+  function loadCover(ev) {                                     // Partiful / Luma cover (og:image). Needs CORS or a local copy → scrape-techweek.mjs --download-images
+    if (!ev.image || ev.coverImg || ev.coverFailed) return;
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = () => { ev.coverImg = im; posterTexture(ev); if (state.selected === ev) renderCard(ev); };
+    im.onerror = () => { ev.coverFailed = true; }; im.src = ev.image;
+  }
+  function bannerMaterial(tex) {
+    const U = c.globalUniforms;
+    return new T.ShaderMaterial({
+      uniforms: { map: { value: tex }, uFogColor: U.uFogColor, uFogNear: U.uFogNear, uFogFar: U.uFogFar, uFogMax: U.uFogMax, uCamPos: U.uCamPos, uLight: { value: 1 } },
+      vertexShader: 'varying vec2 vUv; varying vec3 vW; void main(){ vUv = uv; vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }',
+      fragmentShader: 'uniform sampler2D map; uniform vec3 uFogColor, uCamPos; uniform float uFogNear, uFogFar, uFogMax, uLight; varying vec2 vUv; varying vec3 vW; void main(){ vec2 uv = gl_FrontFacing ? vUv : vec2(1.0 - vUv.x, vUv.y); vec3 col = texture2D(map, uv).rgb * uLight; float fog = smoothstep(uFogNear, uFogFar, distance(vW, uCamPos)) * uFogMax; gl_FragColor = vec4(mix(col, uFogColor, fog), 1.0); }',
+      side: T.DoubleSide,
+    });
+  }
+  const bannerMaterials = [];
+
+  /* ---------------------------------------------------------------- airship */
+  const VEHICLES = ['airship', 'balloon', 'zeppelin', 'blimp'];
+  const SPECS = { airship: { L: 24, R: 6.2, bands: [-0.48, -0.18, 0.14, 0.44], bandH: 1.5, fin: 1 }, zeppelin: { L: 31, R: 5.1, bands: [-0.62, -0.38, -0.14, 0.1, 0.34, 0.58], bandH: 0.9, fin: 0.8 }, blimp: { L: 19, R: 7.6, bands: [-0.3, 0.3], bandH: 2.6, fin: 1.25 }, balloon: { L: 9, R: 9 } };
+  function shade(hex, k) { const n = parseInt(hex.slice(1), 16); const f = (v) => clamp(Math.round(k >= 0 ? v + (255 - v) * k : v * (1 + k)), 0, 255); return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => f(v).toString(16).padStart(2, '0')).join(''); }
+  function liveryOf(ev) { const cat = catOf(ev), t = ev.tint || 0; return { key: cat.key + t, hull: t === 1 ? shade(cat.color, 0.22) : t === 2 ? shade(cat.color, -0.22) : cat.color, stripe: t === 2 ? '#f6ecd8' : t === 1 ? cat.dark : '#efe4cf', fin: cat.dark }; }
+  function buildAirship(liv, S, kind) {
+    const spec = SPECS[kind] || SPECS.airship; const g = new T.Group(); g.name = 'Tech Week ' + (kind || 'airship'); const L = spec.L * S, R = spec.R * S;
+    const hull = solid('tw-hull-' + liv.key, liv.hull), cream = solid('tw-stripe-' + liv.key, liv.stripe), dark = solid('tw-fin-' + liv.key, liv.fin);
+    const wood = solid('tw-wood', '#8a6a48'), inkM = solid('tw-ink', '#3a2e34'), brass = solid('tw-brass', '#c9a24d');
+    const env = new T.SphereGeometry(1, 36, 20); env.scale(R, R * 0.96, L); env.computeVertexNormals(); g.add(new T.Mesh(env, hull));
+    for (const z of spec.bands) { const rz = R * Math.sqrt(Math.max(0.05, 1 - z * z)) * 1.012; const band = ringGeometry(rz, spec.bandH * S, 44); band.rotateX(Math.PI / 2); band.translate(0, 0, z * L); g.add(new T.Mesh(band, cream)); }
+    const finGeo = new T.BoxGeometry(0.34 * S, 4.6 * S * spec.fin, 5.4 * S * spec.fin);
+    for (const [rz, x, y] of [[0, 0, R * 0.7], [Math.PI / 2, R * 0.72, 0], [-Math.PI / 2, -R * 0.72, 0]]) { const f = new T.Mesh(finGeo, dark); f.position.set(x, y, -L * 0.8); f.rotation.z = rz; g.add(f); }
+    const hullY = -R - 3.1 * S, gl = kind === 'zeppelin' ? 12 : 9.2;
+    const boat = new T.Mesh(new T.BoxGeometry(3.6 * S, 2.2 * S, gl * S), wood); boat.position.set(0, hullY, 0.4 * S); g.add(boat);
+    const bow = new T.Mesh(new T.ConeGeometry(1.8 * S, 2.6 * S, 4), wood); bow.rotation.x = Math.PI / 2; bow.rotation.y = Math.PI / 4; bow.position.set(0, hullY, (gl / 2 + 1.7) * S); g.add(bow);
+    const cabin = new T.Mesh(new T.BoxGeometry(2.7 * S, 1.9 * S, 3.4 * S), cream); cabin.position.set(0, hullY + 2.05 * S, -0.6 * S); g.add(cabin);
+    const canopy = new T.Mesh(new T.BoxGeometry(3.3 * S, 0.22 * S, 4 * S), dark); canopy.position.set(0, hullY + 3.1 * S, -0.6 * S); g.add(canopy);
+    for (const [x, z] of [[1.6, 3.6], [-1.6, 3.6], [1.6, -3.6], [-1.6, -3.6]]) g.add(rod(V3(x * S, hullY + 1.1 * S, z * S), V3(x * 1.7 * S, -R * 0.72, z * 1.6 * S), 0.09 * S, inkM));
+    const prop = new T.Group(); prop.position.set(0, hullY + 0.3 * S, -(gl / 2 + 0.1) * S);
+    prop.add(new T.Mesh(new T.CylinderGeometry(0.32 * S, 0.32 * S, 0.9 * S, 10), brass).rotateX(Math.PI / 2));
+    for (let i = 0; i < 3; i++) { const b = new T.Mesh(new T.BoxGeometry(0.28 * S, 3.4 * S, 0.5 * S), wood); b.position.y = 1.55 * S; const pivot = new T.Group(); pivot.rotation.z = (i / 3) * Math.PI * 2; pivot.add(b); prop.add(pivot); }
+    g.add(prop); g.userData.prop = prop; g.userData.tail = V3(0, -R * 0.15, -L * 0.96); return g;
+  }
+  function buildBalloon(liv, S) {                              // hot-air balloon: eight gores, throat, wicker basket, burner
+    const g = new T.Group(); g.name = 'Tech Week balloon'; const R = SPECS.balloon.R * S;
+    const a = solid('tw-hull-' + liv.key, liv.hull), b = solid('tw-stripe-' + liv.key, liv.stripe), dark = solid('tw-fin-' + liv.key, liv.fin), wicker = solid('tw-wood', '#8a6a48'), inkM = solid('tw-ink', '#3a2e34'), brass = solid('tw-brass', '#c9a24d');
+    for (let i = 0; i < 8; i++) { const geo = new T.SphereGeometry(1, 6, 16, (i * Math.PI) / 4, Math.PI / 4, 0, Math.PI * 0.86); geo.scale(R, R * 1.12, R); geo.computeVertexNormals(); g.add(new T.Mesh(geo, i % 2 ? b : a)); }
+    g.add(new T.Mesh(new T.CylinderGeometry(R * 0.3, R * 0.43, R * 0.26, 12, 1, true), dark).translateY(-R * 1.13));
+    const by = -R * 1.26 - 4.6 * S; const basket = new T.Mesh(new T.BoxGeometry(3.2 * S, 2.4 * S, 3.2 * S), wicker); basket.position.y = by; g.add(basket);
+    g.add(new T.Mesh(new T.CylinderGeometry(0.5 * S, 0.5 * S, 1 * S, 10), brass).translateY(by + 2.2 * S));
+    for (const [x, z] of [[1.4, 1.4], [-1.4, 1.4], [1.4, -1.4], [-1.4, -1.4]]) g.add(rod(V3(x * S, by + 1.2 * S, z * S), V3(x * 0.14 * R / S * S * 0.5, -R * 1.26, z * 0.14 * R / S * S * 0.5), 0.08 * S, inkM));
+    g.userData.tail = V3(0, -R * 0.35, -R * 0.9); return g;
+  }
+  function buildKite(liv, S) {                                 // small tethered kite for events outside the fleet: a diamond in the category colour with ribbon tails
+    const g = new T.Group(); g.name = 'Tech Week kite'; const inkM = solid('tw-ink', '#3a2e34'), cream = solid('tw-stripe-' + liv.key, liv.stripe), dark = solid('tw-fin-' + liv.key, liv.fin);
+    const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute([0, 3 * S, 0, 1.9 * S, 0, 0, 0, -3.6 * S, 0, -1.9 * S, 0, 0], 3)); geo.setIndex([0, 1, 2, 0, 2, 3]); geo.computeVertexNormals();
+    g.add(new T.Mesh(geo, solid('tw-hull-' + liv.key, liv.hull))); g.add(rod(V3(0, 3 * S, 0), V3(0, -3.6 * S, 0), 0.07 * S, inkM)); g.add(rod(V3(-1.9 * S, 0, 0), V3(1.9 * S, 0, 0), 0.07 * S, inkM));
+    for (let i = 0; i < 3; i++) { const t = new T.Mesh(pennantGeometry(1.4 * S, 0.7 * S), i % 2 ? cream : dark); t.position.set(0.15 * S, -4.6 * S - i * 1.4 * S, 0); t.rotation.z = -0.5; g.add(t); }
+    g.userData.tail = V3(0, -3.6 * S, 0); return g;
+  }
+  function buildVehicle(ev, S) { const liv = liveryOf(ev); return ev.vehicle === 'balloon' ? buildBalloon(liv, S) : buildAirship(liv, S, ev.vehicle); }
+  function attachBanner(shipGroup, ev, S) {
+    const Wb = 26 * S, Hb = 14.6 * S; const spec = SPECS[ev.vehicle] || SPECS.airship; const R = spec.R * S, L = spec.L * S, balloon = ev.vehicle === 'balloon';
+    const mat = bannerMaterial(posterTexture(ev)); bannerMaterials.push(mat);
+    const plane = new T.Mesh(new T.PlaneGeometry(Wb, Hb), mat); plane.rotation.y = Math.PI / 2; plane.position.set(0, balloon ? -R * 0.55 : -R * 0.75, -L - 5 * S - Wb / 2); shipGroup.add(plane);
+    const tail = shipGroup.userData.tail || V3(0, 0, -L * 0.96), rope = solid('tw-rope', '#4a3b40');
+    for (const zz of [-Wb / 2, Wb / 2]) shipGroup.add(rod(tail, V3(0, plane.position.y + Hb / 2, plane.position.z + zz), 0.14 * S, rope));
+    shipGroup.userData.banner = plane;
+  }
+  function makeShip(ev) {
+    const S = CFG.shipScale; const g = new T.Group(); g.name = `airship:${ev.id}`;
+    if (!ev.wantsVehicle) { const k = buildKite(liveryOf(ev), 2); g.add(k); Object.assign(g.userData, { tail: k.userData.tail, faceZ: true, tetherTop: 7.2, kite: true, phase: Math.random() * Math.PI * 2, ev }); ev.hasVehicle = false; return g; }
+    ev.hasVehicle = true;
+    const body = state.shipModel ? state.shipModel.clone() : buildVehicle(ev, S);
+    if (state.shipModel) { body.traverse((o) => { if (o.userData && o.userData.prop) g.userData.prop = o; }); g.userData.tail = V3(0, -1, -23 * S); }
+    else Object.assign(g.userData, { prop: body.userData.prop, tail: body.userData.tail });
+    g.add(body); attachBanner(g, ev, S); g.userData.phase = Math.random() * Math.PI * 2; g.userData.ev = ev; return g;
+  }
+
+  /* ---------------------------------------------------------------- venues: marker, guests (one bird per few RSVPs), speakers, deck */
+  const PROPS = ['stage', 'screen', 'seats', 'bar', 'plants', 'balloons', 'spotlight'];
+  function instancedBirds(spots, scale, mats) {                // spots: [{x,y,z,rot,s}] — every RSVP bracket becomes a perched bird (InstancedMesh, 2 draw calls)
+    const N = spots.length; if (!N) return null; const g = new T.Group(); g.name = 'birds';
+    const bodyGeo = new T.SphereGeometry(1, 10, 7); bodyGeo.scale(0.34, 0.3, 0.6); const headGeo = new T.SphereGeometry(1, 8, 6); headGeo.scale(0.19, 0.19, 0.22);
+    const body = new T.InstancedMesh(bodyGeo, mats.body, N), head = new T.InstancedMesh(headGeo, mats.head, N); body.frustumCulled = head.frustumCulled = false;
+    const m = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), sc = new T.Vector3();
+    spots.forEach((p, i) => { const s = (p.s || 1) * scale; e.set(0, p.rot, 0); q.setFromEuler(e); sc.set(s, s, s); m.compose(V3(p.x, p.y + 0.34 * s, p.z), q, sc); body.setMatrixAt(i, m); m.compose(V3(p.x + Math.sin(p.rot) * 0.55 * s, p.y + 0.72 * s, p.z + Math.cos(p.rot) * 0.55 * s), q, sc); head.setMatrixAt(i, m); });
+    body.instanceMatrix.needsUpdate = head.instanceMatrix.needsUpdate = true; g.add(body); g.add(head); return g;
+  }
+  function guestSpots(ev, deck) {
+    const n = clamp(Math.round(rsvpCount(ev) / 8), 2, 36); const out = [];
+    if (deck) { for (let i = 0; i < n; i++) { const col = i % 9, row = Math.floor(i / 9); out.push({ x: -12.5 + col * 3.1 + (row % 2) * 1.2, y: ev.roof + 1.9, z: 3.2 + row * 2.2, rot: Math.PI }); } }
+    else { for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + 0.3; out.push({ x: Math.sin(a) * 8.6, y: ev.roof + 0.9, z: Math.cos(a) * 8.6, rot: a + Math.PI }); } }
+    return out;
+  }
+  function speakerSpots(ev, deck) {
+    const sp = speakersOf(ev).slice(0, 6); const n = sp.length; if (!n) return [];
+    return sp.map((s, i) => ({ x: (i - (n - 1) / 2) * 3.2, y: ev.roof + (deck ? 3.2 : 1.6), z: deck ? -6.8 : -4.5, rot: 0, s: 1.7, name: s.name, role: s.role || '' }));
+  }
+  function venueMarker(ev) {
+    const cat = catOf(ev); const g = new T.Group(); g.name = `venue:${ev.id}`; const y = ev.roof; const deck = !!ev.cobuild;
+    g.add(new T.Mesh(ringGeometry(9, 0.6, 40), solid('tw-ring-' + cat.key, cat.color)).translateY(y + 0.5)); g.userData.ring = g.children[0];
+    const pole = new T.Mesh(new T.CylinderGeometry(0.28, 0.34, 15, 8), solid('tw-ink', '#3a2e34')); pole.position.set(0, y + 7.5, 0); g.add(pole);
+    const flag = new T.Mesh(pennantGeometry(6.2, 3.2), solid('tw-flag-' + cat.key, cat.color)); flag.position.set(0.1, y + 11.4, 0); g.add(flag); g.userData.flag = flag;
+    if (deck) g.add(buildPavilion(ev));
+    const mats = { body: solid('gull-white', '#f4edda'), head: solid('gull-gray', '#9babb5') };
+    const guests = instancedBirds(guestSpots(ev, deck), 1, mats); if (guests) g.add(guests);
+    const spk = speakerSpots(ev, deck); ev.speakerSpots = spk;
+    if (spk.length) {
+      const podium = new T.InstancedMesh(new T.CylinderGeometry(0.55, 0.7, 1.4, 10), solid('tw-fin-' + cat.key, cat.dark), spk.length); podium.frustumCulled = false; const m = new T.Matrix4();
+      spk.forEach((p, i) => { m.makeTranslation(p.x, p.y + 0.7, p.z); podium.setMatrixAt(i, m); }); podium.instanceMatrix.needsUpdate = true; g.add(podium);
+      const birds = instancedBirds(spk.map((p) => Object.assign({}, p, { y: p.y + 1.4 })), 1, { body: solid('tw-speaker', '#e7ddcb'), head: solid('hair', '#3a2e34') }); g.add(birds);
+    }
+    return g;
+  }
+  function buildPavilion(ev) {
+    const cb = ev.cobuild, y = ev.roof + 1.2; const g = new T.Group(); g.name = 'pavilion';
+    const col = solid('tw-pav-' + cb.color.replace('#', ''), cb.color), cream = solid('tw-cream', '#efe4cf'), inkM = solid('tw-ink', '#3a2e34'), wood = solid('tw-wood', '#8a6a48');
+    g.add(new T.Mesh(new T.BoxGeometry(30, 1.2, 22), cream).translateY(y));
+    for (const [x, z] of [[-13, -9], [13, -9], [-13, 9], [13, 9]]) g.add(new T.Mesh(new T.CylinderGeometry(0.45, 0.45, 9.5, 8), inkM).translateY(y + 5.3).translateX(x).translateZ(z));
+    if (cb.roof === 'flat') g.add(new T.Mesh(new T.BoxGeometry(32, 0.7, 24), col).translateY(y + 10.4));
+    else if (cb.roof === 'awning') { for (const s of [-1, 1]) { const m = new T.Mesh(new T.BoxGeometry(16.5, 0.5, 24.5), col); m.position.set(s * 7.6, y + 10.9, 0); m.rotation.z = s * 0.28; g.add(m); } }
+    else { const dome = new T.SphereGeometry(1, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2); dome.scale(16, 9, 12); dome.computeVertexNormals(); g.add(new T.Mesh(dome, col).translateY(y + 10)); }
+    const has = (p) => cb.props.includes(p);
+    if (has('stage')) g.add(new T.Mesh(new T.BoxGeometry(14, 1.4, 5.5), wood).translateY(y + 1.3).translateZ(-7));
+    if (has('screen')) { const m = new T.Mesh(new T.PlaneGeometry(12, 6.75), bannerMaterial(posterTexture(ev))); m.position.set(0, y + 5.6, -9.6); g.add(m); }
+    if (has('seats')) for (let r = 0; r < 3; r++) for (let k = -4; k <= 4; k++) g.add(new T.Mesh(new T.BoxGeometry(1.1, 0.9, 1.1), inkM).translateY(y + 1.05).translateX(k * 1.7).translateZ(-2.6 + r * 2));
+    if (has('bar')) g.add(new T.Mesh(new T.BoxGeometry(2.2, 1.6, 9), wood).translateY(y + 1.4).translateX(12).translateZ(2));
+    if (has('plants')) for (const [x, z] of [[-13, 9], [13, 9], [-13, -9], [13, -9], [-9, 10], [9, 10]]) g.add(new T.Mesh(new T.ConeGeometry(1.4, 4.2, 7), solid('tw-leaf', '#4e8a5a')).translateY(y + 3.6).translateX(x).translateZ(z));
+    if (has('balloons')) for (let i = 0; i < 9; i++) { const x = -12 + i * 3, z = 10.6; g.add(rod(V3(x, y + 0.6, z), V3(x, y + 6 + (i % 3), z), 0.05, inkM)); g.add(new T.Mesh(new T.SphereGeometry(1.1, 12, 8), i % 2 ? col : cream).translateY(y + 7 + (i % 3)).translateX(x).translateZ(z)); }
+    if (has('spotlight')) { const beam = new T.Mesh(new T.ConeGeometry(4.5, 60, 14, 1, true), solid('tw-beam', '#f2e7cf', { opacity: 0.22 })); beam.position.set(0, y + 41, 0); g.add(beam); }
+    return g;
+  }
+  function harborBuoy(ev) {
+    const g = new T.Group(); g.name = `buoy:${ev.id}`;
+    g.add(new T.Mesh(ringGeometry(7, 0.5, 32), solid('tw-ring-unclaimed', '#9a9088')).translateY(1.2));
+    g.add(new T.Mesh(new T.CylinderGeometry(1.4, 1.8, 3, 10), solid('tw-buoy', '#c6583c')).translateY(2.2));
+    g.add(new T.Mesh(pennantGeometry(4, 2), solid('tw-ink', '#3a2e34')).translateY(4.4)); return g;
+  }
+  function buildMast() {
+    const p = GEO.Hn(CFG.mast.lng, CFG.mast.lat, 0); const y0 = c.sampleTerrain(CFG.mast.lng, CFG.mast.lat);
+    const g = new T.Group(); g.name = 'Tech Week leaderboard mast'; g.position.set(p.x, y0, p.z);
+    g.add(new T.Mesh(new T.CylinderGeometry(1.1, 1.6, 118, 10), solid('tw-ink', '#3a2e34')).translateY(59));
+    g.add(new T.Mesh(new T.CylinderGeometry(9, 9, 1.6, 24), solid('tw-cream', '#efe4cf')).translateY(0.8));
+    g.add(new T.Mesh(pennantGeometry(16, 8), solid('tw-hull-founders', CATS.founders.color)).translateY(110));
+    g.userData.pennants = new T.Group(); g.add(g.userData.pennants); g.userData.top = V3(p.x, y0 + 114, p.z); return g;
+  }
+  const BIRD_CAT = { gull: 'founders', pelican: 'consumer', raven: 'infra', hummingbird: 'climate', peregrine: 'investors', parrot: 'party' };
+  function refreshMastPennants() {                            // the mast flies the buildings with the most events, biggest pennant on top
+    const m = state.mast; if (!m) return; const grp = m.userData.pennants; while (grp.children.length) grp.remove(grp.children[0]);
+    const total = (v) => v.members.reduce((a, e) => a + rsvpCount(e), 0);
+    (state.venues || []).filter((v) => v.members.length && v.members[0].claimed).sort((a, b) => b.members.length - a.members.length || total(b) - total(a)).slice(0, 10)
+      .forEach((v, i) => { const s = 0.55 + Math.min(1, v.members.length / 4) * 0.9; const cat = catOf(v.members[0]); const f = new T.Mesh(pennantGeometry(9 * s, 4.2 * s), solid('tw-flag-' + cat.key, cat.color)); f.position.set(1.2, 100 - i * 8.6, 0); f.userData.phase = i; grp.add(f); });
+  }
+  function buildFlagship() {
+    const ev = { id: 'flagship', title: 'SF Tech Week 2026 — the city in ink', host: 'Tech Week by a16z', cohosts: ['every host in this city'], speakers: [], start: '2026-10-05T09:00:00-07:00', category: 'founders', venue: 'Ferry Building', address: 'Embarcadero', claimed: true, rsvp: 0, flagship: true, status: 'open' };
+    ev.startDate = new Date(ev.start); ev.rsvp = state.events.reduce((a, e) => a + rsvpCount(e), 0);
+    const g = new T.Group(); g.name = 'flagship'; const body = buildAirship({ key: 'flagship', hull: CATS.founders.color, stripe: '#efe4cf', fin: CATS.founders.dark }, 2.1, 'airship'); g.add(body);
+    Object.assign(g.userData, { prop: body.userData.prop, tail: body.userData.tail, phase: 1.3, ev }); attachBanner(g, ev, 2.1);
+    const p = GEO.Hn(CFG.flagship.lng, CFG.flagship.lat, CFG.flagship.y); g.position.copy(p); g.userData.baseY = p.y; return g;
+  }
+
+  /* ---------------------------------------------------------------- minimal GLB loader (Blender export, flat colours) */
+  async function loadGLB(url) {
+    const r = await fetch(url); if (!r.ok) throw new Error(`${url} ${r.status}`);
+    const buf = await r.arrayBuffer(); const dv = new DataView(buf); if (dv.getUint32(0, true) !== 0x46546c67) throw new Error('not a GLB');
+    let off = 12, json = null, bin = null;
+    while (off < buf.byteLength) { const len = dv.getUint32(off, true), type = dv.getUint32(off + 4, true); const chunk = buf.slice(off + 8, off + 8 + len); if (type === 0x4e4f534a) json = JSON.parse(new TextDecoder().decode(chunk)); else if (type === 0x004e4942) bin = chunk; off += 8 + len; }
+    const acc = (i) => { const a = json.accessors[i], bv = json.bufferViews[a.bufferView]; const C = { 5120: Int8Array, 5121: Uint8Array, 5122: Int16Array, 5123: Uint16Array, 5125: Uint32Array, 5126: Float32Array }[a.componentType]; const n = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }[a.type]; const s = (bv.byteOffset || 0) + (a.byteOffset || 0); return { array: new C(bin.slice(s, s + a.count * n * C.BYTES_PER_ELEMENT)), n }; };
+    const toHex = (f) => '#' + f.slice(0, 3).map((v) => Math.round(Math.pow(Math.max(0, v), 1 / 2.2) * 255).toString(16).padStart(2, '0')).join('');
+    const meshes = json.meshes.map((m) => m.primitives.map((p) => { const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(acc(p.attributes.POSITION).array, 3)); if (p.attributes.NORMAL !== undefined) geo.setAttribute('normal', new T.BufferAttribute(acc(p.attributes.NORMAL).array, 3)); else geo.computeVertexNormals(); if (p.indices !== undefined) geo.setIndex(new T.BufferAttribute(acc(p.indices).array, 1)); const mat = json.materials && json.materials[p.material]; const hex = toHex((mat && mat.pbrMetallicRoughness && mat.pbrMetallicRoughness.baseColorFactor) || [0.8, 0.8, 0.8, 1]); return new T.Mesh(geo, solid('tw-model-' + hex.slice(1), hex)); }));
+    const build = (ni) => { const n = json.nodes[ni]; const g = new T.Group(); g.name = n.name || ''; if (n.translation) g.position.fromArray(n.translation); if (n.rotation) g.quaternion.fromArray(n.rotation); if (n.scale) g.scale.fromArray(n.scale); if (n.mesh !== undefined) meshes[n.mesh].forEach((m) => g.add(m.clone())); if (/prop/i.test(g.name)) g.userData.prop = true; (n.children || []).forEach((ci) => g.add(build(ci))); return g; };
+    const root = new T.Group(); (json.scenes[json.scene || 0].nodes || []).forEach((ni) => root.add(build(ni))); return root;
+  }
+
+  /* ---------------------------------------------------------------- events → world */
+  function normalizeEvent(raw, i) {
+    const ev = Object.assign({ id: raw.id || `tw-${i}`, title: 'Untitled event', host: 'Someone in SF', category: 'founders', rsvp: 0, cohosts: [], speakers: [], cobuilders: [] }, raw);
+    ev.startDate = new Date(ev.start || `${CFG.week.start}T18:00:00-07:00`); if (isNaN(ev.startDate)) ev.startDate = new Date(`${CFG.week.start}T18:00:00-07:00`);
+    ev.endDate = ev.end ? new Date(ev.end) : new Date(ev.startDate.getTime() + 3 * 36e5); if (isNaN(ev.endDate) || ev.endDate <= ev.startDate) ev.endDate = new Date(ev.startDate.getTime() + 3 * 36e5);
+    ev.dayKey = fmt.dayKey(ev.startDate); ev.claimed = Number.isFinite(+ev.lat) && Number.isFinite(+ev.lng);
+    ev.vehicle = VEHICLES.includes(ev.vehicle) ? ev.vehicle : VEHICLES[hash(ev.id) % VEHICLES.length]; ev.tint = Number.isInteger(ev.tint) ? ev.tint : hash(ev.id + ':tint') % 3;
+    if (!CATS[ev.category] || ev.category === 'unclaimed') ev.category = guessCategory(ev); return ev;
+  }
+  function guessCategory(ev) {
+    const t = `${ev.title} ${ev.host} ${(ev.tags || []).join(' ')}`.toLowerCase();
+    if (/party|drinks|karaoke|happy hour|afterparty|social|music|jam|bonfire|brunch/.test(t)) return 'party';
+    if (/investor|vc|fund|lp |seed|series|capital|fintech|pitch/.test(t)) return 'investors';
+    if (/climate|bio|health|energy|hardware/.test(t)) return 'climate';
+    if (/crypto|web3|onchain|defi|token/.test(t)) return 'web3';
+    if (/infra|robot|gpu|inference|compute|devtool|open.?source|civic/.test(t)) return 'infra';
+    if (/consumer|design|ux|product|creator|regatta/.test(t)) return 'consumer';
+    if (/agent|\bai\b|model|llm|world/.test(t)) return 'ai';
+    return 'founders';
+  }
+  function placeEvents() {
+    const slots = new Map(); let harborIndex = 0; const unclaimed = state.events.filter((e) => !e.claimed).length;
+    state.events.slice().sort((a, b) => heat(b) - heat(a)).forEach((ev, i) => { ev.rank = i; ev.wantsVehicle = i < CFG.fleet; });
+    for (const ev of state.events) {
+      if (ev.claimed) {
+        const p = GEO.Hn(+ev.lng, +ev.lat, 0); const key = `${Math.round(p.x / 45)},${Math.round(p.z / 45)}`; const n = slots.get(key) || 0; slots.set(key, n + 1); ev.venueKey = key;
+        const ang = n * 2.1, off = n ? 34 : 0; ev.world = V3(p.x + Math.sin(ang) * off, 0, p.z + Math.cos(ang) * off); ev.ground = c.sampleTerrain(+ev.lng, +ev.lat);
+        const roof = roofHeightAt(p.x, p.z, 24); ev.roof = Number.isFinite(roof) && roof > ev.ground + 2 ? roof : ev.ground + 4; ev.shipY = ev.wantsVehicle ? ev.roof + CFG.shipAltitude + n * 26 : ev.roof + 36 + n * 9; ev.anchorY = ev.roof + 12;
+      } else {
+        const k = harborIndex++; ev.venueKey = 'harbor:' + k; const lng = CFG.harbor.lng + (k - (unclaimed - 1) / 2) * 0.00125, lat = CFG.harbor.lat + (k % 2) * 0.0006;
+        const p = GEO.Hn(lng, lat, 0); ev.world = V3(p.x, 0, p.z); ev.ground = 0; ev.roof = 0; ev.shipY = ev.wantsVehicle ? 86 + (k % 2) * 18 : 40 + (k % 2) * 8; ev.anchorY = 4;
+      }
+    }
+    computeMeta();
+  }
+  function computeMeta() {                                     // popularity ranks (chip LOD) + neighborhood clusters (far view)
+    state.events.slice().sort((a, b) => heat(b) - heat(a)).forEach((ev, i) => { ev.rank = i; ev.wantsVehicle = i < CFG.fleet; });
+    if (state.events.length) { const xs = state.events.map((e) => e.world.x), zs = state.events.map((e) => e.world.z); state.fence = { minX: Math.min(...xs) - 900, maxX: Math.max(...xs) + 900, minZ: Math.min(...zs) - 900, maxZ: Math.max(...zs) + 900 }; }
+    const vg = new Map(); for (const ev of state.events) { if (!vg.has(ev.venueKey)) vg.set(ev.venueKey, []); vg.get(ev.venueKey).push(ev); }
+    state.venues = [...vg.entries()].map(([key, members]) => { members.sort((a, b) => a.startDate - b.startDate); const m0 = members[0]; return { key, name: m0.claimed ? (m0.venue || m0.address) : 'Harbor', members, pos: V3(m0.world.x, Math.max(...members.map((e) => e.shipY)) + 16, m0.world.z), el: null, open: false }; });
+    if (chipLayer) buildVenueChips();
+    const groups = new Map();
+    for (const ev of state.events) { const k = ev.claimed ? (ev.neighborhood || ev.venue || 'Downtown') : 'Harbor · unclaimed'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(ev); }
+    (state.clusters || []).forEach((cl) => cl.el && cl.el.remove());
+    state.clusters = [...groups.entries()].map(([name, members]) => { const pos = V3(0, 0, 0); members.forEach((e) => pos.add(V3(e.world.x, e.shipY, e.world.z))); pos.multiplyScalar(1 / members.length); return { name, members, pos, el: null }; });
+    if (chipLayer) buildClusterChips();
+  }
+  function retireEvent(ev) {                                   // the event ended (Pacific time): the airship goes home, the roof empties, the lists forget it
+    if (ev.ship) { ROOT.remove(ev.ship); if (ev.ship.userData.tether) ROOT.remove(ev.ship.userData.tether); } if (ev.venueGroup) ROOT.remove(ev.venueGroup);
+    if (ev.chip) ev.chip.remove(); (ev.speakerChips || []).forEach((x) => x.el.remove());
+    const i = state.events.indexOf(ev); if (i >= 0) state.events.splice(i, 1); state.past.push(ev);
+    if (state.selected === ev) select(null); if (nav.ev === ev) nav.stop();
+    computeMeta(); renderList(); renderBoard(); toast(`${ev.title} has ended — its airship went home.`);
+  }
+  function lifecycleTick() { for (const ev of state.events.slice()) if (isPast(ev)) retireEvent(ev); updateClock(); }
+  function buildWorld() {
+    if (ROOT) c.scene.remove(ROOT); ROOT = new T.Group(); ROOT.name = 'Tech Week layer'; c.scene.add(ROOT); bannerMaterials.length = 0;
+    for (const ev of state.events) {
+      ev.posterCanvas = null; ev.tex = null;
+      const ship = makeShip(ev); ship.position.set(ev.world.x, ev.shipY, ev.world.z); ship.rotation.y = Math.random() * Math.PI * 2; ship.userData.baseY = ev.shipY; ev.ship = ship; ROOT.add(ship);
+      ev.venueGroup = ev.claimed ? venueMarker(ev) : harborBuoy(ev); ev.venueGroup.position.set(ev.world.x, 0, ev.world.z); ROOT.add(ev.venueGroup);
+      loadCover(ev);
+    }
+    state.mast = buildMast(); ROOT.add(state.mast); refreshMastPennants(); state.flagship = buildFlagship(); ROOT.add(state.flagship);
+    applyBannerLight(c.palette); buildChips();
+  }
+  function matRole(m) { const rec = c.materialRecords.find((r) => r.material === m); return rec ? rec.role : ''; }
+  function moveShip(ev) {
+    const s = ev.ship; s.userData.move = { from: s.position.clone(), to: V3(ev.world.x, ev.shipY, ev.world.z), t: 0, dur: 7 }; s.userData.baseY = ev.shipY; s.userData.anchorY = ev.anchorY;
+    rebuildVenue(ev); const liv = liveryOf(ev);
+    s.children[0].traverse((o) => { if (!o.isMesh) return; const r = matRole(o.material); if (/^tw-hull-/.test(r)) o.material = solid('tw-hull-' + liv.key, liv.hull); else if (/^tw-stripe-/.test(r)) o.material = solid('tw-stripe-' + liv.key, liv.stripe); else if (/^tw-fin-/.test(r)) o.material = solid('tw-fin-' + liv.key, liv.fin); });
+    posterTexture(ev);
+  }
+  function rebuildVenue(ev) { ROOT.remove(ev.venueGroup); ev.venueGroup = ev.claimed ? venueMarker(ev) : harborBuoy(ev); ev.venueGroup.position.set(ev.world.x, 0, ev.world.z); ROOT.add(ev.venueGroup); buildSpeakerChips(ev); }
+  function applyBannerLight(palette) { const v = palette === 'night' ? 0.58 : palette === 'dusk' ? 0.84 : 1; for (const m of bannerMaterials) m.uniforms.uLight.value = v; }
+
+  /* ---------------------------------------------------------------- per-frame */
+  let lastT = performance.now();
+  function frame() {
+    const now = performance.now(); const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now; const t = now / 1000; const cam = c.camera;
+    const animateShip = (s) => {
+      const u = s.userData;
+      if (u.move) { u.move.t = Math.min(1, u.move.t + dt / u.move.dur); const k = ease(u.move.t); s.position.lerpVectors(u.move.from, u.move.to, k); s.position.y += Math.sin(k * Math.PI) * 70; if (u.move.t >= 1) u.move = null; }
+      else s.position.y = u.baseY + Math.sin(t * 0.45 + u.phase) * 1.8;
+      const dx = cam.position.x - s.position.x, dz = cam.position.z - s.position.z;
+      let err = wrapAngle((u.faceZ ? Math.atan2(dx, dz) : Math.atan2(-dz, dx)) - s.rotation.y); if (Math.abs(err) > Math.PI / 2) err = wrapAngle(err + Math.PI);
+      s.rotation.y += clamp(err, -0.32 * dt, 0.32 * dt); s.rotation.z = Math.sin(t * 0.5 + u.phase) * 0.02; s.rotation.x = Math.sin(t * 0.33 + u.phase) * 0.02;
+      if (u.prop) u.prop.rotation.z += dt * 9;
+      if (u.tether) { const top = s.position.y - (u.tetherTop || 7), len = Math.max(1, top - u.anchorY); u.tether.scale.set(1, len, 1); u.tether.position.set(s.position.x, u.anchorY + len / 2, s.position.z); }
+    };
+    for (const ev of state.events) { if (ev.ship) animateShip(ev.ship); if (ev.venueGroup && ev.venueGroup.userData.flag) ev.venueGroup.userData.flag.rotation.y = Math.sin(t * 2.2 + ev.ship.userData.phase) * 0.18; }
+    if (state.flagship) animateShip(state.flagship);
+    if (state.mast) state.mast.userData.pennants.children.forEach((f) => { f.rotation.y = Math.sin(t * 2 + f.userData.phase) * 0.22; });
+    if (state.selected && state.selected.venueGroup && state.selected.venueGroup.userData.ring) { const r = state.selected.venueGroup.userData.ring; const k = 1 + Math.sin(t * 3) * 0.08; r.scale.set(k, 1, k); }
+  }
+
+  /* ---------------------------------------------------------------- first person ("beak cam") */
+  function applyView() {
+    if (state.view !== 'fpv' || !c.freeFlightEnabled || c.flightAvatar !== 'gull') return;
+    const ch = c.flightCharacter, pose = c.flightPose, h = ch.rotation.y, cam = c.camera;
+    cam.position.copy(ch.position).add(V3(Math.sin(h) * 1.1, 0.42, Math.cos(h) * 1.1));
+    cam.rotation.order = 'YXZ'; cam.rotation.set(-pose.rotation.x * 0.85, h + Math.PI, pose.rotation.z * 0.55);
+  }
+  function setView(v) { state.view = v; document.documentElement.classList.toggle('tw-fpv', v === 'fpv'); const b = document.getElementById('tw-view'); if (b) b.textContent = v === 'fpv' ? 'Beak cam · V' : 'Chase cam · V'; if (v !== 'fpv' && c.freeFlightEnabled) { c.camera.rotation.set(0, 0, 0); c.applyOrbit(); } }
+
+  /* ---------------------------------------------------------------- chips: signal over noise — three detail bands plus neighborhood clusters when you are far */
+  let chipLayer, navChip;
+  function mkChip(cls, html) { const el = document.createElement('button'); el.type = 'button'; el.className = 'tw-chip ' + cls; el.innerHTML = html; chipLayer.appendChild(el); return el; }
+  function buildChips() {
+    if (!chipLayer) { chipLayer = document.createElement('div'); chipLayer.className = 'tw-chips'; c.host.appendChild(chipLayer); }
+    chipLayer.innerHTML = '';
+    for (const ev of state.events) { ev.chip = mkChip('tw-chip-event', '<i></i><span></span><b></b><em></em>'); ev.chip.addEventListener('click', (e) => { e.stopPropagation(); select(ev, { look: !c.freeFlightEnabled }); }); refreshChip(ev); buildSpeakerChips(ev); }
+    buildClusterChips(); buildVenueChips();
+    state.meChip = mkChip('tw-chip-me', '<i></i><span></span><b></b>'); refreshMeChip();
+    state.flagship.userData.chip = mkChip('tw-chip-flag', `<i></i><span>Oct 5–11 · ${state.flagship.userData.ev.rsvp} RSVPs in the city</span><b>SF Tech Week 2026</b>`);
+    state.flagship.userData.chip.addEventListener('click', () => window.open(CFG.brand.link, '_blank', 'noopener'));
+    state.mast.userData.chip = mkChip('tw-chip-mast', '<i></i><span>Leaderboard</span><b>The mast · most events</b>'); state.mast.userData.chip.addEventListener('click', () => showTab('board'));
+  }
+  function buildClusterChips() { for (const cl of state.clusters) { if (cl.el) cl.el.remove(); cl.el = mkChip('tw-chip-cluster', `<i></i><span>${cl.members.length} event${cl.members.length > 1 ? 's' : ''}</span><b>${esc(cl.name)}</b>`); cl.el.addEventListener('click', (e) => { e.stopPropagation(); lookAt(cl.pos, 1100); }); } }
+  function buildVenueChips() {                                // one chip per building; click to expand the events held there
+    for (const vg of state.venues) {
+      if (vg.el) vg.el.remove(); vg.el = null; vg.members.forEach((e) => { e.venueChip = null; }); if (vg.members.length < 2 || !chipLayer) continue;
+      const el = document.createElement('div'); el.className = 'tw-chip tw-chip-venue' + (vg.open ? ' open' : '');
+      el.innerHTML = `<button type="button" class="tw-venue-head"><i></i><span>${vg.members.length} events · ${vg.members.reduce((a, e) => a + rsvpCount(e), 0)} RSVPs</span><b>${esc(vg.name)}</b></button><div class="tw-venue-rows">${vg.members.map((e) => `<button type="button" data-id="${esc(e.id)}" class="${state.selected === e ? 'active' : ''}"><i style="background:${catOf(e).color}"></i><span>${esc(fmt.whenShort(e))}</span><b>${esc(e.title)}</b><em>${rsvpCount(e)}</em></button>`).join('')}</div>`;
+      el.querySelector('.tw-venue-head').addEventListener('click', (e) => { e.stopPropagation(); vg.open = !vg.open; el.classList.toggle('open', vg.open); });
+      el.querySelectorAll('[data-id]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); select(state.events.find((x) => x.id === b.dataset.id), { look: !c.freeFlightEnabled }); }));
+      chipLayer.appendChild(el); vg.el = el; vg.members.forEach((e) => { e.venueChip = vg; });
+    }
+  }
+  function refreshMeChip() { if (!state.meChip) return; const b = BIRDS[state.user.bird] || BIRDS.gull; state.meChip.querySelector('i').style.background = b.dot; state.meChip.querySelector('span').textContent = b.name; state.meChip.querySelector('b').textContent = '@' + (state.user.name || 'you'); }
+  function buildSpeakerChips(ev) {
+    (ev.speakerChips || []).forEach((s) => s.el.remove()); ev.speakerChips = [];
+    for (const sp of ev.speakerSpots || []) { const el = mkChip('tw-chip-speaker', `<i></i><span>${esc(sp.role || 'speaker')}</span><b>${esc(sp.name)}</b>`); el.addEventListener('click', (e) => { e.stopPropagation(); select(ev); }); ev.speakerChips.push({ el, pos: V3(ev.world.x + sp.x, sp.y + 3 + (ev.speakerChips.length % 2) * 2.4, ev.world.z + sp.z) }); }
+  }
+  function refreshChip(ev) {
+    if (!ev.chip) return; const cat = catOf(ev); ev.chip.querySelector('i').style.background = cat.color; { const st = regStatus(ev); ev.chip.querySelector('em').textContent = `#${(ev.rank | 0) + 1} · ${rsvpCount(ev)} RSVPs${st.leftText ? ' · ' + st.leftText : ''}${st.short ? ' · ' + st.short : ''}`; }
+    ev.chip.classList.toggle('active', state.selected === ev); ev.chip.classList.toggle('unclaimed', !ev.claimed); ev.chip.dataset.level = ''; setChipLevel(ev, 'mid', true);
+  }
+  function setChipLevel(ev, level, force) { if (!force && ev.chip.dataset.level === level) return; ev.chip.dataset.level = level; ev.chip.querySelector('span').textContent = level === 'near' ? fmt.when(ev) : fmt.whenShort(ev); ev.chip.querySelector('b').textContent = ev.title; ev.chip.classList.toggle('near', level === 'near'); }
+  const _v = () => new T.Vector3();
+  function updateChips() {
+    if (!chipLayer || chipLayer.hidden) return;
+    const cam = c.camera, W = c.host.clientWidth, H = c.host.clientHeight, v = _v(); const { near, mid } = CFG.lod;
+    const proj = (pos, dy) => { v.copy(pos); v.y += dy; const d = v.distanceTo(cam.position); v.project(cam); if (v.z > 1 || v.x < -1.15 || v.x > 1.15 || v.y < -1.15 || v.y > 1.15) return null; return { x: (v.x * 0.5 + 0.5) * W, y: (-v.y * 0.5 + 0.5) * H, d }; };
+    const hide = (el) => { if (el.style.display !== 'none') el.style.display = 'none'; };
+    const place = (el, p) => { el.style.display = ''; el.style.transform = `translate(-50%,-100%) translate(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px)`; el.style.opacity = p.d < 1800 ? 1 : p.d > 9000 ? 0.5 : (1 - ((p.d - 1800) / 7200) * 0.5).toFixed(2); };
+    const shown = [];
+    for (const cl of state.clusters) { const p = proj(cl.pos, 40); cl._p = p; cl._far = !p || p.d > mid; }
+    for (const vg of state.venues) { if (!vg.el) continue; const p = proj(vg.pos, 0); vg._p = p; const cl = state.clusters.find((k) => k.members.includes(vg.members[0])); vg._show = !!p && !(cl && cl._far && cl.members.length > 1) && (p.d < mid || vg.members.includes(state.selected)); }
+    for (const ev of state.events) {
+      if (ev.speakerChips && ev.speakerChips.length) { const dv = Math.hypot(cam.position.x - ev.world.x, cam.position.y - ev.roof, cam.position.z - ev.world.z); for (const s of ev.speakerChips) { const sp = dv < 340 ? proj(s.pos, 0) : null; if (sp) place(s.el, sp); else hide(s.el); } }
+      if (ev.venueChip && ev.venueChip._show) { hide(ev.chip); continue; }
+      const p = ev.ship ? proj(ev.ship.position, ev.hasVehicle ? 10 : 8) : null; ev._p = p; if (!p) { hide(ev.chip); continue; }
+      const sel = state.selected === ev, level = p.d < near ? 'near' : p.d < mid ? 'mid' : 'far';
+      const cl = state.clusters.find((k) => k.members.includes(ev)); const clustered = cl && cl._far && cl.members.length > 1;
+      const keep = sel || level === 'near' || (level === 'mid' && ev.rank < 10) || (level === 'far' && !clustered && ev.rank < 3);
+      if (!keep) { hide(ev.chip); continue; }
+      setChipLevel(ev, level); shown.push({ el: ev.chip, p, pri: sel ? -1 : ev.rank });
+    }
+    for (const vg of state.venues) { if (!vg.el) continue; if (vg._show) shown.push({ el: vg.el, p: vg._p, pri: Math.min(...vg.members.map((e) => e.rank)) - (vg.members.includes(state.selected) ? 100 : 0) }); else hide(vg.el); }
+    for (const cl of state.clusters) { if (cl._p && cl._far && cl.members.length > 1 && !cl.members.some((e) => e === state.selected)) shown.push({ el: cl.el, p: cl._p, pri: 0 }); else hide(cl.el); }
+    const fp = proj(state.flagship.position, 22); if (fp) shown.push({ el: state.flagship.userData.chip, p: fp, pri: -2 }); else hide(state.flagship.userData.chip);
+    const mp = proj(state.mast.userData.top, 4); if (mp && mp.d < mid * 1.5) shown.push({ el: state.mast.userData.chip, p: mp, pri: 1 }); else hide(state.mast.userData.chip);
+    if (state.meChip) { const me = c.freeFlightEnabled && state.view !== 'fpv' && c.flightAvatar === 'gull' ? proj(c.flightCharacter.position, 1.1 * (BIRDS[state.user.bird] || BIRDS.gull).scale + 0.6) : null; if (me) place(state.meChip, me); else hide(state.meChip); }
+    shown.sort((a, b) => a.pri - b.pri || a.p.d - b.p.d);
+    shown.forEach((it, i) => { if (i < 34) place(it.el, it.p); else hide(it.el); });
+  }
+
+  /* ---------------------------------------------------------------- picking (no Raycaster in the bundle → screen-space pick) */
+  function installPicking() {
+    const el = c.renderer.domElement; let down = null;
+    el.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+    el.addEventListener('pointerup', (e) => {
+      if (!down) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y), dt = performance.now() - down.t; down = null; if (moved > 6 || dt > 600) return;
+      const rect = el.getBoundingClientRect(); const px = e.clientX - rect.left, py = e.clientY - rect.top, W = rect.width, H = rect.height; const cam = c.camera, v = _v(); let best = null;
+      const test = (pos, ev, sizeM, extra) => { v.copy(pos); const d = v.distanceTo(cam.position); v.project(cam); if (v.z > 1) return; const x = (v.x * 0.5 + 0.5) * W, y = (-v.y * 0.5 + 0.5) * H; const rPx = clamp((0.5 * H * sizeM) / (d * Math.tan((cam.fov * Math.PI) / 360)), 14, 90); const dist = Math.hypot(px - x, py - y); if (dist < rPx && (!best || dist < best.dist)) best = { ev, dist, extra }; };
+      for (const ev of state.events) { test(ev.ship.position, ev, ev.hasVehicle ? 24 : 9); if (ev.venueGroup) test(V3(ev.world.x, ev.roof + 8, ev.world.z), ev, 14); }
+      if (state.flagship) test(state.flagship.position, null, 52, 'flagship'); if (state.mast) test(state.mast.userData.top, null, 20, 'mast');
+      if (!best) return;
+      if (best.extra === 'flagship') window.open(CFG.brand.link, '_blank', 'noopener'); else if (best.extra === 'mast') showTab('board'); else select(best.ev, { look: !c.freeFlightEnabled });
+    });
+  }
+
+  /* ---------------------------------------------------------------- bird autopilot */
+  const FLIGHT_KEYS = /^(w|a|s|d|c|b|shift|control| |spacebar|arrowup|arrowdown|arrowleft|arrowright)$/;
+  const dest = (ev) => (ev.claimed ? (ev.venue || ev.address) : 'the harbor');
+  const nav = TW.nav = {
+    phase: 'idle', ev: null, target: null, radius: 72, elapsed: 0, tour: { active: false, queue: [], i: 0, dwell: 0, dwellFor: 14 },
+    label(ev, tail) { const t = this.tour; return `${t.active ? `Cruise ${t.i + 1}/${t.queue.length} → ` : '→ '}${dest(ev)} · ${rsvpCount(ev)} RSVPs · ${tail}`; },
+    start(ev) { this.ev = ev; this.target = V3(ev.world.x, (ev.claimed ? ev.roof : 0) + 18, ev.world.z); this.phase = 'travel'; this.elapsed = 0; this.tour.dwell = 0; setNavChip(this.label(ev, 'en route')); },
+    stop(silent) { const was = this.tour.active; this.tour.active = false; setCruiseButton(); if (this.phase === 'idle') return; this.phase = 'idle'; this.ev = null; if (c.freeFlightEnabled) c.clearFlightInput(); setNavChip(''); if (was) toast('You have the controls — T resumes the cruise.'); if (!silent) renderCard(state.selected); },
+    startTour(from) {                                          // the cruise: hottest event first, circle it, move on — the ranking decides the route
+      const q = state.events.filter((e) => e.claimed).sort((a, b) => heat(b) - heat(a)); if (!q.length) return;
+      const t = this.tour; t.queue = q; t.i = clamp(from | 0, 0, q.length - 1); t.active = true; t.dwell = 0; const ev = q[t.i]; select(ev); this.start(ev); setCruiseButton();
+    },
+    next() { const t = this.tour; if (!t.active || !t.queue.length) return; t.i = (t.i + 1) % t.queue.length; const ev = t.queue[t.i]; select(ev); this.start(ev); },
+    tick(dt) {
+      if (!c.freeFlightEnabled) return;
+      if (this.phase === 'idle') { fenceCheck(); return; }
+      const P = c.flightCharacter.position, H = c.flightCharacter.rotation.y, tgt = this.target; const dx = tgt.x - P.x, dz = tgt.z - P.z, dist = Math.hypot(dx, dz); let desired, cruiseY;
+      if (this.phase === 'travel') {
+        desired = Math.atan2(dx, dz); cruiseY = dist > 420 ? Math.max(tgt.y + 60, Math.min(P.y, tgt.y + 300)) : tgt.y + 56;
+        setNavChip(this.label(this.ev, dist > 1000 ? (dist / 1000).toFixed(1) + ' km' : Math.round(dist) + ' m'));
+        if (dist < 130) { this.phase = 'circle'; onArrive(this.ev); }
+      } else {
+        const radial = Math.atan2(dx, dz); desired = radial + Math.PI / 2 + Math.atan((this.radius - dist) / 40); cruiseY = tgt.y + 56;
+        if (state.view !== 'fpv') { const wantYaw = Math.atan2(-dx, -dz); c.yaw += wrapAngle(wantYaw - c.yaw) * Math.min(1, dt * 1.6); c.pitch += (0.1 - c.pitch) * Math.min(1, dt * 1.6); }
+        if (this.tour.active) { this.tour.dwell += dt; setNavChip(this.label(this.ev, `circling · next in ${Math.max(0, Math.ceil(this.tour.dwellFor - this.tour.dwell))}s · any key takes over`)); if (this.tour.dwell >= this.tour.dwellFor) { this.next(); return; } }
+      }
+      const err = wrapAngle(desired - H), inp = c.flightInput, aligned = Math.abs(err) < 0.5;
+      inp.left = err > 0.04; inp.right = err < -0.04; inp.boost = this.phase === 'travel' && dist > 1100 && aligned; inp.forward = this.phase === 'travel' && dist > 170 && aligned && !inp.boost; inp.backward = this.phase === 'circle' || dist < 100;
+      const dy = cruiseY - P.y; inp.up = dy > 4; inp.down = dy < -4; this.elapsed += dt;
+    },
+  };
+  let lastFence = 0;
+  function fenceCheck() {                                     // the bird stays in the city: the base clamps the map, this nudges you back toward the events
+    const f = state.fence; if (!f) return; const P = c.flightCharacter.position;
+    if (P.x < f.minX || P.x > f.maxX || P.z < f.minZ || P.z > f.maxZ) { const n = performance.now(); if (n - lastFence > 7000) { lastFence = n; toast('Edge of the city — press T to cruise back to the events.'); } }
+  }
+  function setCruiseButton() { const b = document.getElementById('tw-cruise'); if (b) b.textContent = nav.tour.active ? 'Cruising · T stops' : 'Auto-cruise · T'; }
+  function setNavChip(text) { if (!navChip) { navChip = document.createElement('div'); navChip.className = 'tw-nav'; document.querySelector('.city-shell').appendChild(navChip); } navChip.textContent = text; navChip.hidden = !text; }
+  function onArrive(ev) { if (!nav.tour.active) { toast(`Arrived at ${dest(ev)} — circling. Any flight key takes over.`); setNavChip(nav.label(ev, 'circling · any flight key takes over')); } renderCard(state.selected); }
+  function ensureFlight(cb) {
+    if (c.freeFlightEnabled) return cb();
+    if (c.flightAvatar !== 'gull' && c.setFlightAvatar) c.setFlightAvatar('gull');
+    const btn = document.querySelector('.gull-launch, .flight-launch'); if (btn) btn.click(); else c.setFlightMode(true);
+    let n = 0; (function wait() { if (c.freeFlightEnabled) cb(); else if (n++ < 90) requestAnimationFrame(wait); else { c.setFlightMode(true); cb(); } })();
+  }
+  function flyTo(ev) { select(ev); ensureFlight(() => { applyBird(state.user.bird); nav.tour.active = false; setCruiseButton(); nav.start(ev); renderCard(ev); }); }
+  function enterCity() {                                        // spawn over the Embarcadero facing downtown, in first person
+    ensureFlight(() => {
+      applyBird(state.user.bird); const sp = CFG.spawn; c.teleportToAddress(sp.lng, sp.lat, 40); c.flightCharacter.rotation.y = sp.heading; c.yaw = sp.heading + Math.PI; c.flightVelocity.set(Math.sin(sp.heading) * 22, 0, Math.cos(sp.heading) * 22);
+      setView(state.view); nav.startTour(0); toast(`Welcome, @${state.user.name || 'you'}. Cruising the most-RSVP’d events in order — any flight key takes over, T resumes.`);
+    });
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select')) return; const k = e.key.toLowerCase();
+    if (nav.phase !== 'idle' && FLIGHT_KEYS.test(k)) nav.stop();
+    if (k === 'v' && !e.metaKey && !e.ctrlKey) setView(state.view === 'fpv' ? 'chase' : 'fpv');
+    if (k === 't' && !e.metaKey && !e.ctrlKey) { if (nav.tour.active) nav.stop(); else ensureFlight(() => { applyBird(state.user.bird); nav.startTour(nav.tour.i); }); }
+  }, true);
+
+  /* ---------------------------------------------------------------- birds (the gull re-skinned) */
+  let gullBase = null;
+  function tagGullParts() {
+    gullBase = { white: solid('gull-white', '#f4edda'), gray: solid('gull-gray', '#9babb5'), ink: solid('gull-ink', '#443944'), beak: solid('gull-beak', '#d3a34f') };
+    c.gullPose.traverse((m) => { if (!m.isMesh) return; for (const k in gullBase) if (m.material === gullBase[k]) m.userData.twSlot = k; });
+    if (c.gullHead) c.gullHead.traverse((m) => { if (m.isMesh && m.userData.twSlot === 'white') m.userData.twSlot = 'head'; if (m.isMesh && m.userData.twSlot === 'beak') m.userData.twBill = true; });
+  }
+  function applyBird(kind) {
+    const b = BIRDS[kind] || BIRDS.gull; state.user.bird = kind in BIRDS ? kind : 'gull'; if (!gullBase) tagGullParts();
+    c.gullPose.traverse((m) => { if (!m.isMesh || !m.userData.twSlot) return; const slot = m.userData.twSlot; const hex = b.colors && b.colors[slot]; const role = (b.roles && b.roles[slot]) || 'tw-bird'; m.material = hex ? solid(role, hex) : gullBase[slot === 'head' ? 'white' : slot]; if (m.userData.twBill) m.scale.set(1, 1, b.bill || 1); });
+    c.gullPose.scale.setScalar(b.scale); if (c.flightAvatar === 'gull') c.flightPose = c.gullPose; renderBirds();
+  }
+
+  /* ---------------------------------------------------------------- leaderboard */
+  function leaderboard() {
+    const rows = state.citizens.map((u) => ({ name: u.name, bird: u.bird || 'gull', count: (u.rsvps || []).length, ids: u.rsvps || [], sample: !!u.sample }));
+    if (state.user.name && state.user.rsvps.size) rows.push({ name: state.user.name, bird: state.user.bird, count: state.user.rsvps.size, ids: [...state.user.rsvps], you: true });
+    return rows.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }
+
+  /* ---------------------------------------------------------------- geocoding (DataSF EAS, same source as the base app) */
+  function normalizeAddress(t) {
+    let e = t.normalize('NFKC').toUpperCase().replace(/[\uFF0C,.#]/g, ' ').replace(/\s+/g, ' ').trim();
+    e = e.replace(/\s+(?:APT|APARTMENT|UNIT|STE|SUITE)\s+[A-Z0-9-]+.*$/, '').replace(/\s+(?:SAN FRANCISCO|SF)(?:\s+CA(?:LIFORNIA)?)?(?:\s+94\d{3})?.*$/, '').replace(/\s+CA(?:LIFORNIA)?(?:\s+94\d{3})?.*$/, '').trim();
+    for (const [a, b] of [[/\bSTREET\b/g, 'ST'], [/\bAVENUE\b/g, 'AVE'], [/\bBOULEVARD\b/g, 'BLVD'], [/\bROAD\b/g, 'RD'], [/\bDRIVE\b/g, 'DR'], [/\bCOURT\b/g, 'CT'], [/\bPLACE\b/g, 'PL'], [/\bTERRACE\b/g, 'TER'], [/\bHIGHWAY\b/g, 'HWY'], [/\bLANE\b/g, 'LN']]) e = e.replace(a, b);
+    return e.replace(/\s+/g, ' ').trim();
+  }
+  async function geocodeSF(text) {
+    const m = text.match(/^\s*(-?\d{2}\.\d+)\s*,\s*(-?\d{3}\.\d+)\s*$/); if (m) return { address: `${(+m[1]).toFixed(5)}, ${(+m[2]).toFixed(5)}`, lat: +m[1], lng: +m[2] };
+    const hood = NEIGHBORHOODS.find((h) => h[0].toLowerCase() === text.trim().toLowerCase()); if (hood) return { address: hood[0], neighborhood: hood[0], lat: hood[1], lng: hood[2] };
+    const a = normalizeAddress(text); if (!a) return null; const sel = 'address,longitude,latitude,parcel_number';
+    let rows = await (await fetch(`https://data.sfgov.org/resource/3mea-di5p.json?${new URLSearchParams({ $select: sel, $where: `address='${a.replaceAll("'", "''")}'`, $limit: '4' })}`)).json();
+    if (!rows.length) { const d = a.match(/^(\d+)\s+(.+)$/); if (d) { const p = d[2].replaceAll("'", "''").replaceAll('%', '').replaceAll('_', ''); rows = await (await fetch(`https://data.sfgov.org/resource/3mea-di5p.json?${new URLSearchParams({ $select: sel, $where: `address_number=${Number(d[1])} AND street_full_street_name like '${p}%'`, $order: 'address', $limit: '6' })}`)).json(); } }
+    const l = rows[0]; if (!l) return null; return { address: l.address, lat: +l.latitude, lng: +l.longitude };
+  }
+
+  /* ---------------------------------------------------------------- UI */
+  const $ = (s, r) => (r || document).querySelector(s);
+  const MARK_SVG = '<svg class="tw-mark" viewBox="0 0 16 22" aria-hidden="true"><path d="M2 1v20" stroke="currentColor" stroke-width="2" fill="none"/><path d="M3 2l11 3.6L3 9.2z" fill="currentColor"/></svg>';
+  function injectUI() {
+    const shell = $('.city-shell') || document.body; const ui = document.createElement('div'); ui.className = 'tw-ui';
+    ui.innerHTML = `
+      <header class="masthead tw-masthead" aria-label="SF Tech Week">
+        <a class="tw-brand" href="${esc(CFG.brand.link)}" target="_blank" rel="noopener" title="tech-week.com/calendar"><img alt="Tech Week" hidden><span>TECH WEEK</span></a>
+        <div class="eyebrow">${MARK_SVG} A16Z TECH WEEK · SAN FRANCISCO · ${CFG.week.label}</div>
+        <h1><span>TECH WEEK</span><small>SF · CITY IN INK</small></h1>
+        <p>The events worth your time, and the addresses that aren’t public yet — live.</p>
+        <div class="tw-clock" id="tw-clock"></div>
+        <div class="tw-digest" id="tw-digest" hidden></div>
+      </header>
+      <aside class="tw-panel" id="tw-panel" aria-label="Tech Week">
+        <div class="tw-tabs" role="tablist">
+          <button type="button" data-tab="events" class="active">Events <b id="tw-count">0</b></button>
+          <button type="button" data-tab="board">Leaderboard</button>
+        </div>
+        <section class="tw-pane active" data-pane="events">
+          <div class="tw-days" id="tw-days"></div>
+          <input id="tw-search" type="search" placeholder="Search titles, hosts, speakers, venues" autocomplete="off" spellcheck="false">
+          <div class="tw-days tw-sortrow"><button type="button" data-sort="going" class="active">Most RSVPs</button><button type="button" data-sort="time">By time</button></div>
+          <ol class="tw-list" id="tw-list"></ol>
+          <p class="tw-note" id="tw-source"></p>
+          <div class="tw-footer"><button type="button" id="tw-change-bird">Bird &amp; name</button><button type="button" id="tw-ics" title="Every event you RSVP’d here, with a 9 AM PT reminder on the day">My week (.ics)</button></div>
+        </section>
+        <section class="tw-pane" data-pane="board">
+          <div class="tw-days tw-boardtabs"><button type="button" data-board="events">Events · most RSVPs</button><button type="button" data-board="buildings">Buildings · most events</button></div>
+          <ol class="tw-board" id="tw-board"></ol>
+          <p class="tw-note" id="tw-board-note"></p>
+        </section>
+      </aside>
+      <button type="button" class="tw-panel-toggle" id="tw-toggle">${MARK_SVG} Events</button>
+      <button type="button" class="tw-view" id="tw-view">Beak cam · V</button>
+      <button type="button" class="tw-view tw-cruise" id="tw-cruise">Auto-cruise · T</button>
+      <section class="tw-card" id="tw-card" hidden aria-live="polite"></section>
+      <div class="tw-modal" id="tw-modal" hidden></div>
+      <div class="tw-toast" id="tw-toast" hidden></div>`;
+    shell.appendChild(ui); document.documentElement.classList.add('tw-on');
+    ui.querySelectorAll('.tw-tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+    $('#tw-search').addEventListener('input', (e) => { state.query = e.target.value.trim().toLowerCase(); renderList(); });
+    ui.querySelectorAll('[data-sort]').forEach((b) => b.addEventListener('click', () => { state.sort = b.dataset.sort; ui.querySelectorAll('[data-sort]').forEach((x) => x.classList.toggle('active', x === b)); renderList(); }));
+    $('#tw-change-bird').addEventListener('click', () => { state.welcomed = false; openWelcome(); });
+    ui.querySelectorAll('[data-board]').forEach((b) => b.addEventListener('click', () => { state.board = b.dataset.board; renderBoard(); }));
+    $('#tw-digest').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.act === 'dismiss') $('#tw-digest').hidden = true; else if (b.dataset.act === 'ics') downloadIcs(state.events.filter((ev) => state.user.rsvps.has(ev.id))); else if (b.dataset.id) select(state.events.find((ev) => ev.id === b.dataset.id), { look: !c.freeFlightEnabled }); });
+    $('#tw-toggle').addEventListener('click', () => $('#tw-panel').classList.toggle('open'));
+    $('#tw-view').addEventListener('click', () => setView(state.view === 'fpv' ? 'chase' : 'fpv'));
+    $('#tw-cruise').addEventListener('click', () => { if (nav.tour.active) nav.stop(); else ensureFlight(() => { applyBird(state.user.bird); nav.startTour(nav.tour.i); }); });
+    $('#tw-ics').addEventListener('click', () => { const mine = state.events.filter((ev) => state.user.rsvps.has(ev.id)); if (!mine.length) toast('RSVP to something first — then the .ics carries your week with a 9 AM PT reminder each day.'); else downloadIcs(mine); });
+    $('#tw-card').addEventListener('click', onCardClick);
+    const img = $('.tw-brand img'); img.addEventListener('load', () => { img.hidden = false; $('.tw-brand').classList.add('has-logo'); });
+    img.addEventListener('error', () => { if (img.dataset.tried) img.remove(); else { img.dataset.tried = '1'; img.src = CFG.brand.official; } }); img.src = CFG.brand.local;
+    renderDays(); renderBirds(); renderList(); renderBoard(); setView(state.view);
+  }
+  function showTab(tab) { state.tab = tab; document.querySelectorAll('.tw-tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab)); document.querySelectorAll('.tw-pane').forEach((p) => p.classList.toggle('active', p.dataset.pane === tab)); $('#tw-panel').classList.add('open'); if (tab === 'board') renderBoard(); }
+  function renderDays() { const el = $('#tw-days'); el.innerHTML = WEEK_DAYS.map((d) => `<button type="button" data-day="${esc(d.key)}" class="${state.day === d.key ? 'active' : ''}">${esc(d.label)}</button>`).join(''); el.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { state.day = b.dataset.day; renderDays(); renderList(); })); }
+  function visibleEvents() { return state.events.filter((ev) => (state.day === 'all' || ev.dayKey === state.day) && (!state.query || `${ev.title} ${hostsOf(ev).join(' ')} ${speakersOf(ev).map((s) => s.name + ' ' + s.role).join(' ')} ${ev.venue || ''} ${ev.address || ''} ${ev.neighborhood || ''}`.toLowerCase().includes(state.query))).sort(state.sort === 'time' ? (a, b) => a.startDate - b.startDate : (a, b) => heat(b) - heat(a) || a.startDate - b.startDate); }
+  function renderList() {
+    const list = visibleEvents(); $('#tw-count').textContent = state.events.length; $('#tw-source').textContent = state.source;
+    $('#tw-list').innerHTML = list.length ? list.map((ev) => { const cat = catOf(ev), st = regStatus(ev), sp = speakersOf(ev); return `<li class="${state.selected === ev ? 'active' : ''}${ev.claimed ? '' : ' unclaimed'}" data-id="${esc(ev.id)}"><i style="background:${cat.color}"></i><span class="tw-when">${esc(fmt.when(ev))} · ${ev.claimed ? esc(ev.venue || ev.neighborhood || ev.address) : 'no address yet'}</span><b>${esc(ev.title)}</b><span class="tw-sub tw-going"><strong>${rsvpCount(ev)}</strong> RSVPs${st.leftText ? ` · ${esc(st.leftText)}` : ''}${st.short ? ` <em class="${st.cls}">${esc(st.short)}</em>` : ''}</span><span class="tw-sub">${esc(hostsOf(ev).join(' × '))}</span><span class="tw-sub tw-spk">${sp.length ? esc(sp.map((x) => x.name).join(', ')) : 'Speakers TBA'}</span></li>`; }).join('') : '<li class="tw-empty">Nothing on this day yet.</li>';
+    $('#tw-list').querySelectorAll('li[data-id]').forEach((li) => li.addEventListener('click', () => { const ev = state.events.find((e) => e.id === li.dataset.id); select(ev, { look: !c.freeFlightEnabled }); }));
+  }
+  function renderBoard() {
+    document.querySelectorAll('[data-board]').forEach((b) => b.classList.toggle('active', b.dataset.board === state.board));
+    const ol = $('#tw-board'), note = $('#tw-board-note');
+    if (state.board === 'events') {
+      const rows = state.events.slice().sort((a, b) => heat(b) - heat(a)).slice(0, 25);
+      ol.innerHTML = rows.length ? rows.map((ev, i) => { const st = regStatus(ev); return `<li data-id="${esc(ev.id)}"><span class="tw-rank">${String(i + 1).padStart(2, '0')}</span><b>${esc(ev.title)}</b><span class="tw-sub">${esc(fmt.when(ev))}${isToday(ev) ? ' · <strong>today</strong>' : ''} · ${esc(hostsOf(ev)[0])}${st.leftText ? ` · ${esc(st.leftText)}` : ''}${st.short ? ` · <em class="${st.cls}">${esc(st.short)}</em>` : ''}</span><span class="tw-sub tw-spk">${speakersOf(ev).length ? esc(speakersOf(ev).map((x) => x.name).join(', ')) : 'Speakers TBA'}</span><em>${rsvpCount(ev)}<small>RSVPs</small></em></li>`; }).join('') : '<li class="tw-empty">Nothing upcoming.</li>';
+      ol.querySelectorAll('li[data-id]').forEach((li) => li.addEventListener('click', () => select(state.events.find((e) => e.id === li.dataset.id), { look: !c.freeFlightEnabled })));
+      note.textContent = 'Upcoming events ranked by RSVPs; waitlisted and sold-out events are marked. Ended events leave the board (Pacific time).';
+    } else {
+      const rows = state.venues.filter((v) => v.members.length && v.members[0].claimed).map((v) => ({ v, n: v.members.length, rsvps: v.members.reduce((a, e) => a + rsvpCount(e), 0) })).sort((a, b) => b.n - a.n || b.rsvps - a.rsvps).slice(0, 20);
+      ol.innerHTML = rows.length ? rows.map((r, i) => `<li data-key="${esc(r.v.key)}"><span class="tw-rank">${String(i + 1).padStart(2, '0')}</span><b>${esc(r.v.name)}</b><span class="tw-sub">${esc(r.v.members[0].neighborhood || r.v.members[0].address || '')} · ${r.rsvps} RSVPs</span><em>${r.n}<small>event${r.n === 1 ? '' : 's'}</small></em><div class="tw-going-to">${r.v.members.map((ev) => `<button type="button" data-id="${esc(ev.id)}"><i style="background:${catOf(ev).color}"></i>${esc(fmt.whenShort(ev))} · ${esc(ev.title)} · ${rsvpCount(ev)} RSVPs</button>`).join('')}</div></li>`).join('') : '<li class="tw-empty">No buildings yet.</li>';
+      ol.querySelectorAll('li').forEach((li) => li.addEventListener('click', (e) => { const b = e.target.closest('button[data-id]'); if (b) { select(state.events.find((ev) => ev.id === b.dataset.id), { look: !c.freeFlightEnabled }); return; } li.classList.toggle('open'); const vg = state.venues.find((v) => v.key === li.dataset.key); if (vg && li.classList.contains('open')) { if (vg.el) { vg.open = true; vg.el.classList.add('open'); } if (!c.freeFlightEnabled) lookAt(vg.pos.clone().add(V3(0, -40, 0)), 420); } }));
+      note.textContent = 'Buildings ranked by how many Tech Week events they host. Tap one to see its events; the top ten fly pennants on the Embarcadero mast.';
+    }
+    refreshMastPennants();
+  }
+  function renderBirds() { refreshMeChip(); }
+  function select(ev, opts) {
+    state.selected = ev; document.documentElement.classList.toggle('tw-has-selection', !!ev);
+    if (ev && ev.venueChip) { ev.venueChip.open = true; ev.venueChip.el.classList.add('open'); }
+    for (const vg of state.venues) if (vg.el) vg.el.querySelectorAll('[data-id]').forEach((b) => b.classList.toggle('active', !!ev && b.dataset.id === ev.id));
+    for (const e of state.events) refreshChip(e); renderList(); renderCard(ev);
+    if (ev && opts && opts.look && !c.freeFlightEnabled) look(ev);
+  }
+  function lookAt(pos, radius) { c.cancelCinematicTour && c.cancelCinematicTour(); c.cameraFlight = undefined; c.target.copy(pos); c.radius = radius; c.pitch = Math.max(c.pitch, 0.22); c.applyOrbit(); }
+  function look(ev) { lookAt(ev.ship.position.clone().add(V3(0, -30, 0)), clamp(c.radius, 260, 520)); }
+  function renderCard(ev) {
+    const card = $('#tw-card'); if (!ev) { card.hidden = true; return; }
+    const cat = catOf(ev), going = state.user.rsvps.has(ev.id), cob = state.user.cobuilds.has(ev.id), flying = c.freeFlightEnabled, st = regStatus(ev), sp = speakersOf(ev), hosts = hostsOf(ev), n = rsvpCount(ev), via = rsvpHost(ev); const posterUrl = (ev.posterCanvas || drawPoster(ev)).toDataURL('image/jpeg', 0.82);
+    card.hidden = false;
+    card.innerHTML = `
+      <div class="tw-band" style="background:${cat.color}"><span>${esc(fmt.when(ev))}</span><span>${esc(cat.label)}</span></div>
+      <button type="button" class="tw-x" data-act="close" aria-label="Close">×</button>
+      <img class="tw-poster" src="${ev.image ? esc(ev.image) : posterUrl}" ${ev.image ? `onerror="this.onerror=null;this.src='${posterUrl}'"` : ''} alt="">
+      <h2>${esc(ev.title)}</h2>
+      <p class="tw-host">${esc(hosts[0])}${hosts.length > 1 ? ` <span class="tw-with">with ${esc(hosts.slice(1).join(', '))}</span>` : ''}</p>
+      <p class="tw-reg"><b>${n}</b> RSVPs${st.leftText ? ` <span class="tw-dim">· ${esc(st.leftText)}</span>` : ''}${st.short ? ` <em class="${st.cls}">${esc(st.short)}</em>` : ''}${ev.cobuilders.length ? ` · ${ev.cobuilders.length} builder${ev.cobuilders.length > 1 ? 's' : ''}` : ''}</p>
+      <p class="tw-where">${ev.claimed ? `${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))}${ev.claimedBy ? ` <em>· claimed by ${esc(ev.claimedBy)}</em>` : ''}` : '<em>No address yet.</em> This airship waits in the harbor until a citizen claims a venue for it.'}</p>
+      <div class="tw-speakers"><small class="tw-label">Speakers</small>${sp.length ? sp.map((s) => `<span class="tw-speaker"><b>${esc(s.name)}</b>${s.role ? `<small>${esc(s.role)}</small>` : ''}</span>`).join('') : '<span class="tw-speaker tba"><b>Speakers TBA</b></span>'}</div>
+      ${ev.description ? `<p class="tw-desc">${esc(ev.description)}</p>` : ''}
+      <div class="tw-actions">
+        <button type="button" data-act="rsvp" class="${going ? 'done' : 'primary'}" ${st.open || going ? '' : 'disabled'}>${going ? 'Going ✓' : st.open ? `RSVP${via ? ' on ' + via : ''} ↗` : st.label}</button>
+        <button type="button" data-act="fly">${nav.ev === ev ? (nav.phase === 'circle' ? '◌ Circling' : '→ En route') : (ev.claimed ? 'Fly there' : 'Fly to harbor')}</button>
+        ${ev.claimed ? `<a class="tw-btn" href="${esc(mapsUrl(ev))}" target="_blank" rel="noopener">Navigate ↗</a>` : '<button type="button" data-act="claim">Claim address</button>'}
+        <a class="tw-btn" href="${esc(gcalUrl(ev))}" target="_blank" rel="noopener" title="Google Calendar">Calendar ↗</a>
+        ${flying ? '' : '<button type="button" data-act="look">Look</button>'}
+        <button type="button" data-act="cobuild">${cob ? 'Edit the space' : 'Claim & build the space'}</button>
+      </div>
+      ${cob ? editorHtml(ev) : ''}`;
+  }
+  function editorHtml(ev) {
+    const cb = ev.cobuild; const colors = ['#c6583c', '#3f7f8c', '#d9a441', '#6b5b95', '#4e8a5a', '#33405f'];
+    return `<div class="tw-editor">
+      <div class="tw-row"><span>Colour</span>${colors.map((h) => `<button type="button" class="sw ${cb.color === h ? 'active' : ''}" data-color="${h}" style="background:${h}" aria-label="${h}"></button>`).join('')}</div>
+      <div class="tw-row"><span>Roof</span>${['flat', 'awning', 'dome'].map((r) => `<button type="button" class="opt ${cb.roof === r ? 'active' : ''}" data-roof="${r}">${r}</button>`).join('')}</div>
+      <div class="tw-row"><span>Inside</span>${PROPS.map((p) => `<button type="button" class="opt ${cb.props.includes(p) ? 'active' : ''}" data-prop="${p}">${p}</button>`).join('')}</div>
+      <p class="tw-note">On the roof of ${esc(ev.venue || ev.address)}: one perched bird per 8 RSVPs, speakers on podiums. Walk-in interiors arrive in v2 — the deck is the room.</p></div>`;
+  }
+  function onCardClick(e) {
+    const b = e.target.closest('button'); if (!b) return; const ev = state.selected; if (!ev) return;
+    if (b.dataset.act === 'close') { select(null); return; }
+    if (b.dataset.act === 'fly') { if (nav.ev === ev) nav.stop(); else flyTo(ev); return; }
+    if (b.dataset.act === 'look') { look(ev); return; }
+    if (b.dataset.act === 'rsvp') { doRsvp(ev); return; }
+    if (b.dataset.act === 'claim') { openClaim(ev); return; }
+    if (b.dataset.act === 'cobuild') { if (state.user.cobuilds.has(ev.id)) { const ed = $('.tw-editor'); ed && ed.scrollIntoView({ block: 'nearest' }); } else openCobuild(ev); return; }
+    if (b.dataset.color) { ev.cobuild.color = b.dataset.color; rebuildVenue(ev); renderCard(ev); return; }
+    if (b.dataset.roof) { ev.cobuild.roof = b.dataset.roof; rebuildVenue(ev); renderCard(ev); return; }
+    if (b.dataset.prop) { const p = b.dataset.prop, i = ev.cobuild.props.indexOf(p); if (i >= 0) ev.cobuild.props.splice(i, 1); else ev.cobuild.props.push(p); rebuildVenue(ev); renderCard(ev); }
+  }
+  const birdGrid = () => Object.entries(BIRDS).map(([k, b]) => `<button type="button" data-pick="${k}" class="${state.user.bird === k ? 'active' : ''}"><i style="background:${b.dot}"></i><b>${esc(b.name)}</b><span>${esc(b.blurb)}</span></button>`).join('');
+  function wireBirdGrid() { const grid = $('#tw-m-birds'); grid.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { applyBird(b.dataset.pick); grid.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b)); })); }
+  function openWelcome() {
+    if (state.welcomed) return; state.welcomed = true;
+    openModal(`<h3>Choose your bird</h3><p>Find the Tech Week events worth your time — and the addresses that aren’t public yet, updated live. Your bird cruises the most-RSVP’d ones by itself; take the controls whenever you like.</p>
+      <div class="tw-birdgrid" id="tw-m-birds">${birdGrid()}</div>
+      <label class="tw-field">Your name in the city<input id="tw-m-name" maxlength="28" placeholder="e.g. ink.gull" value="${esc(state.user.name)}"></label>`, 'Enter the city', () => { const n = $('#tw-m-name').value.trim(); if (n) { state.user.name = n; } refreshMeChip(); closeModal(); enterCity(); return true; }, 'Just look around');
+    wireBirdGrid();
+  }
+  function needName(then) {
+    if (state.user.name) return then();
+    openModal(`<h3>Who’s flying?</h3><p>Your name shows on the leaderboard and on anything you claim or build.</p><label class="tw-field">Name<input id="tw-m-name" maxlength="28" placeholder="e.g. ink.gull" autofocus></label><div class="tw-birdgrid" id="tw-m-birds">${birdGrid()}</div>`, 'Continue', () => { const n = $('#tw-m-name').value.trim(); if (!n) return false; state.user.name = n; refreshMeChip(); then(); return true; });
+    wireBirdGrid();
+  }
+  async function doRsvp(ev) {
+    if (ev.url) window.open(ev.url, '_blank', 'noopener');
+    needName(async () => {
+      if (state.user.rsvps.has(ev.id)) state.user.rsvps.delete(ev.id); else { state.user.rsvps.add(ev.id); await backend.rsvp(ev, state.user); toast(`RSVP counted for ${state.user.name}. ${ev.url ? `Finish on ${rsvpHost(ev) || 'the host’s page'} — it opened in a new tab.` : ''}`); }
+      posterTexture(ev); if (ev.claimed) rebuildVenue(ev); renderCard(ev); renderList(); renderBoard(); refreshChip(ev);
+    });
+  }
+  function openClaim(ev) {
+    openModal(`<h3>Claim an address for “${esc(ev.title)}”</h3><p>Any San Francisco street address (DataSF resolves it), a neighborhood name, or <code>lat, lng</code>. The airship sails from the harbor to the roof.</p>
+      <label class="tw-field">Venue name<input id="tw-m-venue" maxlength="48" placeholder="optional, e.g. The Battery"></label>
+      <label class="tw-field">Address<input id="tw-m-addr" placeholder="e.g. 717 Battery St" list="tw-hoods" autofocus></label><datalist id="tw-hoods">${NEIGHBORHOODS.map((h) => `<option value="${esc(h[0])}">`).join('')}</datalist><p class="tw-note" id="tw-m-status"></p>`, 'Claim it', async () => {
+      const text = $('#tw-m-addr').value.trim(); if (!text) return false; const stEl = $('#tw-m-status'); stEl.textContent = 'Resolving with DataSF…';
+      try { const place = await geocodeSF(text); if (!place) { stEl.textContent = 'Not found. Try “number street”, a neighborhood, or lat, lng.'; return false; }
+        const venue = $('#tw-m-venue').value.trim(); closeModal();
+        needName(() => { Object.assign(ev, { address: place.address, lat: place.lat, lng: place.lng, neighborhood: place.neighborhood || ev.neighborhood, venue: venue || ev.venue, claimed: true, claimedBy: state.user.name }); if (!CATS[ev.category] || ev.category === 'unclaimed') ev.category = guessCategory(ev); placeEvents(); moveShip(ev); refreshChip(ev); renderCard(ev); renderList(); backend.claim(ev, place, state.user); toast(`${ev.title} now lives at ${place.address}. Watch the harbor.`); });
+        return true;
+      } catch (err) { stEl.textContent = 'Address service unreachable (offline or file://). Use a neighborhood name or lat, lng.'; return false; }
+    });
+  }
+  function openCobuild(ev) {
+    openModal(`<h3>Claim & build “${esc(ev.title)}”</h3><p>Builders shape the event’s space in the city — the deck, the roof, what’s inside — and it becomes the interactive room for this event. ${ev.claimed ? `This one sits on ${esc(ev.venue || ev.address)}.` : 'Claim an address first so there is a roof to build on.'}</p>
+      <label class="tw-field">What would you build?<select id="tw-m-preset"><option value="hall">Demo hall · stage, screen, seats</option><option value="deck">Rooftop deck · bar, plants, balloons</option><option value="stage">Night stage · spotlight, screen</option><option value="gallery">Gallery · screen, plants</option></select></label>
+      <label class="tw-field">One line to the host<input id="tw-m-note" maxlength="140" placeholder="e.g. I’ll bring the world-runner demo booth"></label>`, ev.claimed ? 'Claim & start building' : 'Apply', () => {
+      const presets = { deck: ['bar', 'plants', 'balloons'], hall: ['stage', 'screen', 'seats'], stage: ['stage', 'spotlight', 'screen'], gallery: ['screen', 'plants'] };
+      const preset = $('#tw-m-preset').value, note = $('#tw-m-note').value.trim(); closeModal();
+      needName(() => { ev.cobuilders.push({ name: state.user.name, note, preset, at: new Date().toISOString() }); state.user.cobuilds.add(ev.id); ev.cobuild = ev.cobuild || { color: catOf(ev).color, roof: preset === 'hall' ? 'flat' : preset === 'stage' ? 'awning' : 'dome', props: presets[preset].slice() }; if (ev.claimed) rebuildVenue(ev); backend.cobuild(ev, state.user, { preset, note }); toast(ev.claimed ? 'The space is yours. Edit it from the card; fly there to see the room.' : 'Application noted. Claim an address and the room appears.'); renderCard(ev); renderList(); });
+      return true;
+    });
+  }
+  let modalSubmit = null;
+  function openModal(html, cta, onSubmit, cancelLabel) {
+    const m = $('#tw-modal'); m.hidden = false; modalSubmit = onSubmit;
+    m.innerHTML = `<form class="tw-dialog" novalidate>${html}<div class="tw-actions"><button type="submit" class="primary">${esc(cta)}</button><button type="button" data-act="cancel">${esc(cancelLabel || 'Cancel')}</button></div></form>`;
+    $('form', m).addEventListener('submit', async (e) => { e.preventDefault(); const ok = await modalSubmit(); if (ok) closeModal(); });
+    $('[data-act=cancel]', m).addEventListener('click', closeModal);
+    setTimeout(() => { const f = m.querySelector('[autofocus]') || m.querySelector('input,select'); f && f.focus(); }, 30);
+  }
+  function closeModal() { const m = $('#tw-modal'); m.hidden = true; m.innerHTML = ''; }
+  let toastTimer = 0;
+  function toast(text) { const t = $('#tw-toast'); t.textContent = text; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 6000); }
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (!$('#tw-modal').hidden) closeModal(); else if (state.selected && !c.freeFlightEnabled) select(null); } });
+
+  /* ---------------------------------------------------------------- clock, daily digest (once per Pacific date), live refresh */
+  function updateClock() {
+    const el = $('#tw-clock'); if (!el) return; const n = new Date(nowMs());
+    const weekStart = new Date(CFG.week.start + 'T00:00:00-07:00'), weekEnd = new Date(weekStart.getTime() + CFG.week.days * 864e5);
+    const today = state.events.filter(isToday);
+    if (n < weekStart) { const d = Math.ceil((weekStart - n) / 864e5); el.textContent = `${fmt.clock(n)} · ${d} day${d === 1 ? '' : 's'} to Tech Week · ${state.events.length} events listed`; }
+    else if (n >= weekEnd) el.textContent = `${fmt.clock(n)} · Tech Week 2026 has ended · ${state.past.length} events held`;
+    else el.textContent = `${fmt.clock(n)} · ${today.length} event${today.length === 1 ? '' : 's'} today · ${state.events.length} still to come`;
+    const key = fmt.dateKey(n);
+    if (state.ready && state.digestFor !== key && n >= weekStart && n < weekEnd) { state.digestFor = key; showDigest(n, today); }
+  }
+  function showDigest(n, today) {                              // the once-a-day reminder: what is on today, what you said you'd go to
+    const box = $('#tw-digest'); if (!box) return; const mine = today.filter((ev) => state.user.rsvps.has(ev.id)); const upcoming = today.filter((ev) => ev.startDate.getTime() > nowMs()).sort((a, b) => a.startDate - b.startDate);
+    const row = (ev) => `<button type="button" data-id="${esc(ev.id)}"><i style="background:${catOf(ev).color}"></i>${esc(fmt.time(ev.startDate))} · ${esc(ev.title)}<em>${rsvpCount(ev)} RSVPs</em></button>`;
+    box.innerHTML = `<div class="tw-digest-head"><b>Today · ${esc(dtf({ weekday: 'long', month: 'short', day: 'numeric' }).format(n))}</b><button type="button" data-act="dismiss" aria-label="Dismiss">×</button></div>
+      ${mine.length ? `<p>You’re going to ${mine.length} event${mine.length === 1 ? '' : 's'} today.</p>${mine.map(row).join('')}` : `<p>${today.length ? `${today.length} events in the city today${upcoming.length ? ' · next up:' : ''}` : 'Nothing scheduled today — fly the harbor.'}</p>${upcoming.slice(0, 3).map(row).join('')}`}
+      <div class="tw-actions"><button type="button" data-act="ics">My week (.ics)</button></div>`;
+    box.hidden = false;
+  }
+  async function refreshEvents() {                             // every 15 min: re-read events.json (scrape-techweek.mjs runs daily) and merge what changed
+    if (!/^(https?):/.test(location.protocol)) return;
+    const data = await backend.events(); if (/^sample programme/.test(data.source)) return;
+    let changed = false, structural = false;
+    for (const raw of data.list) {
+      const ev = state.events.find((e) => e.id === raw.id) || state.past.find((e) => e.id === raw.id);
+      if (!ev) { state.events.push(normalizeEvent(raw, state.events.length)); changed = structural = true; continue; }
+      const fresh = normalizeEvent(raw, 0); const keep = ev.claimedBy ? ['lat', 'lng', 'address', 'venue', 'neighborhood', 'claimed'] : [];
+      for (const k of ['title', 'host', 'cohosts', 'speakers', 'start', 'end', 'startDate', 'endDate', 'dayKey', 'status', 'capacity', 'rsvp', 'url', 'image', 'description', 'category', 'venue', 'address', 'neighborhood', 'lat', 'lng', 'claimed']) {
+        if (keep.includes(k)) continue; if (JSON.stringify(fresh[k]) !== JSON.stringify(ev[k])) { if (['lat', 'lng', 'claimed', 'category'].includes(k)) structural = true; ev[k] = fresh[k]; changed = true; }
+      }
+    }
+    state.source = data.source; if (data.citizens && data.citizens.length) state.citizens = data.citizens;
+    if (changed) { computeMeta(); if (state.events.some((e) => e.wantsVehicle !== !!e.hasVehicle)) structural = true; }
+    if (structural) { placeEvents(); buildWorld(); } else if (changed) for (const ev of state.events) { posterTexture(ev); refreshChip(ev); }
+    if (changed) { renderList(); renderBoard(); if (state.selected) renderCard(state.selected); log('events refreshed'); }
+    lifecycleTick();
+  }
+
+  /* ---------------------------------------------------------------- boot */
+  async function init() {
+    T = window.__SF_THREE; GEO = window.__sfGeo; injectUI();
+    const data = await backend.events(); state.source = data.source; const all = data.list.map(normalizeEvent); state.past = all.filter(isPast); state.events = all.filter((e) => !isPast(e)); state.citizens = data.citizens;
+    try { state.shipModel = await loadGLB(CFG.airshipModel); log('airship model loaded from', CFG.airshipModel); } catch (e) { state.shipModel = null; }
+    placeEvents(); buildWorld(); installPicking();
+    const origRender = c.render; c.render = () => { try { frame(); } catch (e) { console.error(e); } origRender(); try { updateChips(); } catch (e) {} };
+    const origSim = c.updateSimulation.bind(c); c.updateSimulation = (dt) => { try { nav.tick(dt); } catch (e) { console.error(e); } origSim(dt); try { applyView(); } catch (e) {} };
+    const origPalette = c.applyPalette.bind(c); c.applyPalette = (p) => { origPalette(p); applyBannerLight(p); };
+    const origLabels = c.setLabels.bind(c); c.setLabels = (v) => { origLabels(v); if (chipLayer) chipLayer.hidden = !v; };
+    const origGull = c.setGullFlightMode.bind(c); c.setGullFlightMode = (on) => { origGull(on); if (on) applyBird(state.user.bird); else { nav.stop(true); c.camera.rotation.set(0, 0, 0); } };
+    tagGullParts(); renderList(); renderBoard();
+    Object.assign(TW, { select, flyTo, look, lookAt, applyBird, toast, drawPoster, geocodeSF, leaderboard, rebuildVenue, moveShip, placeEvents, refreshChip, renderCard, setView, enterCity, openWelcome, retireEvent, lifecycleTick, refreshEvents, updateClock, downloadIcs, nowMs, rebuildWorld: () => { placeEvents(); buildWorld(); } });
+    state.ready = true; updateClock(); setInterval(lifecycleTick, 30000); setInterval(() => refreshEvents().catch(() => {}), 15 * 60 * 1000); log(`v${VERSION} ready · ${state.events.length} events · ${state.source}`);
+    if (qs.get('welcome') !== '0') openWelcome();
+  }
+  function whenReady(cb) {
+    if (c.stats && c.stats.buildings > 0) return cb();
+    const prev = c.onStatus; c.onStatus = (s) => { try { prev && prev(s); } catch (e) {} if (s && s.phase === 'ready') { c.onStatus = prev; cb(); } };
+  }
+  (function boot(n) {
+    c = window.__sfCity;
+    if (c && window.__SF_THREE && window.__sfGeo && c.scene) whenReady(() => init().catch((e) => console.error('[TW] init failed', e)));
+    else if (n < 1200) setTimeout(() => boot(n + 1), 50);
+    else console.warn('[TW] base app hooks not found — build.py patches missing?');
+  })(0);
+})();
+</script>
+</body>
+</html>

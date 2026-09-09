@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.chrona/
+.DS_Store
+.env*

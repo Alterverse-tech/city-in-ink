@@ -1,0 +1,7 @@
+#tw-sync-status {
+  position: fixed; bottom: 12px; left: 12px; z-index: 80;
+  max-width: min(480px, calc(100vw - 24px)); padding: 7px 10px;
+  background: #f6ecd8ed; color: #34262f; border: 1px solid #34262f55;
+  font: 11px/1.4 ui-monospace, monospace; pointer-events: none;
+}
+#tw-sync-status[data-state="unavailable"], #tw-sync-status[data-state="stale"] { border-color: #c6583c; }

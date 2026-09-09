@@ -1,0 +1,35 @@
+/* Keep fixed account dialogs relative to the viewport, not a transformed menu. */
+#sfnet{position:fixed;z-index:20;top:18px;left:calc(50% - 150px);width:300px;color:#34262f;background:#f6ecd8f2;border:1px solid #34262f60;box-shadow:0 8px 24px #34262f18;font:12px/1.5 "Avenir Next",sans-serif}
+#sfnet>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 12px;font:700 11px/1.5 ui-monospace,monospace;letter-spacing:.04em}
+#sfnet>summary::-webkit-details-marker{display:none}
+#sfnet>summary::before{content:"";width:7px;height:7px;flex:none;border-radius:50%;background:#968984}
+#sfnet[data-online="true"]>summary::before{background:#36744a}
+#sfnet>summary::after{content:"⌄";margin-left:auto}
+#sfnet .sfnet-body{padding:0 12px 12px;border-top:1px solid #34262f25;max-height:65vh;overflow-y:auto}
+#sfnet h2{font:700 20px/1.2 Georgia,serif;margin:12px 0 5px}
+#sfnet p{margin:6px 0 10px}
+#sfnet button,#sfnet input{font:600 11px/1.5 ui-monospace,monospace;border:1px solid #34262f70;padding:7px 9px;color:#34262f;background:#fff8e660;min-width:0}
+#sfnet button{cursor:pointer}
+#sfnet button:disabled{opacity:.45;cursor:default}
+#sfnet button.sfnet-primary{background:#34262f;color:#f6ecd8}
+#sfnet .sfnet-row{display:flex;gap:6px;margin-top:8px}
+#sfnet .sfnet-row>*{flex:1}
+#sfnet label{display:block;margin-top:9px;font-size:11px}
+#sfnet input{width:100%}
+#sfnet #sfnet-world-name{font:700 18px/1.4 Georgia,serif;margin-top:10px}
+#sfnet #sfnet-error{color:#953e2a;white-space:pre-wrap;overflow-wrap:anywhere}
+#sfnet #sfnet-roster{list-style:none;padding:0;margin:8px 0;max-height:160px;overflow-y:auto}
+#sfnet #sfnet-roster li{display:flex;align-items:center;gap:7px;border-top:1px solid #34262f20;padding:5px 0}
+#sfnet #sfnet-roster i{height:7px;width:7px;border-radius:50%;flex:none}
+#sfnet #sfnet-roster span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sfnet #sfnet-roster small{margin-left:auto;white-space:nowrap;font-size:10px}
+#sfnet .sfnet-note{font-size:10px;opacity:.7;margin-bottom:0}
+#sfnet [hidden]{display:none!important}
+#sfnet [data-chrona-connect="ui"]{--cc-bg:#34262f;--cc-panel:#34262f;--cc-line:#f6ecd840;--cc-text:#f6ecd8;--cc-muted:#c4b3a4;--cc-accent:#e5a57c;--cc-danger:#ffb29e;--cc-ok:#abd2a6;--cc-radius:2px}
+.sfnet-labels{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:6}
+.sfnet-player-label{position:absolute;left:0;top:0;max-width:220px;padding:3px 8px;background:#f6ecd8ee;color:#34262f;border:1px solid var(--player-color,#c6583c);box-shadow:0 3px 9px #34262f20;font:700 11px/1.4 ui-monospace,monospace;white-space:nowrap;pointer-events:none;will-change:transform}
+.sfnet-player-label[hidden]{display:none}
+/* U hides interface panels, but keeps local and remote player name tags. */
+.city-shell.ui-hidden .scene-host>.sfnet-labels,
+.city-shell.ui-hidden .tw-chip-me{visibility:visible!important;pointer-events:none!important}
+@media(max-width:760px){#sfnet{top:auto;bottom:14px;left:14px;transform:none;width:min(300px,calc(100vw - 28px))}.sfnet-player-label{font-size:10px}}
