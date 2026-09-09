@@ -32,7 +32,7 @@ python3 -m http.server 8790 --directory dist-local
 
 Open http://localhost:8790/. What to expect in standalone mode:
 
-- The city, the bird picker, gull flight routes and the **mini map** all work from the saved public event data in `data/`.
+- The city, the bird picker and gull flight routes all work from the saved public event data in `data/`.
 - Event poster images from `cdn.tech-week.com` fail with CORS errors in the console on `localhost`; the game falls back to its own posters. Cosmetic.
 - `/events.json` returns 404 from a plain static server, so the calendar shows the saved snapshot instead of a live refresh. To test live refresh, run `node calendar-server.mjs` (see [Calendar service](#calendar-service)) behind a reverse proxy that maps `/events.json` to it. Not required for development.
 - `/assets/airship.glb` and `/assets/brand/techweek-logo.svg` return 404. The repository has no `assets/` directory; both are optional (the airship is an optional Blender export with a procedural fallback, the logo renders as text) and they 404 on the live Chrona build as well.
@@ -52,7 +52,6 @@ build-local.mjs                            `npm run build:local` → dist-local/
 events-build.mjs                           The narrow patches applied by renderGame (event backend swap,
                                            in-game refresh interval 15 min → 60 s).
 
-event-mini-map.mjs                         The mini map (bottom-right widget). Edit directly.
 events-sync.js, events-sync.css            Event feed sync + poster loading from whitelisted origins.
 gull-cluster-route.mjs                     Gull flight routes clustered from the event feed.
 multiplayer.js, multiplayer.css            Multiplayer UI; hosted or standalone connect.
@@ -77,7 +76,7 @@ Generated and ignored: `dist/`, `dist-local/`, `node_modules/`, `.chrona/`. Neve
 
 There are two editing surfaces:
 
-1. **Add-on modules** (`event-mini-map.mjs`, `multiplayer.js`, `events-sync.js`, `gull-cluster-route.mjs`, styles, `chrona/`): edit directly, rebuild with `npm run build:local`, reload.
+1. **Add-on modules** (`multiplayer.js`, `events-sync.js`, `gull-cluster-route.mjs`, styles, `chrona/`): edit directly, rebuild with `npm run build:local`, reload.
 2. **The original city** (`source/part-*.txt`): the parts are byte slices of one HTML file. After editing, refresh the manifest hash and commit it together with the parts:
 
    ```sh

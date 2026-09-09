@@ -7,7 +7,7 @@ export function renderGame(source) {
 const marker = '<script>(()=>{var G1=Object.create;';
 if (source.split(marker).length !== 2) throw new Error('Expected the original game startup exactly once.');
 return wireEventFeed(wireDialogs(source))
-  .replace(marker, '<script type="module">\nimport "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./event-mini-map.mjs";\n(()=>{var G1=Object.create;')
+  .replace(marker, '<script type="module">\nimport "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\n(()=>{var G1=Object.create;')
   // The city's capture-phase shortcuts must also ignore the account shadow DOM.
   .replace("if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select')) return; const k = e.key.toLowerCase();",
     "if (e.composedPath().some(n => n instanceof HTMLElement && (n.matches('input,textarea,select') || n.id === 'sfnet'))) return; const k = e.key.toLowerCase();")
