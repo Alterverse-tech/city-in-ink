@@ -111,6 +111,21 @@ The live game is a Chrona World:
 - *Chrona as the publishing channel, GitHub as source of truth (recommended for a small team).* One person publishes from a Chrona checkout using the CLI (below).
 - *Chrona-native collaboration.* Each collaborator gets their own Chrona branch and authorization; the owner reviews and merges in the Studio. Requires the owner to add the collaborator as **Full Developer** (World Development → Player & Creator Access) after they have signed in to chrona.world once.
 
+### Automatic submission from GitHub (CI)
+
+Every push to `main` (except docs-only and `.github/` changes) runs [`.github/workflows/chrona-submit.yml`](.github/workflows/chrona-submit.yml), which mirrors the commit into a **fresh Chrona branch**, uploads the hosted build as a preview and **submits it for review**. It does not release anything: the owner opens the [collaboration page](https://chrona.world/studio/collaboration/?world=e9ef2f62-a6e0-47f2-8795-c2941cbc433a) and clicks **Accept & publish** — that single click is what changes the live World. The Actions run summary lists the branch, the submission id and the preview link.
+
+- Credential: repository secret `CHRONA_CLIENTS_JSON`, a `clients.json` holding one remembered `read, write` connection to chrona.world (revocable at https://chrona.world/studio/connect/). It cannot publish.
+- CLI: `Alterverse-tech/chrona-game` pinned by commit in the workflow (`CHRONA_CLI_COMMIT`); bump it deliberately.
+- One push = one Chrona branch + one submission. Pushes whose tree already matches Chrona `main` submit nothing.
+- Run it by hand: **Actions → Chrona submit → Run workflow**, or locally:
+
+  ```sh
+  NODE_USE_ENV_PROXY=1 CHRONA_CLI=/path/to/chrona.mjs \
+  CHRONA_WORLD='https://chrona.world/studio/?world=e9ef2f62-a6e0-47f2-8795-c2941cbc433a' \
+  CHRONA_SUBMIT_STOP_AT=preview node .github/chrona-submit.mjs      # drop STOP_AT to also submit
+  ```
+
 ### Publishing with the Chrona CLI
 
 The `chrona-game` plugin (≥ 0.3.1) bundles `scripts/chrona.mjs`; `CLI` below is its absolute path. Login opens the browser once and remembers the connection outside the project.

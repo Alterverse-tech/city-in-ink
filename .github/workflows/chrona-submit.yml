@@ -1,0 +1,57 @@
+# On every push to main: mirror the tree into a fresh Chrona branch, build,
+# upload a preview and submit it for review. Releasing stays a human action
+# (Accept & publish in the Chrona Studio collaboration page).
+name: Chrona submit
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', '.github/**']
+  workflow_dispatch:
+
+concurrency:
+  group: chrona-submit
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CHRONA_WORLD: https://chrona.world/studio/?world=e9ef2f62-a6e0-47f2-8795-c2941cbc433a
+  CHRONA_CLI_REPO: https://github.com/Alterverse-tech/chrona-game.git
+  CHRONA_CLI_COMMIT: 50c79473e43bfeee33372b383d66452359226def   # chrona-game 0.3.3
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Fetch the Chrona CLI (pinned)
+        run: |
+          git clone --quiet --filter=blob:none "$CHRONA_CLI_REPO" "$RUNNER_TEMP/chrona-game"
+          git -C "$RUNNER_TEMP/chrona-game" checkout --quiet "$CHRONA_CLI_COMMIT"
+          echo "CHRONA_CLI=$RUNNER_TEMP/chrona-game/plugins/chrona-game/skills/chrona-game/scripts/chrona.mjs" >> "$GITHUB_ENV"
+
+      - name: Install the Chrona connection
+        env:
+          CHRONA_CLIENTS_JSON: ${{ secrets.CHRONA_CLIENTS_JSON }}
+        run: |
+          test -n "$CHRONA_CLIENTS_JSON" || { echo "Secret CHRONA_CLIENTS_JSON is not set"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/chrona-config"
+          printf '%s' "$CHRONA_CLIENTS_JSON" > "$RUNNER_TEMP/chrona-config/clients.json"
+          chmod 600 "$RUNNER_TEMP/chrona-config/clients.json"
+          echo "CHRONA_CONFIG_DIR=$RUNNER_TEMP/chrona-config" >> "$GITHUB_ENV"
+
+      - name: Push, build, preview and submit to Chrona
+        env:
+          GIT_SHA: ${{ github.sha }}
+        run: node .github/chrona-submit.mjs
+
+      - name: Remove the connection file
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/chrona-config"
