@@ -13,8 +13,8 @@
 //     bundle is untouched;
 //   • data/tech-week-enriched.json (the full event snapshot) is embedded and
 //     served through the same in-page fetch shim, also as /events.json so the
-//     mini map and gull routes see the whole calendar without a server;
-//   • events-sync.js, gull-cluster-route.mjs and event-mini-map.mjs are inlined;
+//     event feed and gull routes see the whole calendar without a server;
+//   • events-sync.js and gull-cluster-route.mjs are inlined;
 //   • multiplayer.js is left out: single-file hosts block WebSocket and the
 //     third-party sign-in, so the preview is solo flight only.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -117,10 +117,10 @@ const decoder = await readFile(url('./artifact-assets.js'), 'utf8');
 let page = html.slice(0, a0 + assetsOpen.length) + JSON.stringify(compact) + '</script>\n  <script>\n' + decoder + '\n  </script>' + html.slice(shimClose + '</script>'.length);
 
 // ---- inline the add-on modules and styles (no multiplayer) ----------------
-const imports = 'import "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./event-mini-map.mjs";\n';
+const imports = 'import "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\n';
 if (page.split(imports).length !== 2) throw new Error('Add-on import block not found; keep build.mjs and build-artifact.mjs in step.');
 let inline = '';
-for (const name of ['events-sync.js', 'gull-cluster-route.mjs', 'event-mini-map.mjs']) {
+for (const name of ['events-sync.js', 'gull-cluster-route.mjs']) {
   const code = await readFile(url('./' + name), 'utf8');
   if (/^\s*import\s/m.test(code)) throw new Error(`${name} imports another module; extend the inliner.`);
   inline += `<script type="module">\n${code}\n</script>\n`;

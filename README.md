@@ -32,7 +32,7 @@ python3 -m http.server 8790 --directory dist-local
 
 Open http://localhost:8790/. What to expect in standalone mode:
 
-- The city, the bird picker, gull flight routes and the **mini map** all work from the saved public event data in `data/`.
+- The city, the bird picker and gull flight routes all work from the saved public event data in `data/`.
 - Event poster images from `cdn.tech-week.com` fail with CORS errors in the console on `localhost`; the game falls back to its own posters. Cosmetic.
 - `/events.json` returns 404 from a plain static server, so the calendar shows the saved snapshot instead of a live refresh. To test live refresh, run `node calendar-server.mjs` (see [Calendar service](#calendar-service)) behind a reverse proxy that maps `/events.json` to it. Not required for development.
 - `/assets/airship.glb` and `/assets/brand/techweek-logo.svg` return 404. The repository has no `assets/` directory; both are optional (the airship is an optional Blender export with a procedural fallback, the logo renders as text) and they 404 on the live Chrona build as well.
@@ -55,7 +55,6 @@ build-artifact.mjs, artifact-assets.js     `npm run build:artifact` → dist-art
 events-build.mjs                           The narrow patches applied by renderGame (event backend swap,
                                            in-game refresh interval 15 min → 60 s).
 
-event-mini-map.mjs                         The mini map (bottom-right widget). Edit directly.
 events-sync.js, events-sync.css            Event feed sync + poster loading from whitelisted origins.
 gull-cluster-route.mjs                     Gull flight routes clustered from the event feed.
 multiplayer.js, multiplayer.css            Multiplayer UI; hosted or standalone connect.
@@ -80,7 +79,7 @@ Generated and ignored: `dist/`, `dist-local/`, `dist-artifact/`, `node_modules/`
 
 There are two editing surfaces:
 
-1. **Add-on modules** (`event-mini-map.mjs`, `multiplayer.js`, `events-sync.js`, `gull-cluster-route.mjs`, styles, `chrona/`): edit directly, rebuild with `npm run build:local`, reload.
+1. **Add-on modules** (`multiplayer.js`, `events-sync.js`, `gull-cluster-route.mjs`, styles, `chrona/`): edit directly, rebuild with `npm run build:local`, reload.
 2. **The original city** (`source/part-*.txt`): the parts are byte slices of one HTML file. After editing, refresh the manifest hash and commit it together with the parts:
 
    ```sh
@@ -160,8 +159,8 @@ node CLI publish --dir .                        # releases the live World
 `npm run build:artifact` writes `dist-artifact/index.html` (a complete document) and `dist-artifact/city-in-ink.artifact.html` (the same page without the `<html>/<head>/<body>` wrapper, for publishers that add their own). It exists for hosts that can serve exactly one HTML file and block every other origin — claude.ai Artifacts in particular, whose page limit is 16 MB while the original game is 24 MB. Compared with the local build:
 
 - The embedded city geometry (23 MB of base64) is re-encoded by `build-artifact.mjs` — planar delta + zigzag varints, positions quantised to 2 cm steps (max error 1 cm) — and `artifact-assets.js` expands it back to the original `Float32Array`/`Uint32Array` bytes inside the page's `fetch` shim. The game bundle is byte-for-byte the original; the page lands at about 10.8 MB.
-- `data/tech-week-enriched.json` and `data/tech-week-first.json` are embedded and served by the same shim; `/events.json` (and the chrona.world feed URL the mini map polls) resolve to the enriched snapshot, so the calendar, gull routes and mini map all see the full snapshot without a calendar service.
-- `events-sync.js`, `gull-cluster-route.mjs` and `event-mini-map.mjs` are inlined. `multiplayer.js` is left out: single-file hosts block WebSocket and the Supabase sign-in, so the preview is solo flight.
+- `data/tech-week-enriched.json` and `data/tech-week-first.json` are embedded and served by the same shim; `/events.json` (and the chrona.world feed URL the add-ons poll when hosted) resolve to the enriched snapshot, so the calendar and gull routes both see the full snapshot without a calendar service.
+- `events-sync.js` and `gull-cluster-route.mjs` are inlined. `multiplayer.js` is left out: single-file hosts block WebSocket and the Supabase sign-in, so the preview is solo flight.
 - Expected on such hosts: posters and the DataSF address lookup are blocked by the host's CSP, and the `.ics` download link does nothing.
 
 ## Calendar service

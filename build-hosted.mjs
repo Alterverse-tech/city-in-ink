@@ -20,7 +20,7 @@ let html = renderGame(original)
   .replace('<script id="tw-layer">', '<script type="module" id="tw-layer">\nawait window.__SF_HOST_READY__;');
 await mkdir(url('./dist/'), {recursive:true});
 await writeFile(url('./dist/index.html'),html);
-for (const name of ['chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','hosted-bootstrap.js','gull-cluster-route.mjs','event-mini-map.mjs']) {
+for (const name of ['chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','hosted-bootstrap.js','gull-cluster-route.mjs']) {
   await cp(url('./'+name), url('./dist/'+name), {recursive:true});
 }
 console.log(JSON.stringify({ build:'dist', originalSha256:digest(original), bytes:Buffer.byteLength(original), hostedProtocol:'chrona.host/v1' }));
