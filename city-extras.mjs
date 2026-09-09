@@ -635,8 +635,8 @@ function installModalEscape() {
 /* --------------------------------------------------- the ships that carry the week */
 // The host's event and the week's opening acts fly larger so the eye finds them
 // from anywhere over downtown. Five at most: past that, nothing reads as big.
-const FEATURED_SCALE = 2.4;
-const SPOTLIGHT_SCALE = 1.7;
+const FEATURED_SCALE = 3.0;
+const SPOTLIGHT_SCALE = 2.2;
 const SPOTLIGHT_MAX = 5;
 
 function featureShips(TW) {
@@ -710,6 +710,58 @@ function hostHoarding(TW, city) {
   setTimeout(build, 1400);
   const original = TW.rebuildWorld;
   if (typeof original === 'function') TW.rebuildWorld = () => { original(); try { build(); } catch (error) { console.error('[TW hoarding]', error); } };
+  return group;
+}
+
+/* ------------------------------------------------- tapping a sign selects it */
+// The game's own picker knows ships and kites; the signs are ours. A tap the
+// game did not answer is cast against the signage instead — the nearest panel
+// under the pointer, within reading distance, opens its card. A sign is a flat
+// rectangle, so the test is a ray against its own plane, no raycaster needed.
+const SIGN_PICK_RANGE = 700;   // metres: signs are read from the street, not picked from the skyline
+function installSignPicking(TW, city, roots) {
+  const T = window.__SF_THREE;
+  const el = city.renderer && city.renderer.domElement;
+  if (!T || !el) return;
+  const origin = new T.Vector3(), dir = new T.Vector3(), local = new T.Vector3(), ldir = new T.Vector3(), inv = new T.Matrix4();
+  const hitPanel = (node) => {
+    const geo = node.geometry && node.geometry.parameters;
+    if (!geo || !Number.isFinite(geo.width) || !Number.isFinite(geo.height)) return null;
+    inv.copy(node.matrixWorld).invert();
+    local.copy(origin).applyMatrix4(inv);
+    ldir.copy(dir).transformDirection(inv);
+    if (Math.abs(ldir.z) < 1e-6) return null;
+    const t = -local.z / ldir.z;
+    if (t <= 0 || t > SIGN_PICK_RANGE) return null;
+    const px = local.x + ldir.x * t, py = local.y + ldir.y * t;
+    if (Math.abs(px) > geo.width / 2 || Math.abs(py) > geo.height / 2) return null;
+    return t;
+  };
+  let down = null, before = null;
+  el.addEventListener('pointerdown', (event) => { down = { x: event.clientX, y: event.clientY, t: performance.now() }; before = TW.state.selected; });
+  el.addEventListener('pointerup', (event) => {
+    if (!down) return;
+    const moved = Math.hypot(event.clientX - down.x, event.clientY - down.y), held = performance.now() - down.t, was = before;
+    down = null; before = null;
+    if (moved > 6 || held > 600) return;
+    if (TW.state.selected !== was) return;                 // the game's picker already answered this tap
+    const cam = city.camera;
+    if (!cam || !cam.matrixWorld) return;
+    const rect = el.getBoundingClientRect();
+    const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1, ny = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    origin.setFromMatrixPosition(cam.matrixWorld);
+    dir.set(nx, ny, 0.5).unproject(cam).sub(origin).normalize();
+    let best = null;
+    for (const root of roots) {
+      if (!root) continue;
+      root.traverse((node) => {
+        if (!node.isMesh || !node.visible || !node.userData.ev) return;
+        const t = hitPanel(node);
+        if (t !== null && (!best || t < best.t)) best = { t, ev: node.userData.ev };
+      });
+    }
+    if (best) TW.select(best.ev);
+  });
 }
 
 /* ------------------------------------------------------------------- boot */
@@ -726,9 +778,10 @@ function hostHoarding(TW, city) {
       installCardCarousel(TW);
       installAutoFlight(TW, city);
       installNeighbourCard(TW, city);
-      buildBillboards(TW, city);
+      const signage = buildBillboards(TW, city);
       featureShips(TW);
-      hostHoarding(TW, city);
+      const hoarding = hostHoarding(TW, city);
+      installSignPicking(TW, city, [signage, hoarding]);
     } catch (error) { console.error('[TW extras]', error); }
   } else if (n < 1500) setTimeout(() => boot(n + 1), 60);
 })(0);

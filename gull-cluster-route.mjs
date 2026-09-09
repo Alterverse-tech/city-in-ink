@@ -1,104 +1,46 @@
-const FEED_URL = window.__SF_HOST_READY__
-  ? 'https://chrona.world/integrations/city-in-ink/events.json'
-  : '/events.json';
-const BACKUP_FEED_URL = './data/tech-week-first.json';
-const FEED_CACHE_TTL = 1000 * 60 * 5;
-
-let clusterFallback = null;
-let clusterFallbackAt = 0;
-let pendingClusterPromise = null;
+// Fly-to fallback for events that are not in the world.
+//
+// `TW.flyTo(ev)` only works for an event that placeEvents() gave a world
+// position — a ship, a wall sign or the host's hoarding. Any other event
+// (no address, no district, not enough RSVPs for a ship) has nowhere to fly
+// to, so the gull heads for the busiest cluster of placed events instead:
+// the building with the most events, ties broken by RSVPs.
+//
+// The candidates come from the game's own normalized events (`TW.state`),
+// never from a raw feed: the card renderer expects Date objects and the
+// computed fields, and a raw feed row used to crash it with
+// "Cannot read properties of undefined (reading 'toISOString')".
 
 function toNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : NaN;
 }
 
-function hasCoordinates(ev) {
-  if (!ev) return false;
-  return Number.isFinite(toNumber(ev.lat)) && Number.isFinite(toNumber(ev.lng));
+function placed(ev) {
+  return !!(ev && ev.world);
 }
 
-function buildClusterFallback(events) {
+function busiestPlaced(events) {
   const buckets = new Map();
   for (const event of events) {
-    if (!hasCoordinates(event)) continue;
-
-    const key = `${event.venue || event.address || event.neighborhood || 'venue'}::${Math.round(toNumber(event.lat) * 1e5)}::${Math.round(toNumber(event.lng) * 1e5)}`;
-    const current = buckets.get(key);
+    if (!placed(event)) continue;
+    if (String(event.venueKey || '').startsWith('harbor:')) continue;     // the harbour holding pattern is not a destination
+    const key = event.venueKey || `${Math.round(toNumber(event.lat) * 1e5)}::${Math.round(toNumber(event.lng) * 1e5)}`;
     const crowd = Number(event.rsvp) || 0;
+    const current = buckets.get(key);
     if (!current) {
       buckets.set(key, { event, crowdSum: crowd, count: 1 });
       continue;
     }
-
     current.count += 1;
     current.crowdSum += crowd;
-    if (crowd > (Number(current.event.rsvp) || 0)) {
-      current.event = event;
-    }
+    if (crowd > (Number(current.event.rsvp) || 0)) current.event = event;
   }
-
   let best = null;
   for (const item of buckets.values()) {
-    if (!best || item.count > best.count || (item.count === best.count && item.crowdSum > best.crowdSum)) {
-      best = item;
-    }
+    if (!best || item.count > best.count || (item.count === best.count && item.crowdSum > best.crowdSum)) best = item;
   }
-  return best?.event ?? null;
-}
-
-function withTimeoutSignal(ms) {
-  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
-    return AbortSignal.timeout(ms);
-  }
-  const controller = new AbortController();
-  setTimeout(() => controller.abort(new DOMException('Signal timed out', 'TimeoutError')), ms);
-  return controller.signal;
-}
-
-async function readLiveFeed() {
-  const response = await fetch(FEED_URL, { cache: 'no-store', signal: withTimeoutSignal(4500) });
-  if (!response.ok) throw new Error(`events feed HTTP ${response.status}`);
-  return response.json();
-}
-
-async function readSeedFeed() {
-  const response = await fetch(BACKUP_FEED_URL, { cache: 'no-store', signal: withTimeoutSignal(4500) });
-  if (!response.ok) throw new Error(`seed events feed HTTP ${response.status}`);
-  return response.json();
-}
-
-async function refreshClusterFallback() {
-  const now = Date.now();
-  if (clusterFallback && now - clusterFallbackAt < FEED_CACHE_TTL) return clusterFallback;
-  if (pendingClusterPromise) return pendingClusterPromise;
-
-  pendingClusterPromise = (async () => {
-    try {
-      const raw = await readLiveFeed();
-      if (raw && Array.isArray(raw.events)) {
-        clusterFallback = buildClusterFallback(raw.events);
-      }
-    } catch (error) {
-      try {
-        const backup = await readSeedFeed();
-        if (backup && Array.isArray(backup.events)) {
-          clusterFallback = buildClusterFallback(backup.events);
-        }
-      } catch {
-        // keep previous best fallback when both endpoints fail
-      }
-    }
-    pendingClusterPromise = null;
-    clusterFallbackAt = Date.now();
-    return clusterFallback;
-  })();
-
-  return pendingClusterPromise;
-}
-
-function needsClusterFallback(ev) {
-  return !ev || ev.claimed === false || !hasCoordinates(ev);
+  return best ? best.event : null;
 }
 
 function patchTwApi() {
@@ -108,19 +50,13 @@ function patchTwApi() {
 
   const originalFlyTo = tw.flyTo;
   tw.flyTo = function (ev) {
-    if (!needsClusterFallback(ev)) {
-      return originalFlyTo.call(this, ev);
+    if (placed(ev)) return originalFlyTo.call(this, ev);
+    const target = busiestPlaced((tw.state && tw.state.events) || []);
+    if (target) {
+      if (typeof tw.toast === 'function' && ev) tw.toast('No venue yet for that one — heading for the busiest block instead.');
+      return originalFlyTo.call(this, target);
     }
-
-    if (clusterFallback && hasCoordinates(clusterFallback)) {
-      return originalFlyTo.call(this, clusterFallback);
-    }
-
-    void refreshClusterFallback().then((target) => {
-      if (hasCoordinates(target)) {
-        originalFlyTo.call(this, target);
-      }
-    });
+    if (ev && typeof tw.select === 'function') tw.select(ev);       // nothing placed yet: at least show the card
   };
 }
 
@@ -128,7 +64,6 @@ function patchTwApi() {
   const tw = window.TW;
   if (tw && tw.flyTo) {
     patchTwApi();
-    void refreshClusterFallback();
     return;
   }
   requestAnimationFrame(boot);

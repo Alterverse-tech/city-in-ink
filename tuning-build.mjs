@@ -21,7 +21,7 @@
 //      fleet rather than one blob.
 //   6. No in-world claim form: the address question goes to Discord.
 export const FEATURED_EVENT = 'hgyN4UiBL4s3vA0ATTbr';   // Seedance × Chrona, the host's own event
-export const RSVP_MIN = 40;                              // below this an event has no airship of its own
+export const RSVP_MIN = 50;                              // below this an event has no airship of its own — it lives on a wall instead
 // The week has an opening act and a host event; a handful of ships fly larger
 // so the eye finds them from anywhere. Five is the cap — past that nothing is
 // big any more. Matched against host, cohosts and title.
@@ -114,6 +114,11 @@ export function wireTuning(html) {
   // and the harbour for everything with no location at all.
   once("    for (const ev of state.events) {\n      if (ev.claimed) {",
     `    for (const ev of state.events) {
+      // Not in the world, not in the placement: no berth, no district spot,
+      // nothing for "fly there" to aim at. The old grid gave every quiet
+      // event a harbour slot, and the slots ran so far down the bay that a
+      // flight to one left the city.
+      if (!ev.onMap) { ev.venueKey = 'unplaced'; ev.world = null; ev.ship = null; ev.venueGroup = null; ev.speakerSpots = null; continue; }
       if (ev.featured) {
         const p = GEO.Hn(CFG.featured.lng, CFG.featured.lat, 0); ev.venueKey = 'featured';
         ev.world = V3(p.x, 0, p.z); ev.ground = c.sampleTerrain(CFG.featured.lng, CFG.featured.lat) || 0;
@@ -179,11 +184,25 @@ export function wireTuning(html) {
   once("      const q = state.events.filter((e) => e.claimed).sort((a, b) => heat(b) - heat(a)); if (!q.length) return;",
     "      const q = state.events.filter((e) => e.onMap && e.ship && !String(e.venueKey || '').startsWith('harbor:')).sort((a, b) => heat(b) - heat(a)); if (!q.length) return;");
   once("  function look(ev) { lookAt(", "  function look(ev) { if (!ev.ship) return; lookAt(");
-  once("    start(ev) { this.ev = ev;", "    start(ev) { if (!ev || !ev.world) return; this.ev = ev;");
+  // Clicking in the world walks every event, and an event that is not in the
+  // world has no ship — the walk used to throw on the first one, which is why
+  // a tap on a ship or a kite never selected anything.
+  once("      for (const ev of state.events) { test(ev.ship.position, ev, ev.hasVehicle ? 24 : 9); if (ev.venueGroup) test(V3(ev.world.x, ev.roof + 8, ev.world.z), ev, 14); }",
+    "      for (const ev of state.events) { if (!ev.onMap || !ev.ship || !ev.world) continue; test(ev.ship.position, ev, ev.hasVehicle ? 24 : 9); if (ev.venueGroup) test(V3(ev.world.x, ev.roof + 8, ev.world.z), ev, 14); }");
+  // Fly to where the thing actually is: an airship is circled at its own
+  // altitude, a wall sign just above its roof. The old target (18 m over the
+  // ground for anything unclaimed) put the bird under every ship.
+  once("    start(ev) { this.ev = ev; this.target = V3(ev.world.x, (ev.claimed ? ev.roof : 0) + 18, ev.world.z);",
+    "    start(ev) { if (!ev || !ev.world) return; this.ev = ev; this.target = V3(ev.world.x, ev.ship && Number.isFinite(ev.shipY) ? Math.max(18, ev.shipY - 56) : (ev.claimed || ev.approxLocation ? ev.roof : 0) + 18, ev.world.z);");
+  // The card offers a flight only when there is somewhere to fly; an event
+  // that is not in the world has no button rather than a dead one, and the
+  // label no longer says "harbor" for a ship over a district or a sign on a wall.
+  once("        <button type=\"button\" data-act=\"fly\">${nav.ev === ev ? (nav.phase === 'circle' ? '◌ Circling' : '→ En route') : (ev.claimed ? 'Fly there' : 'Fly to harbor')}</button>",
+    "        ${ev.world ? `<button type=\"button\" data-act=\"fly\">${nav.ev === ev ? (nav.phase === 'circle' ? '◌ Circling' : '→ En route') : ev.wantsVehicle ? 'Fly to the ship' : 'Fly there'}</button>` : ''}");
 
   // Honest wording for the three location tiers.
   once("`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} <em>Map location unverified.</em> Harbor placement is a game placeholder.`",
-    "`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} ${ev.featured ? '<em>Venue announced closer to the day.</em> Seats are limited — RSVP early.' : ev.approxLocation ? '<em>District only — the exact address is not public yet.</em> Its sign hangs on a building somewhere in the neighbourhood; the door is in the Discord.' : '<em>No public address yet.</em> Ask in the Discord — someone there usually knows the venue.'}`");
+    "`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} ${ev.featured ? '<em>Venue announced closer to the day.</em> Seats are limited — RSVP early.' : ev.approxLocation ? (ev.onMap ? '<em>District only — the exact address is not public yet.</em> Its sign hangs on a building somewhere in the neighbourhood; the door is in the Discord.' : '<em>District only — the exact address is not public yet.</em> Ask in the Discord — someone there usually knows the venue.') : '<em>No public address yet.</em> Ask in the Discord — someone there usually knows the venue.'}`");
 
   // ---- 7. the address question goes to Discord -----------------------------
   // Asking a stranger in a form was the wrong shape: the people who know a
