@@ -173,6 +173,48 @@ node CLI publish --dir .                        # releases the live World
 - `events-sync.js` and `gull-cluster-route.mjs` are inlined. `multiplayer.js` is left out: single-file hosts block WebSocket and the Supabase sign-in, so the preview is solo flight.
 - Expected on such hosts: posters and the DataSF address lookup are blocked by the host's CSP, and the `.ics` download link does nothing.
 
+## Address exchange with Discord
+
+Most Tech Week events never publish a street address, so the city keeps them in
+the harbour. Two small services let the community fill that in, with a human in
+the loop:
+
+```
+in-world "Claim address" ──▶ address-service.mjs ──▶ review card in Discord
+Discord "!address <link> <street>" ──▶ bot ──▶ ─────┘        │
+                                                    approve ─┤
+                              GET /addresses.json ◀──────────┘
+                                        │
+                    events-sync.js merges it ──▶ the airship moves to the roof
+```
+
+- `services/address-service.mjs` holds submissions in one JSON file and serves
+  **approved** entries at `GET /addresses.json`. Moderation endpoints need
+  `INK_ADDRESS_TOKEN`; the public endpoints are read-only and CORS-limited to
+  `INK_ADDRESS_ORIGINS`. Coordinates outside San Francisco are refused.
+- `services/discord-address-bot.mjs` is a zero-dependency gateway client (Node
+  22's global `WebSocket`). It reads the address channel, files submissions,
+  posts an Approve/Reject card, and enforces the moderator role on the buttons.
+  In-world claims are polled from the same queue so they get the same card.
+- Approving publishes the address; the city merges it on its next refresh and
+  the event moves from the harbour to its building. Nothing a player types
+  reaches other players before a moderator approves it.
+
+```sh
+INK_ADDRESS_PORT=8139 INK_ADDRESS_DATA=.cache INK_ADDRESS_TOKEN=$SECRET \
+  node services/address-service.mjs
+
+DISCORD_BOT_TOKEN=$BOT_TOKEN INK_DISCORD_CHANNEL_ID=$CHANNEL \
+INK_DISCORD_REVIEW_CHANNEL=$REVIEW_CHANNEL INK_DISCORD_MODERATOR_ROLE=$ROLE \
+INK_ADDRESS_URL=http://127.0.0.1:8139 INK_ADDRESS_TOKEN=$SECRET \
+  node services/discord-address-bot.mjs
+```
+
+The bot needs the **Message Content** privileged intent, and `addresses.json`
+must be routed like the calendar feed (`/integrations/city-in-ink/addresses.json`
+→ `127.0.0.1:8139`). Add no origins to `delivery.json` for this — it is served
+from chrona.world itself.
+
 ## Calendar service
 
 `calendar-server.mjs` is a small game-owned HTTP service that scrapes https://www.tech-week.com/calendar/sf every 30 minutes (`event-cache.mjs`, one updater per server, never one scrape per browser) and serves the snapshot as `GET /events.json`. Failed refreshes keep the last complete feed.

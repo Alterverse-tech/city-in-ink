@@ -167,6 +167,18 @@ export function wireTuning(html) {
   once("`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} <em>Map location unverified.</em> Harbor placement is a game placeholder.`",
     "`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} ${ev.approxLocation ? '<em>District only — the exact address is not public yet.</em> The airship flies over the neighbourhood.' : '<em>No public address yet.</em> It waits in the harbour until someone shares one.'}`");
 
+  // ---- 7. an in-world claim goes to the Discord review queue ----------------
+  // The address still shows locally right away, so the claim feels immediate;
+  // it only reaches everyone else once a moderator approves it.
+  once("needName(() => { Object.assign(ev, { address: place.address, lat: place.lat, lng: place.lng,",
+    `needName(() => { window.__sfEventFeed?.submitClaim?.({
+          eventId: ev.id, eventTitle: ev.title, eventUrl: ev.url || ev.sourceUrl || '',
+          address: place.address, lat: place.lat, lng: place.lng,
+          venue: $('#tw-m-venue').value.trim(), submittedBy: state.user.name || 'a citizen',
+        }).then(() => toast('Sent to the Discord moderators — it goes live for everyone once approved.'))
+          .catch(() => toast('Placed for you locally; the shared queue is unreachable right now.'));
+        Object.assign(ev, { address: place.address, lat: place.lat, lng: place.lng,`);
+
   // ---- 6. the co-build entry point goes away -------------------------------
   once('        <button type="button" data-act="cobuild">${cob ? \'Edit the space\' : \'Claim & build the space\'}</button>\n', '');
 

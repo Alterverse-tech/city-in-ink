@@ -164,15 +164,66 @@ function showStatus(data, live) {
   badge.title = [data.error, data.fetchedAt ? `Snapshot saved: ${data.fetchedAt}. Individual fields retain their own source timestamps.` : 'No official data has been imported yet.'].filter(Boolean).join('\n');
 }
 
+// Addresses that a moderator approved in Discord (or in-world claims that were
+// reviewed there). The service publishes approved entries only.
+const ADDRESS_URL = window.__SF_HOST_READY__
+  ? 'https://chrona.world/integrations/city-in-ink/addresses.json'
+  : '/addresses.json';
+let addressCache = { at: 0, list: [] };
+async function readApprovedAddresses() {
+  if (Date.now() - addressCache.at < 60000) return addressCache.list;
+  try {
+    const data = await readJson(ADDRESS_URL);
+    addressCache = { at: Date.now(), list: Array.isArray(data?.addresses) ? data.addresses : [] };
+  } catch { addressCache = { at: Date.now(), list: addressCache.list }; }
+  return addressCache.list;
+}
+function applyApprovedAddresses(events, addresses) {
+  if (!addresses.length) return events;
+  const byId = new Map(), byUrl = new Map();
+  for (const entry of addresses) {
+    if (entry.eventId) byId.set(entry.eventId, entry);
+    if (entry.eventUrl) byUrl.set(entry.eventUrl, entry);
+  }
+  return events.map(event => {
+    const entry = byId.get(event.id) || byUrl.get(event.url) || byUrl.get(event.sourceUrl);
+    if (!entry) return event;
+    const patched = { ...event, addressSource: 'community-approved', approvedAddressAt: entry.approvedAt };
+    if (entry.address) patched.address = entry.address;
+    if (entry.venue) patched.venue = entry.venue;
+    if (Number.isFinite(entry.lat) && Number.isFinite(entry.lng)) {
+      // A reviewed address is exact: drop the neighbourhood approximation.
+      patched.lat = entry.lat; patched.lng = entry.lng; patched.approxLocation = false;
+    }
+    return patched;
+  });
+}
+
+// Send an in-world claim to the moderation queue. Nothing is published until a
+// moderator approves it in Discord; the claim stays visible locally meanwhile.
+async function submitClaim(claim) {
+  const response = await fetch(ADDRESS_URL.replace(/addresses\.json$/, 'addresses'), {
+    method: 'POST', credentials: 'omit',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(claim),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error('Address queue returned ' + response.status);
+  return response.json();
+}
+
 window.__sfEventFeed = {
   coverUrl,
+  submitClaim,
   async read(seed) {
     const [saved,cache] = await Promise.all([
       readSaved(),
       readJson(window.__SF_HOST_READY__ ? 'https://chrona.world/integrations/city-in-ink/events.json' : '/events.json')
         .catch(()=>({status:'unavailable',error:'Calendar updater is unreachable; using saved public data.'})),
     ]);
+    const approvedAddresses = await readApprovedAddresses();
     const data = mergePublicFeeds(saved,cache);
+    if (data && approvedAddresses.length) data.events = applyApprovedAddresses(data.events, approvedAddresses);
     if(data)lastGood=data;
     const live = lastGood;
     showStatus(live ? {...live,error:cache.error} : cache, !!live);
