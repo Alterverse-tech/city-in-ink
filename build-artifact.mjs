@@ -8,8 +8,9 @@
 //
 // Same source reassembly and add-on wiring as build-local.mjs, then:
 //   • the 23 MB embedded geometry is re-encoded (planar delta + zigzag varint,
-//     positions quantised to 1 cm) — artifact-assets.js expands it back to the
-//     original typed arrays in the browser, the game bundle is untouched;
+//     positions quantised to 2 cm steps (max error 1 cm)) — artifact-assets.js
+//     expands it back to the original typed arrays in the browser, the game
+//     bundle is untouched;
 //   • data/tech-week-enriched.json (the full event snapshot) is embedded and
 //     served through the same in-page fetch shim, also as /events.json so the
 //     mini map and gull routes see the whole calendar without a server;
@@ -22,7 +23,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import { renderGame } from './build.mjs';
 
 const url = path => new URL(path, import.meta.url);
-const POSITION_SCALE = 0.02; // metres per quantisation step → max error 1 cm
+const POSITION_SCALE = 0.02; // metres — positions quantised to 2 cm steps (max error 1 cm)
 
 // ---- compact encoders ---------------------------------------------------
 class ByteSink {
