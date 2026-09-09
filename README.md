@@ -1,6 +1,6 @@
-# City in Ink — SF Tech Week 2026
+# SF Tech Week City — SF Tech Week 2026
 
-*Every event is an airship.* A single-file browser game: fly a bird over an ink-rendered San Francisco while the public SF Tech Week calendar is mapped onto the city. This repository is the development source for the Chrona World **SF Tech Week — City in Ink** and is the place where GitHub collaborators work; the live game is published through Chrona (see [Relationship with Chrona](#relationship-with-chrona)).
+*Every event is an airship.* The game is named **SF TECH WEEK CITY** (formerly *City in Ink*; the repository keeps its old name). The rename is applied at build time by `wireBrand()` in `build.mjs`, so the original single-file game in `source/` is unchanged. A single-file browser game: fly a bird over an ink-rendered San Francisco while the public SF Tech Week calendar is mapped onto the city. This repository is the development source for the Chrona World **SF Tech Week — City in Ink** and is the place where GitHub collaborators work; the live game is published through Chrona (see [Relationship with Chrona](#relationship-with-chrona)).
 
 ## 快速开始（中文）
 
@@ -49,6 +49,9 @@ build.mjs                                  renderGame(): patches the original HT
 build-hosted.mjs                           `npm run build` → dist/ for Chrona. Adds the host-frame handshake.
 build-local.mjs                            `npm run build:local` → dist-local/ for local work. Same source,
                                            no handshake.
+build-artifact.mjs, artifact-assets.js     `npm run build:artifact` → dist-artifact/: one self-contained HTML
+                                           file (~10.8 MB) for hosts that serve a single page with no network
+                                           — claude.ai Artifacts and the like. See "Single-file preview build".
 events-build.mjs                           The narrow patches applied by renderGame (event backend swap,
                                            in-game refresh interval 15 min → 60 s).
 
@@ -71,7 +74,7 @@ data/                                      Saved public event data (tech-week-en
 delivery.json                              Chrona delivery metadata for the hosted build.
 ```
 
-Generated and ignored: `dist/`, `dist-local/`, `node_modules/`, `.chrona/`. Never commit `.chrona/` — it holds the Chrona workspace binding.
+Generated and ignored: `dist/`, `dist-local/`, `dist-artifact/`, `node_modules/`, `.chrona/`. Never commit `.chrona/` — it holds the Chrona workspace binding.
 
 ## Editing
 
@@ -151,6 +154,15 @@ node CLI publish --dir .                        # releases the live World
 ### The hosted build
 
 `npm run build` writes `dist/` for Chrona. It differs from the local build only by the handshake in `hosted-bootstrap.js`: the game runs inside Chrona's sandboxed iframe, receives the signed-in account and the authoritative room from the host, and stores preferences per account/World instead of in browser `localStorage`. `chrona/chrona-host.js` deliberately has no standalone fallback — a failed handshake never starts a separate login — so `dist/` renders only the error line and the mini map when opened outside Chrona. That is expected.
+
+### Single-file preview build
+
+`npm run build:artifact` writes `dist-artifact/index.html` (a complete document) and `dist-artifact/city-in-ink.artifact.html` (the same page without the `<html>/<head>/<body>` wrapper, for publishers that add their own). It exists for hosts that can serve exactly one HTML file and block every other origin — claude.ai Artifacts in particular, whose page limit is 16 MB while the original game is 24 MB. Compared with the local build:
+
+- The embedded city geometry (23 MB of base64) is re-encoded by `build-artifact.mjs` — planar delta + zigzag varints, positions quantised to 1 cm (max error 5 mm) — and `artifact-assets.js` expands it back to the original `Float32Array`/`Uint32Array` bytes inside the page's `fetch` shim. The game bundle is byte-for-byte the original; the page lands at about 10.8 MB.
+- `data/tech-week-enriched.json` and `data/tech-week-first.json` are embedded and served by the same shim; `/events.json` (and the chrona.world feed URL the mini map polls) resolve to the enriched snapshot, so the calendar, gull routes and mini map all see the full snapshot without a calendar service.
+- `events-sync.js`, `gull-cluster-route.mjs` and `event-mini-map.mjs` are inlined. `multiplayer.js` is left out: single-file hosts block WebSocket and the Supabase sign-in, so the preview is solo flight.
+- Expected on such hosts: posters and the DataSF address lookup are blocked by the host's CSP, and the `.ics` download link does nothing.
 
 ## Calendar service
 
