@@ -148,5 +148,11 @@ Static hosting alone does not run it. On the Chrona host it is deployed separate
 
 - **`dist/index.html` opens blank with "Chrona connection failed: A trusted HTTPS host origin is required".** You opened the hosted build outside Chrona. Use `npm run build:local` and `dist-local/`.
 - **Build fails with "Source bytes changed".** `source/part-*.txt` no longer matches `source/manifest.json`. If the edit was intentional: `node build-hosted.mjs --accept-source-update`, then commit the manifest.
-- **Chrona CLI `checkout`/`pull` hangs and aborts at exactly 120 s with nothing downloaded, while `status` works.** The checkout response is ~30 MB of JSON. On one macOS network this transfer stalled in Node's HTTPS stack (headers arrived, body never did) while the server answered the same request in under a second and `curl` succeeded from the same machine. Check with `curl` before suspecting the server; try another network or machine.
+- **Chrona CLI `checkout`/`pull` aborts at exactly 120 s with nothing downloaded, while `status` works.** Cause verified on macOS: the machine uses a local proxy (`HTTPS_PROXY=http://127.0.0.1:7897`), which `curl`, `pip` and `aws` honor, but **Node ignores proxy environment variables by default**, so the CLI's `fetch` goes direct to us-east-1 over a throttled route (~25 KB/s; the 30 MB checkout needs 20+ minutes and hits the CLI's 120 s timeout). Fix — make Node use the proxy (Node ≥ 24):
+
+  ```sh
+  NODE_USE_ENV_PROXY=1 node CLI pull --dir ./city-in-ink-chrona     # 30 MB in ~5 s
+  ```
+
+  Put `export NODE_USE_ENV_PROXY=1` in your shell profile to make it permanent. Diagnose with `curl -v https://chrona.world/` (look for `CONNECT` via the proxy) and `env | grep -i proxy`. The server answers the same request in under a second; do not look for the problem there.
 - **Console CORS errors for `cdn.tech-week.com` images on localhost.** Expected; posters fall back. The hosted build whitelists those origins in `delivery.json`.
