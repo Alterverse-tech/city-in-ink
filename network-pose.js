@@ -1,6 +1,9 @@
 // One authority unit = 100 city metres. Flight at 76 m/s stays within the
 // generic movement profile, without altering the local controls or camera.
 export const METRES_PER_UNIT = 100;
+// Added on encode and removed on decode, so it cancels out between peers and
+// only keeps the transmitted y positive for the authority. Change one use and
+// remote birds fly at the wrong height; change both or neither.
 const ALTITUDE_OFFSET = 20;
 export const INPUT_STEP = 0.025;
 
