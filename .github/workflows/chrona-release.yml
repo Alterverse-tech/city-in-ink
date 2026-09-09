@@ -1,7 +1,7 @@
 # On every push to main: mirror the tree into a fresh Chrona branch, build,
-# upload a preview and submit it for review. Releasing stays a human action
-# (Accept & publish in the Chrona Studio collaboration page).
-name: Chrona submit
+# upload a preview, then approve, merge and RELEASE it to the live World.
+# There is no human gate here — whoever merges to main updates the live game.
+name: Chrona release
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: chrona-submit
+  group: chrona-release
   cancel-in-progress: false
 
 permissions:
@@ -22,7 +22,7 @@ env:
   CHRONA_CLI_COMMIT: 50c79473e43bfeee33372b383d66452359226def   # chrona-game 0.3.3
 
 jobs:
-  submit:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -47,10 +47,15 @@ jobs:
           chmod 600 "$RUNNER_TEMP/chrona-config/clients.json"
           echo "CHRONA_CONFIG_DIR=$RUNNER_TEMP/chrona-config" >> "$GITHUB_ENV"
 
-      - name: Push, build, preview and submit to Chrona
+      - name: Check the publish credential
+        env:
+          CHRONA_CONFIG_DIR: ${{ runner.temp }}/chrona-config
+        run: node .github/check-chrona-credential.mjs
+
+      - name: Push, build, preview and release to Chrona
         env:
           GIT_SHA: ${{ github.sha }}
-        run: node .github/chrona-submit.mjs
+        run: node .github/chrona-release.mjs
 
       - name: Remove the connection file
         if: always()

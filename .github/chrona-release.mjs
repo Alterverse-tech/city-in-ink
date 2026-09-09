@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-// Mirror this repository's working tree into a fresh Chrona branch, upload a
-// preview build and submit it for review. Publishing stays a human action in
-// the Chrona Studio (Accept & publish). Runs in GitHub Actions and locally.
+// Mirror this repository's working tree into a fresh Chrona branch, build it,
+// upload a preview, then approve, merge and RELEASE it to the live World.
+// Every push to main goes live; there is no human gate. Guard the live game by
+// guarding who can merge to main.
 //
 // Env: CHRONA_CLI   absolute path to chrona.mjs (chrona-game plugin >= 0.3.1)
 //      CHRONA_WORLD World link, e.g. https://chrona.world/studio/?world=<id>
-//      CHRONA_CONFIG_DIR  directory holding clients.json (a remembered connection)
+//      CHRONA_CONFIG_DIR  directory holding clients.json (connection with publish scope)
 //      GIT_SHA / GIT_SUBJECT  optional labels; derived from git when absent
-//      CHRONA_SUBMIT_STOP_AT  "preview" to stop before submit (local testing)
+//      CHRONA_SUBMIT_STOP_AT  "preview" or "submit" to stop early (local testing)
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdtempSync, readdirSync, rmSync, appendFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -68,18 +69,49 @@ try {
   }
 
   const submission = step('submit', () => chrona(['submit', '--dir', ws, '--title', `${subject} (GitHub ${sha})`], ws));
-  const collab = `${site}/studio/collaboration/?world=${new URL(WORLD).searchParams.get('world')}`;
-  console.log(`submitted ${submission.id} (${submission.status}) -> review at ${collab}`);
-  summary([
-    `### Chrona submission ready for review`,
-    ``,
-    `| | |`, `|---|---|`,
-    `| Commit | \`${sha}\` ${subject} |`,
-    `| Chrona branch | \`${checkout.branch}\` |`,
-    `| Submission | \`${submission.id}\` (${submission.status}) |`,
-    `| Preview | ${previewUrl} |`,
-    `| Accept & publish | ${collab} |`,
-  ].join('\n'));
+  const worldId = new URL(WORLD).searchParams.get('world');
+  const collab = `${site}/studio/collaboration/?world=${worldId}`;
+  console.log(`submitted ${submission.id} (${submission.status})`);
+
+  if (stopAt === 'submit') {
+    console.log('CHRONA_SUBMIT_STOP_AT=submit: stopping before release.');
+    summary(`Chrona submission \`${submission.id}\` created (not released).\n\nPreview: ${previewUrl}\nRelease it at ${collab}`);
+    process.exit(0);
+  }
+
+  // Release. Each step re-reads server state, so a failure after merge leaves
+  // Chrona main advanced but the live World unchanged — the log says which.
+  let merged = false;
+  try {
+    step('review (approve)', () => chrona(['review', '--dir', ws, '--submission', submission.id], ws));
+    step('merge', () => chrona(['merge', '--dir', ws, '--submission', submission.id], ws));
+    merged = true;
+    const released = step('publish', () => chrona(['publish', '--dir', ws], ws));
+    const revision = released.revision ?? released.published?.revision ?? '(see log)';
+    console.log(`LIVE: revision ${revision} at ${site}/play/${worldId}/`);
+    summary([
+      `### Released to the live World`,
+      ``,
+      `| | |`, `|---|---|`,
+      `| Commit | \`${sha}\` ${subject} |`,
+      `| Chrona branch | \`${checkout.branch}\` |`,
+      `| Submission | \`${submission.id}\` |`,
+      `| Live revision | **${revision}** |`,
+      `| Play | ${site}/play/${worldId}/ |`,
+      `| Preview | ${previewUrl} |`,
+    ].join('\n'));
+  } catch (error) {
+    summary([
+      `### Release failed`,
+      ``,
+      merged
+        ? `Chrona main advanced to this commit but the live World was **not** updated. Publish it at ${collab}.`
+        : `The submission \`${submission.id}\` was created but not merged. Review it at ${collab}.`,
+      ``,
+      `Preview: ${previewUrl}`,
+    ].join('\n'));
+    throw error;
+  }
 } finally {
   rmSync(ws, { recursive: true, force: true });
 }

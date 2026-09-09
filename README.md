@@ -108,25 +108,33 @@ The live game is a Chrona World:
 
 **Origin of this repository.** It was exported on 2026-09-09 from the World's collaboration checkout at main commit `a9c1cd20` (submission *"Navigate buttons, event mini map, gull flight route…"*). Chrona stores each World as a bare git repository on the server (`project.git`, one `project.json` per commit); that history is **not** replayed here — this repo starts from a snapshot import. Chrona's own commit ids (`a9c1cd20`, …) do not correspond to commits in this repo.
 
-**Pushing to GitHub does not publish anything.** Chrona only reads its own collaboration branches. Two ways to get changes live:
+**A merge to `main` is a production deploy.** Chrona does not read GitHub; the CI below is what carries a commit across, and it releases without asking anyone.
 
-- *Chrona as the publishing channel, GitHub as source of truth (recommended for a small team).* One person publishes from a Chrona checkout using the CLI (below).
-- *Chrona-native collaboration.* Each collaborator gets their own Chrona branch and authorization; the owner reviews and merges in the Studio. Requires the owner to add the collaborator as **Full Developer** (World Development → Player & Creator Access) after they have signed in to chrona.world once.
+### Automatic release from GitHub (CI)
 
-### Automatic submission from GitHub (CI)
+**Every push to `main` goes live.** [`.github/workflows/chrona-release.yml`](.github/workflows/chrona-release.yml) mirrors the commit into a fresh Chrona branch, builds it, uploads a preview, then approves, merges and **releases** it to the live World. There is no human gate in the pipeline, so the real gate is *who can merge to `main`* — protect that branch rather than relying on a review click. The Actions run summary reports the live revision and the play link.
 
-Every push to `main` (except docs-only and `.github/` changes) runs [`.github/workflows/chrona-submit.yml`](.github/workflows/chrona-submit.yml), which mirrors the commit into a **fresh Chrona branch**, uploads the hosted build as a preview and **submits it for review**. It does not release anything: the owner opens the [collaboration page](https://chrona.world/studio/collaboration/?world=e9ef2f62-a6e0-47f2-8795-c2941cbc433a) and clicks **Accept & publish** — that single click is what changes the live World. The Actions run summary lists the branch, the submission id and the preview link.
+- Credential: repository secret `CHRONA_CLIENTS_JSON`, a `clients.json` holding one World-scoped connection with `read, write, publish`. Chrona refuses `--remember` together with `--world`, so this credential **expires** (90 days). [`.github/check-chrona-credential.mjs`](.github/check-chrona-credential.mjs) runs before every release: it warns 14 days out and fails the run once the credential lapses. Re-mint it and update the secret:
 
-- Credential: repository secret `CHRONA_CLIENTS_JSON`, a `clients.json` holding one remembered `read, write` connection to chrona.world (revocable at https://chrona.world/studio/connect/). It cannot publish.
+  ```sh
+  node CLI login --world 'https://chrona.world/studio/?world=e9ef2f62-a6e0-47f2-8795-c2941cbc433a' --publish --force
+  python3 -c "import json,os;c=json.load(open(os.path.expanduser('~/.config/chrona/clients.json')));k=[x for x in c['clients'] if 'publish' in (x.get('scopes') or []) and x.get('worldId')];json.dump({'clients':k},open('ci.json','w'))"
+  gh secret set CHRONA_CLIENTS_JSON --repo Alterverse-tech/city-in-ink < ci.json && rm ci.json
+  ```
+
+  Connections are revocable at https://chrona.world/studio/connect/.
 - CLI: `Alterverse-tech/chrona-game` pinned by commit in the workflow (`CHRONA_CLI_COMMIT`); bump it deliberately.
-- One push = one Chrona branch + one submission. Pushes whose tree already matches Chrona `main` submit nothing.
-- Run it by hand: **Actions → Chrona submit → Run workflow**, or locally:
+- One push = one Chrona branch, one submission and one release. A push whose tree already matches Chrona `main` releases nothing.
+- Docs-only pushes (`**.md`) and `.github/**` changes do not trigger it.
+- To show work in progress **without** releasing, build a preview locally instead of dispatching the workflow:
 
   ```sh
   NODE_USE_ENV_PROXY=1 CHRONA_CLI=/path/to/chrona.mjs \
   CHRONA_WORLD='https://chrona.world/studio/?world=e9ef2f62-a6e0-47f2-8795-c2941cbc433a' \
-  CHRONA_SUBMIT_STOP_AT=preview node .github/chrona-submit.mjs      # drop STOP_AT to also submit
+  CHRONA_SUBMIT_STOP_AT=preview node .github/chrona-release.mjs      # or =submit to stop after submitting
   ```
+
+> **Never dispatch this workflow on a branch other than `main`.** It would release that branch's tree to the live World, leaving GitHub `main` and the live game divergent — and the next push to `main` would then silently revert those changes.
 
 ### Publishing with the Chrona CLI
 
