@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node build-hosted.mjs"
+    "build": "node build-hosted.mjs",
+    "build:local": "node build-local.mjs"
   }
 }
