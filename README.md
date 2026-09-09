@@ -4,8 +4,10 @@
 
 ## 快速开始（中文）
 
+前提：仓库是私有的，先让 owner 把你的 GitHub 账号加为协作者。
+
 ```sh
-git clone git@github.com:Alterverse-tech/city-in-ink.git && cd city-in-ink
+git clone git@github.com:Alterverse-tech/city-in-ink.git && cd city-in-ink   # 或 https://github.com/Alterverse-tech/city-in-ink.git
 npm run build:local                                   # 生成 dist-local/，无需 npm install
 python3 -m http.server 8790 --directory dist-local    # 任意静态服务器都行
 ```
