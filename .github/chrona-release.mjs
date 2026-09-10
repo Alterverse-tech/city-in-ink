@@ -8,7 +8,8 @@
 //      CHRONA_WORLD World link, e.g. https://chrona.world/studio/?world=<id>
 //      CHRONA_CONFIG_DIR  directory holding clients.json (connection with publish scope)
 //      GIT_SHA / GIT_SUBJECT  optional labels; derived from git when absent
-//      CHRONA_SUBMIT_STOP_AT  "preview" or "submit" to stop early (local testing)
+//      CHRONA_SUBMIT_STOP_AT  "drift", "preview" or "submit" to stop early (local testing)
+//      CHRONA_ALLOW_DRIFT  "1" to overwrite Chrona-side edits instead of stopping
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdtempSync, readdirSync, rmSync, appendFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -31,12 +32,95 @@ const chrona = (args, cwd) => {
 };
 const step = (title, fn) => { console.log(`\n== ${title}`); const r = fn(); return r; };
 
+// --- Chrona-side drift detection -------------------------------------------
+// The mirror step below replaces the whole tree, so a change made directly on
+// Chrona (Studio Collaboration, or the CLI) that never reached GitHub would be
+// silently deleted. Every commit this script makes records the GitHub sha it
+// came from, so we can reconstruct the last synced GitHub tree and compare it
+// with what Chrona main holds now. Any difference is an edit GitHub never saw.
+const topLevel = path => path.split('/')[0];
+const mirrored = path => !EXCLUDE.has(topLevel(path));
+const listFiles = (dir, prefix = '') => readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+  const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+  if (!prefix && (entry.name === '.chrona' || EXCLUDE.has(entry.name))) return [];
+  return entry.isDirectory() ? listFiles(join(dir, entry.name), rel) : [rel];
+});
+const lastSyncedGitHubSha = (fromCommit, history = []) => {
+  const byCommit = new Map(history.map(entry => [entry.commit, entry]));
+  const seen = new Set();
+  for (let cur = fromCommit; cur && !seen.has(cur); cur = (byCommit.get(cur)?.parents || [])[0]) {
+    seen.add(cur);
+    const entry = byCommit.get(cur);
+    if (!entry) return null;
+    const found = /\(GitHub ([0-9a-f]{7,40})\)/.exec(entry.summary || '');
+    if (found) return found[1];
+  }
+  return null;
+};
+const chronaDrift = fromCommit => {
+  const { history } = chrona(['status', '--dir', ws], ws);
+  const base = lastSyncedGitHubSha(fromCommit, history);
+  if (!base) return { skipped: 'Chrona main carries no GitHub marker yet' };
+  try { git(['cat-file', '-e', `${base}^{commit}`]); }
+  catch { return { skipped: `GitHub commit ${base} is not in this clone (checkout needs fetch-depth: 0)` }; }
+
+  const before = new Map();
+  for (const line of git(['ls-tree', '-r', base]).split('\n')) {
+    const entry = /^\d+ blob ([0-9a-f]+)\t(.+)$/.exec(line);
+    if (entry && mirrored(entry[2])) before.set(entry[2], entry[1]);
+  }
+  const paths = listFiles(ws);
+  const hashes = paths.length ? git(['hash-object', ...paths.map(path => join(ws, path))]).split('\n') : [];
+  const now = new Map(paths.map((path, i) => [path, hashes[i]]));
+  return {
+    base,
+    added: paths.filter(path => !before.has(path)),
+    changed: paths.filter(path => before.has(path) && before.get(path) !== now.get(path)),
+    removed: [...before.keys()].filter(path => !now.has(path)),
+  };
+};
+
 const ws = mkdtempSync(join(tmpdir(), 'chrona-submit-'));
 const branchName = `GitHub ${sha}: ${subject}`;
 try {
   const checkout = step(`checkout ${WORLD} -> ${ws}`, () =>
     chrona(['checkout', '--world', WORLD, '--dir', ws, '--name', branchName, '--client', 'GitHub Actions'], repo));
   console.log(`branch ${checkout.branch} from commit ${String(checkout.commit).slice(0, 12)}`);
+
+  const drift = step('check for Chrona-side edits GitHub never saw', () => chronaDrift(checkout.commit));
+  if (drift.skipped) console.log(`skipped: ${drift.skipped}`);
+  else {
+    const found = [
+      ...drift.added.map(path => `  + ${path}  (added on Chrona)`),
+      ...drift.changed.map(path => `  ~ ${path}  (changed on Chrona)`),
+      ...drift.removed.map(path => `  - ${path}  (deleted on Chrona)`),
+    ];
+    if (!found.length) console.log(`Chrona main matches GitHub ${drift.base}; no drift.`);
+    else if (process.env.CHRONA_ALLOW_DRIFT === '1') {
+      console.log(`CHRONA_ALLOW_DRIFT=1 — overwriting ${found.length} Chrona-side change(s):`);
+      console.log(found.join('\n'));
+    } else {
+      console.error(`Chrona main has ${found.length} change(s) that never reached GitHub, measured against GitHub ${drift.base}:`);
+      console.error(found.join('\n'));
+      summary([
+        `### Release stopped: Chrona has changes GitHub never saw`,
+        ``,
+        `Mirroring \`${sha}\` would delete or revert them. Compared against GitHub \`${drift.base}\`, the last commit this pipeline synced.`,
+        ``,
+        '```',
+        ...found,
+        '```',
+        ``,
+        `Bring these into the repository and push again, or re-run with \`CHRONA_ALLOW_DRIFT=1\` to let GitHub win.`,
+      ].join('\n'));
+      throw new Error('Chrona-side changes would be overwritten; nothing was pushed or released.');
+    }
+  }
+
+  if (stopAt === 'drift') {
+    console.log("CHRONA_SUBMIT_STOP_AT=drift: checked only; nothing pushed, built or released.");
+    process.exit(0);
+  }
 
   step('mirror working tree into the workspace', () => {
     for (const entry of readdirSync(ws)) if (entry !== '.chrona') rmSync(join(ws, entry), { recursive: true, force: true });

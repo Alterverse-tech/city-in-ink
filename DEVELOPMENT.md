@@ -118,6 +118,10 @@ The live game is a Chrona World:
 
 **Every push to `main` goes live.** [`.github/workflows/chrona-release.yml`](.github/workflows/chrona-release.yml) mirrors the commit into a fresh Chrona branch, builds it, uploads a preview, then approves, merges and **releases** it to the live World. There is no human gate in the pipeline, so the real gate is *who can merge to `main`* — protect that branch rather than relying on a review click. The Actions run summary reports the live revision and the play link.
 
+**Chrona-side edits are detected, not overwritten.** The mirror step replaces the whole tree, so a change made directly on Chrona (Studio Collaboration, or the CLI) that never reached this repository would otherwise be silently deleted. Before mirroring, the pipeline reconstructs the last GitHub tree it synced — every commit it makes records its GitHub sha, so that sha is read back from Chrona `main`'s ancestry — and compares it against what Chrona `main` holds now. Any added, changed or deleted file stops the run before anything is pushed, and the summary names the files. Bring them into this repository and push again, or re-run with `CHRONA_ALLOW_DRIFT=1` to let GitHub win. This needs the full history, hence `fetch-depth: 0` on the checkout step.
+
+Run **Actions → Chrona release → Run workflow** and pick **stop_at** to go part way: `drift` audits for Chrona-side edits and writes nothing at all, `preview` stops after the branch preview, `submit` stops before the release, `release` (the default) does everything.
+
 - Credential: repository secret `CHRONA_CLIENTS_JSON`, a `clients.json` holding one World-scoped connection with `read, write, publish`. Chrona refuses `--remember` together with `--world`, so this credential **expires** (90 days). [`.github/check-chrona-credential.mjs`](.github/check-chrona-credential.mjs) runs before every release: it warns 14 days out and fails the run once the credential lapses. Re-mint it and update the secret:
 
   ```sh
