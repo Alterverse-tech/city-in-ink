@@ -58,7 +58,7 @@ events-build.mjs                           The narrow patches applied by renderG
                                            in-game refresh interval 15 min → 60 s).
 
 events-sync.js, events-sync.css            Event feed sync + poster loading from whitelisted origins.
-gull-cluster-route.mjs                     Gull flight routes clustered from the event feed.
+gull-cluster-route.mjs                     Fly-to fallback: an event with no place in the world sends the gull to the busiest building.
 multiplayer.js, multiplayer.css            Multiplayer UI; hosted or standalone connect.
 network-pose.js                            Pose encoding for the netcode (1 authority unit = 100 m).
 public-world.js                            The fixed directory entry: World id 93a8c02d…, gameId cybercity.

@@ -292,33 +292,48 @@ function installNeighbourCard(TW, city) {
 }
 
 /* ------------------------------------- Tokyo-style signage on busy buildings */
-// A building hosting several events gets a vertical stack of lit panels up its
-// corner — Shinjuku signage rather than a queue of airships over the same roof.
-const BILLBOARD_MIN = 1;      // every building with a known address gets signage
-const BILLBOARD_MAX = 7;      // panels; the rest are summarised on the cap
-const SIGN_BUDGET_MS = 6;     // per frame: signage never owns a whole frame
+// Posters on the glass. A building with events wears their covers on one of
+// its own walls — the real wall, read out of the city mesh, so the poster sits
+// flush and square on the facade instead of on a plane guessed from a probe.
+// Only a real cover goes up: an event whose poster has not loaded (or has no
+// poster at all) simply has nothing on the wall yet, and the covers load as
+// you fly in, so a street of signs lights up as you approach it.
+const SIGN_BUDGET_MS = 6;     // per slice: signage never owns a whole frame
 const SIGN_START_DELAY = 900; // ms after the world is ready, so entry stays smooth
-const PANEL = { w: 30, h: 17, gap: 6, base: 16 };
+const SIGN_MAX_PER_VENUE = 4; // posters on one building; the list has the rest
+const SIGN_MARGIN = 1.6;      // metres from the wall's edges
+const SIGN_GAP = 1.4;         // metres between posters
+const SIGN_CLEAR = 0.35;      // metres off the glass, enough to avoid z-fighting
+const SIGN_TOP_GAP = 3;       // metres below the roofline
+const SIGN_TEX_W = 224;       // texture width in px; a sign is read from the street
+const SIGN_ASPECT = { min: 0.72, max: 1.4 }; // height / width; covers are cropped to this band
 
 // The bundle exposes Texture but not CanvasTexture; this is the same thing.
 // Every poster is drawn on a canvas and uploaded to the GPU, which is the
 // expensive part — so each event's texture is made once and reused across
 // rebuilds instead of being redrawn every time the fleet changes.
 const textures = new Map();          // event key → texture, most recently used last
-const TEXTURE_CAP = 220;             // live posters at once; the rest are re-drawn when you come back
+const TEXTURE_CAP = 200;             // live posters at once; the rest are re-drawn when you come back
 function canvasTexture(T, canvas) {
   const texture = new T.Texture(canvas);
   texture.anisotropy = 4;
   texture.needsUpdate = true;
   return texture;
 }
-// Half-size copies for wall signs: a sign is read from the street, and four
-// times less memory per poster is what lets a few hundred buildings wear one.
+// Half-size copies for the hoarding: read from the street, not the skyline.
 function halfSize(canvas) {
   const small = document.createElement('canvas');
   small.width = Math.max(64, canvas.width >> 1); small.height = Math.max(64, canvas.height >> 1);
   small.getContext('2d').drawImage(canvas, 0, 0, small.width, small.height);
   return small;
+}
+function rememberTexture(key, texture) {
+  textures.set(key, texture);
+  if (textures.size > TEXTURE_CAP) {
+    const [oldKey, old] = textures.entries().next().value;
+    textures.delete(oldKey); old.dispose();
+    for (const mesh of old.userData.meshes || []) if (mesh.material?.uniforms?.map?.value === old) { mesh.material.uniforms.map.value = null; mesh.userData.textured = false; }
+  }
 }
 function posterTexture(T, TW, event) {
   const key = event.id || event.url || event.title;
@@ -326,24 +341,69 @@ function posterTexture(T, TW, event) {
   if (texture) { textures.delete(key); textures.set(key, texture); return texture; }
   texture = canvasTexture(T, halfSize(TW.drawPoster(event)));
   texture.userData.withCover = !!event.coverImg;
-  textures.set(key, texture);
-  if (textures.size > TEXTURE_CAP) {
-    const [oldKey, old] = textures.entries().next().value;
-    textures.delete(oldKey); old.dispose();
-    for (const mesh of old.userData.meshes || []) if (mesh.material?.uniforms?.map?.value === old) { mesh.material.uniforms.map.value = null; mesh.userData.textured = false; }
-  }
+  rememberTexture(key, texture);
   return texture;
 }
-// A shared blank so far-off signs cost nothing but a quad.
-let blankTexture = null;
-function blank(T) {
-  if (blankTexture) return blankTexture;
-  const cv = document.createElement('canvas'); cv.width = 8; cv.height = 8;
-  const g = cv.getContext('2d'); g.fillStyle = '#e9dcc4'; g.fillRect(0, 0, 8, 8);
-  return (blankTexture = canvasTexture(T, cv));
+// The cover itself, cropped to the sign's proportions, behind a hairline of
+// ink — the poster in a lightbox, not a banner with a poster in one corner.
+function coverTexture(T, event, aspect) {
+  const key = 'cover:' + (event.id || event.url || event.title);
+  let texture = textures.get(key);
+  if (texture) { textures.delete(key); textures.set(key, texture); return texture; }
+  const im = event.coverImg;
+  const cv = document.createElement('canvas');
+  cv.width = SIGN_TEX_W; cv.height = Math.round(SIGN_TEX_W * aspect);
+  const g = cv.getContext('2d');
+  const k = Math.max(cv.width / im.width, cv.height / im.height);      // cover-fit: fill, crop the overflow
+  const dw = im.width * k, dh = im.height * k;
+  g.fillStyle = '#1d1519'; g.fillRect(0, 0, cv.width, cv.height);
+  g.drawImage(im, (cv.width - dw) / 2, (cv.height - dh) / 2, dw, dh);
+  // Three hundred events share the calendar's stock poster. On a wall that
+  // is three hundred identical black squares, so a stock poster carries the
+  // event's own name, host and hour in a band along its foot.
+  if (event.genericPoster) titleBand(g, cv, event);
+  g.strokeStyle = 'rgba(29,21,25,0.9)'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, cv.width - 3, cv.height - 3);
+  g.strokeStyle = 'rgba(255,244,222,0.55)'; g.lineWidth = 1; g.strokeRect(4.5, 4.5, cv.width - 9, cv.height - 9);
+  texture = canvasTexture(T, cv);
+  texture.userData.withCover = true;
+  rememberTexture(key, texture);
+  return texture;
 }
-// Covers arrive after the sign was drawn (they load as you approach). Redraw
-// the poster with the real image the first time it is available.
+function wrapText(g, text, maxWidth, maxLines) {
+  const words = String(text || '').split(/\s+/).filter(Boolean), lines = [];
+  let line = '';
+  for (const word of words) {
+    const next = line ? line + ' ' + word : word;
+    if (g.measureText(next).width <= maxWidth || !line) line = next;
+    else { lines.push(line); line = word; if (lines.length === maxLines) break; }
+  }
+  if (lines.length < maxLines && line) lines.push(line);
+  if (lines.length === maxLines && words.length) { const last = lines[maxLines - 1]; if (g.measureText(last).width > maxWidth || lines.join(' ').length < words.join(' ').length) { let cut = last; while (cut && g.measureText(cut + '…').width > maxWidth) cut = cut.slice(0, -1); lines[maxLines - 1] = cut + '…'; } }
+  return lines;
+}
+function whenText(event) {
+  const d = event.startDate instanceof Date ? event.startDate : event.start ? new Date(event.start) : null;
+  if (!d || isNaN(d)) return '';
+  return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles' }).replace(',', ' ·').toUpperCase();
+}
+function titleBand(g, cv, event) {
+  const W = cv.width, H = cv.height, pad = 10;
+  const bandH = Math.round(H * 0.42), top = H - bandH;
+  const grad = g.createLinearGradient(0, top - 18, 0, top + 10);
+  grad.addColorStop(0, 'rgba(29,21,25,0)'); grad.addColorStop(1, 'rgba(29,21,25,0.94)');
+  g.fillStyle = grad; g.fillRect(0, top - 18, W, 28);
+  g.fillStyle = 'rgba(29,21,25,0.94)'; g.fillRect(0, top + 10, W, bandH - 10);
+  g.textBaseline = 'top'; g.textAlign = 'left';
+  g.fillStyle = '#e9c46a'; g.font = '700 11px ui-monospace, Menlo, monospace';
+  g.fillText(whenText(event), pad, top + 4);
+  g.fillStyle = '#f6ecd8'; g.font = '700 19px Georgia, "Times New Roman", serif';
+  const lines = wrapText(g, event.title, W - pad * 2, 3);
+  lines.forEach((line, i) => g.fillText(line, pad, top + 20 + i * 22));
+  const host = Array.isArray(event.cohosts) && event.cohosts.length ? [event.host, ...event.cohosts].filter(Boolean).join(' × ') : event.host;
+  if (host) { g.fillStyle = 'rgba(246,236,216,0.78)'; g.font = '500 11px ui-monospace, Menlo, monospace'; g.fillText(wrapText(g, host, W - pad * 2, 1)[0] || '', pad, Math.min(H - 16, top + 22 + lines.length * 22)); }
+}
+// Covers arrive after the hoarding was drawn (they load as you approach).
+// Redraw the poster with the real image the first time it is available.
 function refreshPosterIfCoverArrived(T, TW, mesh) {
   const event = mesh.userData.ev;
   const map = mesh.material?.uniforms?.map;
@@ -367,165 +427,310 @@ function billboardMaterial(T, city, texture) {
   });
 }
 
-// The cap panel: how many events this address is running, in the house style.
-function capCanvas(venue, hidden) {
-  const cv = document.createElement('canvas');
-  cv.width = 480; cv.height = 272;
-  const g = cv.getContext('2d');
-  g.fillStyle = '#34262f'; g.fillRect(0, 0, cv.width, cv.height);
-  g.strokeStyle = '#f6ecd8'; g.lineWidth = 8; g.strokeRect(14, 14, cv.width - 28, cv.height - 28);
-  g.fillStyle = '#f6ecd8'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '700 104px Georgia, serif';
-  g.fillText(String(venue.members.length), cv.width / 2, 116);
-  g.font = '700 27px ui-monospace, Menlo, monospace';
-  g.fillText('EVENTS HERE', cv.width / 2, 186);
-  if (hidden > 0) { g.font = '500 21px ui-monospace, monospace'; g.fillStyle = '#f6ecd8aa'; g.fillText(`+${hidden} more inside`, cv.width / 2, 224); }
-  return cv;
+/* --------------------------------------------- the walls, read from the city */
+// The city is one big mesh of extruded footprints. Every vertical quad in it
+// is a wall: two corners on the ground, two on the roofline, and a normal that
+// points out of the building. One pass over the triangles inside the event
+// area collects them into a coarse grid, and signage asks that grid for the
+// walls near an address. The pass is sliced so no frame pays for all of it.
+const WALL_CELL = 48;         // metres per grid cell
+const WALL_MIN_LEN = 8;       // metres: shorter walls are corner facets
+const WALL_MIN_H = 8;         // metres: lower walls are podium steps
+
+function findBuildingsMesh(city) {
+  let mesh = null;
+  city.scene.traverse((o) => { if (!mesh && o.isMesh && /Refined DataSF footprints/.test(o.name)) mesh = o; });
+  return mesh;
+}
+
+function buildWallIndex(city, bounds, done) {
+  const mesh = findBuildingsMesh(city);
+  const geometry = mesh && mesh.geometry;
+  if (!geometry || !geometry.attributes.position || mesh.position.lengthSq() > 1e-6 || Math.abs(mesh.rotation.y) > 1e-6) { done(null); return; }
+  const pos = geometry.attributes.position.array;
+  const idx = geometry.index ? geometry.index.array : null;
+  const s = mesh.scale.x || 1;
+  const triCount = Math.floor((idx ? idx.length : pos.length / 3) / 3);
+  const segs = new Map();
+  const minX = bounds.minX / s, maxX = bounds.maxX / s, minZ = bounds.minZ / s, maxZ = bounds.maxZ / s;
+  const minLen = WALL_MIN_LEN / s, minH = 3 / s;
+  const same = (x0, z0, x1, z1) => Math.abs(x0 - x1) < 0.03 && Math.abs(z0 - z1) < 0.03;
+  let t = 0;
+  const step = () => {
+    const until = performance.now() + 14;
+    while (t < triCount && performance.now() < until) {
+      const end = Math.min(triCount, t + 12000);
+      for (; t < end; t += 1) {
+        const k = t * 3;
+        const i0 = (idx ? idx[k] : k) * 3, i1 = (idx ? idx[k + 1] : k + 1) * 3, i2 = (idx ? idx[k + 2] : k + 2) * 3;
+        const y0 = pos[i0 + 1], y1 = pos[i1 + 1], y2 = pos[i2 + 1];
+        const ymin = Math.min(y0, y1, y2), ymax = Math.max(y0, y1, y2);
+        if (ymax - ymin < minH) continue;                                          // roofs, kerbs
+        const x0 = pos[i0], z0 = pos[i0 + 2], x1 = pos[i1], z1 = pos[i1 + 2], x2 = pos[i2], z2 = pos[i2 + 2];
+        const cx = (x0 + x1 + x2) / 3, cz = (z0 + z1 + z2) / 3;
+        if (cx < minX || cx > maxX || cz < minZ || cz > maxZ) continue;
+        let ax, az, bx, bz;                                                        // the two distinct corners of a vertical quad
+        if (same(x0, z0, x1, z1)) { ax = x0; az = z0; bx = x2; bz = z2; }
+        else if (same(x1, z1, x2, z2)) { ax = x1; az = z1; bx = x0; bz = z0; }
+        else if (same(x0, z0, x2, z2)) { ax = x0; az = z0; bx = x1; bz = z1; }
+        else continue;                                                             // a sloped face
+        const len = Math.hypot(bx - ax, bz - az);
+        if (len < minLen) continue;
+        const e1x = x1 - x0, e1y = y1 - y0, e1z = z1 - z0, e2x = x2 - x0, e2y = y2 - y0, e2z = z2 - z0;
+        let nx = e1y * e2z - e1z * e2y, nz = e1x * e2y - e1y * e2x;               // the winding's normal: outward, like the mesh's own
+        const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
+        const swap = ax > bx || (ax === bx && az > bz);
+        const kx0 = swap ? bx : ax, kz0 = swap ? bz : az, kx1 = swap ? ax : bx, kz1 = swap ? az : bz;
+        const key = `${Math.round(kx0 * 10)},${Math.round(kz0 * 10)}|${Math.round(kx1 * 10)},${Math.round(kz1 * 10)}`;
+        const seg = segs.get(key);
+        if (!seg) segs.set(key, { ax: kx0 * s, az: kz0 * s, bx: kx1 * s, bz: kz1 * s, y0: ymin * s, y1: ymax * s, nx, nz, len: len * s, used: [], shared: false });
+        else {
+          if (ymin * s < seg.y0) seg.y0 = ymin * s; if (ymax * s > seg.y1) seg.y1 = ymax * s;
+          if (nx * seg.nx + nz * seg.nz < -0.9) seg.shared = true;                // two buildings back to back: a party wall, not a facade
+        }
+      }
+    }
+    if (t < triCount) { setTimeout(step, 0); return; }
+    const cells = new Map();
+    const cellKey = (x, z) => `${Math.floor(x / WALL_CELL)},${Math.floor(z / WALL_CELL)}`;
+    let count = 0;
+    for (const seg of segs.values()) {
+      if (seg.shared || seg.y1 - seg.y0 < WALL_MIN_H) continue;
+      count += 1;
+      const x0 = Math.floor(Math.min(seg.ax, seg.bx) / WALL_CELL), x1 = Math.floor(Math.max(seg.ax, seg.bx) / WALL_CELL);
+      const z0 = Math.floor(Math.min(seg.az, seg.bz) / WALL_CELL), z1 = Math.floor(Math.max(seg.az, seg.bz) / WALL_CELL);
+      for (let cx = x0; cx <= x1; cx += 1) for (let cz = z0; cz <= z1; cz += 1) {
+        const key = `${cx},${cz}`;
+        if (!cells.has(key)) cells.set(key, []);
+        cells.get(key).push(seg);
+      }
+    }
+    const near = (x, z, r) => {
+      const out = new Set();
+      const x0 = Math.floor((x - r) / WALL_CELL), x1 = Math.floor((x + r) / WALL_CELL), z0 = Math.floor((z - r) / WALL_CELL), z1 = Math.floor((z + r) / WALL_CELL);
+      for (let cx = x0; cx <= x1; cx += 1) for (let cz = z0; cz <= z1; cz += 1) for (const seg of cells.get(`${cx},${cz}`) || []) out.add(seg);
+      return [...out];
+    };
+    done({ near, count, cellKey });
+  };
+  setTimeout(step, 0);
+}
+
+// Distance from a point to a wall segment, and where along it the point falls.
+function segmentDistance(x, z, seg) {
+  const dx = seg.bx - seg.ax, dz = seg.bz - seg.az;
+  const t = Math.max(0, Math.min(1, ((x - seg.ax) * dx + (z - seg.az) * dz) / (seg.len * seg.len || 1)));
+  return { d: Math.hypot(seg.ax + dx * t - x, seg.az + dz * t - z), t };
+}
+
+// A wall with another wall right in front of it is a party wall or an alley:
+// nobody reads a poster there.
+function wallBlocked(index, seg) {
+  const mx = (seg.ax + seg.bx) / 2 + seg.nx * 7, mz = (seg.az + seg.bz) / 2 + seg.nz * 7;
+  for (const other of index.near(mx, mz, 8)) {
+    if (other === seg) continue;
+    if (other.nx * seg.nx + other.nz * seg.nz > -0.6) continue;
+    if (segmentDistance(mx, mz, other).d < 7) return true;
+  }
+  return false;
+}
+
+// Free room along a wall for `n` posters of width `w`: the first gap that fits
+// them side by side, remembering what earlier venues on the same wall took.
+function takeSpan(seg, w, n) {
+  const need = n * w + (n - 1) * SIGN_GAP + 2 * SIGN_MARGIN;
+  const taken = seg.used.slice().sort((a, b) => a[0] - b[0]);
+  let cursor = 0;
+  for (const [u0, u1] of [...taken, [seg.len, seg.len]]) {
+    if (u0 - cursor >= need) { seg.used.push([cursor, cursor + need]); return cursor + SIGN_MARGIN; }
+    cursor = Math.max(cursor, u1);
+  }
+  return null;
+}
+
+// Where a venue's posters go: the best wall near the address, and a slot per
+// poster on it. The wall is scored for size and nearness, walls that face
+// another wall are avoided, and a wall already carrying signs shares its
+// length. Rows are used only when the wall is too short for a single row.
+function planSignage(index, venue, anchor, count) {
+  if (!count) return null;
+  const x = anchor.world.x, z = anchor.world.z, ground = anchor.ground || 0;
+  const cands = [];
+  for (const seg of index.near(x, z, 44)) {
+    const height = seg.y1 - seg.y0;
+    if (seg.len < 10 || height < WALL_MIN_H || seg.y1 < ground + 6) continue;
+    const { d } = segmentDistance(x, z, seg);
+    if (d > 44) continue;
+    const score = (Math.min(seg.len, 40) / 40) * (Math.min(height, 40) / 40) / (1 + d / 18);
+    cands.push({ seg, d, score });
+  }
+  cands.sort((a, b) => b.score - a.score);
+  for (const { seg } of cands.slice(0, 8)) {
+    if (wallBlocked(index, seg)) continue;
+    const height = seg.y1 - seg.y0;
+    const w = Math.max(9, Math.min(24, seg.len * 0.5));
+    const rowPitch = w * SIGN_ASPECT.max + SIGN_GAP;
+    const rowsFit = Math.max(1, Math.floor((height - SIGN_TOP_GAP - 2 + SIGN_GAP) / rowPitch));
+    const perRowFit = Math.max(1, Math.floor((seg.len - 2 * SIGN_MARGIN + SIGN_GAP) / (w + SIGN_GAP)));
+    let n = Math.min(count, rowsFit * perRowFit);
+    if (height < w * SIGN_ASPECT.min + SIGN_TOP_GAP + 1) continue;               // not even one poster fits
+    for (; n > 0; n -= 1) {
+      const cols = Math.min(n, perRowFit), rows = Math.ceil(n / cols);
+      if (rows > rowsFit) continue;
+      const u0 = takeSpan(seg, w, cols);
+      if (u0 === null) continue;
+      const slots = [];
+      for (let i = 0; i < n; i += 1) {
+        const col = i % cols, row = Math.floor(i / cols);
+        slots.push({ u: u0 + col * (w + SIGN_GAP) + w / 2, yTop: seg.y1 - SIGN_TOP_GAP - row * rowPitch, w });
+      }
+      return { seg, slots, w };
+    }
+  }
+  return null;
 }
 
 function buildBillboards(TW, city) {
   const T = window.__SF_THREE;
-  if (!T || !city.scene || !TW.state.venues) return;
+  if (!T || !city.scene || !TW.state.venues) return null;
   const root = new T.Group();
   root.name = 'Building signage';
   city.scene.add(root);
 
-  // One venue per slice, with a millisecond budget per frame: with signage on
-  // every addressed building this would otherwise be a few hundred milliseconds
-  // of canvas drawing and texture upload in a single frame — exactly the hitch
-  // you feel on entering the world.
+  let index = null;         // the wall grid, once the pass is done
+  let plans = new Map();    // venue key → { seg, slots, members, panels }
   let pending = 0;
+  const touched = new Set(); // walls that carry signs, so a replan can free them
 
-  // Signs are painted onto the wall — no mast, no bracket, no lip. We walk
-  // outward from the building's mapped point toward the city centre until the
-  // roof stops answering: that is the facade, and the panels sit flush on it,
-  // descending from the roofline. A short building simply gets fewer panels.
-  const SIGN_CLEAR = 0.45;    // metres off the wall, enough to avoid z-fighting
-  const SIGN_TOP_GAP = 6;     // panels start this far below the roofline
-
-  const facadeOf = (anchor) => {
-    const probe = TW.roofHeightAt;
-    const x = anchor.world.x, z = anchor.world.z, ground = anchor.ground || 0;
-    const yaw = Math.atan2(-x, -z);            // face the middle of the city
-    let edge = 0;
-    if (typeof probe === 'function') {
-      for (let d = 4; d <= 64; d += 4) {
-        const h = probe(x + Math.sin(yaw) * d, z + Math.cos(yaw) * d, 6);
-        if (Number.isFinite(h) && h > ground + 3) edge = d; else break;
-      }
-    }
-    const out = edge + SIGN_CLEAR;
-    return { x: x + Math.sin(yaw) * out, z: z + Math.cos(yaw) * out, yaw };
+  const planVenue = (venue) => {
+    const members = (venue.members || [])
+      .filter((e) => e.onMap && (e.claimed || e.approxLocation) && !e.wantsVehicle && e.image && e.world)
+      .sort((a, b) => (b.rsvp || 0) - (a.rsvp || 0))
+      .slice(0, SIGN_MAX_PER_VENUE);
+    if (!members.length) return;
+    const lead = members[0];
+    // The address itself, not the spot the placement spiral gave a second
+    // event in the same block: the wall has to belong to this building.
+    const geo = window.__sfGeo;
+    const world = lead.claimed && geo && Number.isFinite(+lead.lng) && Number.isFinite(+lead.lat) ? geo.Hn(+lead.lng, +lead.lat, 0) : lead.world;
+    const plan = planSignage(index, venue, { world: { x: world.x, z: world.z }, ground: lead.ground }, members.length);
+    if (!plan) return;
+    touched.add(plan.seg);
+    plan.members = members.slice(0, plan.slots.length);
+    plan.panels = new Map();
+    plans.set(venue.key, plan);
   };
 
-  const buildTower = (venue) => {
-    const members = (venue.members || []).filter((e) => e.onMap && (e.claimed || e.approxLocation) && !e.wantsVehicle);
-    if (members.length < BILLBOARD_MIN) return;
-    const anchor = members[0];
-    if (!anchor.world) return;
-    const shown = members.slice().sort((a, b) => a.startDate - b.startDate).slice(0, BILLBOARD_MAX);
-    const ground = anchor.ground || 0, roof = anchor.roof || ground;
-    const face = facadeOf(anchor);
-
-    const wall = new T.Group();
-    wall.rotation.y = face.yaw;
-    wall.position.set(face.x, 0, face.z);
-
-    // Descend from just under the roofline; stop above street level.
-    const stepY = PANEL.h + PANEL.gap;
-    const floor = ground + 14;
-    let y = Math.max(roof - SIGN_TOP_GAP - PANEL.h / 2, floor + PANEL.h / 2);
-    let placed = 0;
-    for (const event of shown) {
-      if (y - PANEL.h / 2 < floor - 0.01 && placed) break;
-      const panel = new T.Mesh(new T.PlaneGeometry(PANEL.w, PANEL.h), billboardMaterial(T, city, blank(T)));
-      panel.position.set(0, y, 0);
-      panel.userData.ev = event; panel.userData.textured = false;
-      wall.add(panel);
-      y -= stepY;
-      placed += 1;
-      if (y - PANEL.h / 2 < floor) break;
-    }
-    if (!placed) return;
-
-    // A building running several events gets a small painted count above the stack.
-    if (members.length >= 3) {
-      const cap = new T.Mesh(
-        new T.PlaneGeometry(PANEL.w * 0.62, PANEL.h * 0.62),
-        billboardMaterial(T, city, canvasTexture(T, capCanvas(venue, members.length - placed))),
-      );
-      cap.position.set(0, Math.min(roof - 1.5, roof - SIGN_TOP_GAP + PANEL.h * 0.35), 0);
-      wall.add(cap);
-    }
-    root.add(wall);
-  };
-
-  const draw = () => {
+  // One venue per slice, with a millisecond budget: planning walks the grid,
+  // and there are a few hundred venues.
+  const plan = () => {
     if (pending) clearTimeout(pending);
+    for (const p of plans.values()) for (const panel of p.panels.values()) { panel.geometry.dispose(); panel.material.dispose(); }
     root.clear();
+    plans = new Map();
+    for (const seg of touched) seg.used = [];
+    touched.clear();
+    const uses = new Map();
+    for (const event of TW.state.events || []) if (event.image) uses.set(event.image, (uses.get(event.image) || 0) + 1);
+    for (const event of TW.state.events || []) event.genericPoster = !!event.image && (uses.get(event.image) || 0) >= 4;
     const queue = (TW.state.venues || []).slice();
-    // Yield through the task queue rather than through frames: on a slow GPU a
-    // frame can be seconds long, and the signs should not wait for it.
     const step = () => {
       const until = performance.now() + SIGN_BUDGET_MS;
       while (queue.length && performance.now() < until) {
-        try { buildTower(queue.shift()); } catch (error) { console.error('[TW signage]', error); }
+        try { planVenue(queue.shift()); } catch (error) { console.error('[TW signage]', error); }
       }
       pending = queue.length ? setTimeout(step, 0) : 0;
     };
     pending = setTimeout(step, 0);
   };
 
-  // Signs answer to the bird: the ones you are flying at light up and grow a
-  // little, the ones across the bay dim — the way a street of signs reads when
-  // you walk it rather than when you photograph it from a hill.
-  const NEAR_SIGN = 190, MID_SIGN = 520, FAR_SIGN = 900;
-  const tmp = new T.Vector3();
+  // A poster goes up the moment its cover is in memory: sized by the cover's
+  // own proportions, flush on the wall, top-aligned in its slot.
+  const raise = (plan, i, event) => {
+    if (plan.panels.has(event)) return plan.panels.get(event);
+    const im = event.coverImg;
+    const aspect = Math.max(SIGN_ASPECT.min, Math.min(SIGN_ASPECT.max, im.height / im.width));
+    const slot = plan.slots[i], seg = plan.seg;
+    const w = slot.w, h = w * aspect;
+    const dx = (seg.bx - seg.ax) / seg.len, dz = (seg.bz - seg.az) / seg.len;
+    const panel = new T.Mesh(new T.PlaneGeometry(w, h), billboardMaterial(T, city, coverTexture(T, event, aspect)));
+    panel.position.set(seg.ax + dx * slot.u + seg.nx * SIGN_CLEAR, slot.yTop - h / 2, seg.az + dz * slot.u + seg.nz * SIGN_CLEAR);
+    panel.rotation.y = Math.atan2(seg.nx, seg.nz);
+    panel.userData.ev = event; panel.userData.textured = true; panel.userData.aspect = aspect;
+    (panel.material.uniforms.map.value.userData.meshes ||= []).push(panel);
+    root.add(panel);
+    plan.panels.set(event, panel);
+    return panel;
+  };
+
+  // Signs answer to the bird: the ones you are flying at light up, the ones
+  // across the bay are not drawn at all. Covers for the buildings ahead start
+  // loading before you can read them, so the wall is lit by the time you arrive.
+  const NEAR_SIGN = 190, MID_SIGN = 520, FAR_SIGN = 900, LOAD_SIGN = 1100;
   const pulse = () => {
     const cam = city.camera || city.flightCharacter;
-    if (!cam || !cam.position) return;
-    root.traverse((node) => {
-      if (!node.isMesh || !node.userData.ev || !node.material?.uniforms?.uLight) return;
-      node.getWorldPosition(tmp);
-      const d = tmp.distanceTo(cam.position);
-      // Signs are for the street, not the skyline: past the far band they are
-      // simply not drawn, and they come up as you fly in.
-      node.visible = d < FAR_SIGN;
-      if (!node.visible) return;
-      if (!node.userData.textured) {
-        const texture = posterTexture(T, TW, node.userData.ev);
-        (texture.userData.meshes ||= []).push(node);
-        node.material.uniforms.map.value = texture; node.userData.textured = true;
-      }
-      if (d < MID_SIGN * 2) refreshPosterIfCoverArrived(T, TW, node);
-      const want = d < NEAR_SIGN ? 1.3 : d < MID_SIGN ? 1.0 : 0.55;
-      const u = node.material.uniforms.uLight;
-      u.value += (want - u.value) * 0.25;
-    });
+    if (!cam || !cam.position || !index) return;
+    const cx = cam.position.x, cy = cam.position.y, cz = cam.position.z;
+    for (const p of plans.values()) {
+      const seg = p.seg;
+      const d = Math.hypot((seg.ax + seg.bx) / 2 - cx, seg.y1 - cy, (seg.az + seg.bz) / 2 - cz);
+      if (d > FAR_SIGN) { for (const panel of p.panels.values()) panel.visible = false; if (d > LOAD_SIGN) continue; }
+      p.members.forEach((event, i) => {
+        if (event.coverImg) {
+          if (d > FAR_SIGN) return;
+          const panel = raise(p, i, event);
+          panel.visible = true;
+          if (!panel.userData.textured) {
+            const texture = coverTexture(T, event, panel.userData.aspect);
+            (texture.userData.meshes ||= []).push(panel);
+            panel.material.uniforms.map.value = texture; panel.userData.textured = true;
+          }
+          const want = d < NEAR_SIGN ? 1.32 : d < MID_SIGN ? 1.12 : 0.92;
+          const u = panel.material.uniforms.uLight;
+          u.value += (want - u.value) * 0.25;
+        } else if (event.image && !event.coverFailed && !event.coverPending && !event.coverNear && typeof TW.loadCover === 'function') {
+          event.coverNear = true;
+          try { TW.loadCover(event); } catch (error) { event.coverFailed = true; }
+        }
+      });
+    }
   };
   setInterval(pulse, 110);
 
-  // Let the city finish its own first frames before signage starts drawing, and
-  // then follow the data: the calendar arrives after the world is ready (later
+  // Let the city finish its own first frames before signage starts, and then
+  // follow the data: the calendar arrives after the world is ready (later
   // still in the single-file build, where the whole feed is inlined), so the
-  // venue list we drew from can be empty or half-built at that point. Watch a
+  // venue list we plan from can be empty or half-built at that point. Watch a
   // cheap signature of it rather than trusting one timer.
   let signature = '';
   const sync = () => {
+    if (!index) return;
     const venues = TW.state.venues || [];
     let signed = 0;
     for (const venue of venues) for (const member of venue.members || []) if (member.onMap && (member.claimed || member.approxLocation) && !member.wantsVehicle) signed += 1;
     const next = `${venues.length}:${signed}`;
     if (next === signature) return;
     signature = next;
-    draw();
+    plan();
   };
-  setTimeout(sync, SIGN_START_DELAY);
+  const start = () => {
+    const fence = TW.state.fence;
+    const bounds = fence
+      ? { minX: fence.minX - 200, maxX: fence.maxX + 200, minZ: fence.minZ - 200, maxZ: fence.maxZ + 200 }
+      : { minX: -6000, maxX: 6000, minZ: -6000, maxZ: 6000 };
+    buildWallIndex(city, bounds, (built) => {
+      if (!built) { console.warn('[TW signage] no building mesh found; signs stay off'); return; }
+      index = built;
+      window.__twWalls = built;
+      sync();
+    });
+  };
+  setTimeout(start, SIGN_START_DELAY);
   const watcher = setInterval(sync, 2500);
   setTimeout(() => clearInterval(watcher), 120000);
   // Rebuild whenever the fleet changes (a refresh, or an event ending).
   const originalRebuild = TW.rebuildWorld;
-  if (typeof originalRebuild === 'function') TW.rebuildWorld = () => { originalRebuild(); try { sync(); } catch (error) { console.error('[TW signage]', error); } };
+  if (typeof originalRebuild === 'function') TW.rebuildWorld = () => { originalRebuild(); try { signature = ''; sync(); } catch (error) { console.error('[TW signage]', error); } };
   return root;
 }
 

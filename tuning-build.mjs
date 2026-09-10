@@ -184,11 +184,40 @@ export function wireTuning(html) {
   once("      const q = state.events.filter((e) => e.claimed).sort((a, b) => heat(b) - heat(a)); if (!q.length) return;",
     "      const q = state.events.filter((e) => e.onMap && e.ship && !String(e.venueKey || '').startsWith('harbor:')).sort((a, b) => heat(b) - heat(a)); if (!q.length) return;");
   once("  function look(ev) { lookAt(", "  function look(ev) { if (!ev.ship) return; lookAt(");
+
+  // ---- 8. nothing is "unclaimed" ------------------------------------------
+  // An event without a public address is still a party, a demo night or an
+  // investor dinner: it keeps its own category, colour and poster. The grey
+  // "Unclaimed" livery stamped on every such card, chip and banner is gone.
+  once("  const catOf = (ev) => (ev.claimed ? CATS[ev.category] || CATS.founders : CATS.unclaimed);",
+    "  const catOf = (ev) => CATS[ev.category] || CATS.founders;");
+  once("const k = ev.claimed ? (ev.neighborhood || ev.venue || 'Downtown') : 'Harbor · unclaimed'",
+    "const k = ev.claimed ? (ev.neighborhood || ev.venue || 'Downtown') : ev.approxLocation ? (ev.neighborhood || 'Downtown') : 'Venue to be announced'");
+  once("name: m0.claimed ? (m0.venue || m0.address) : 'Harbor'",
+    "name: m0.claimed ? (m0.venue || m0.address) : m0.approxLocation ? (m0.neighborhood || 'District') : 'Harbor'");
+  once("ev.chip.classList.toggle('unclaimed', !ev.claimed)", "ev.chip.classList.toggle('unclaimed', false)");
+  // The sky is for the ships. A signed building wears its posters on the wall;
+  // the little kite that used to fly from its roof is not drawn (it still
+  // anchors the event's position for flights and chips).
+  once("ev.hasVehicle = false; return g; }", "ev.hasVehicle = false; g.visible = false; return g; }");
+  // A signed building is marked by its posters, not by a roof ring, a flag
+  // pole and floating speaker chips — those read as clutter next to a poster
+  // painted on the glass, and the ring often sat around the wrong tower
+  // because the roof estimate came from a neighbour. Only ships parked over
+  // the bay keep their buoy.
+  once("      ev.venueGroup = ev.claimed ? venueMarker(ev) : harborBuoy(ev); ev.venueGroup.position.set(ev.world.x, 0, ev.world.z); ROOT.add(ev.venueGroup);",
+    "      ev.venueGroup = String(ev.venueKey || '').startsWith('harbor:') ? harborBuoy(ev) : null; ev.speakerSpots = null; if (ev.venueGroup) { ev.venueGroup.position.set(ev.world.x, 0, ev.world.z); ROOT.add(ev.venueGroup); }");
+  once("ROOT.remove(ev.venueGroup); ev.venueGroup = ev.claimed ? venueMarker(ev) : harborBuoy(ev); ev.venueGroup.position.set(ev.world.x, 0, ev.world.z); ROOT.add(ev.venueGroup); buildSpeakerChips(ev); }",
+    "if (ev.venueGroup) ROOT.remove(ev.venueGroup); ev.venueGroup = String(ev.venueKey || '').startsWith('harbor:') ? harborBuoy(ev) : null; ev.speakerSpots = null; if (ev.venueGroup) { ev.venueGroup.position.set(ev.world.x, 0, ev.world.z); ROOT.add(ev.venueGroup); } buildSpeakerChips(ev); }");
+  // The add-on layer lights up wall posters as you fly in, so it needs the
+  // cover loader.
+  once("Object.assign(TW, { select, flyTo, look, lookAt, applyBird, toast, drawPoster,",
+    "Object.assign(TW, { select, flyTo, look, lookAt, applyBird, toast, drawPoster, loadCover,");
   // Clicking in the world walks every event, and an event that is not in the
   // world has no ship — the walk used to throw on the first one, which is why
   // a tap on a ship or a kite never selected anything.
   once("      for (const ev of state.events) { test(ev.ship.position, ev, ev.hasVehicle ? 24 : 9); if (ev.venueGroup) test(V3(ev.world.x, ev.roof + 8, ev.world.z), ev, 14); }",
-    "      for (const ev of state.events) { if (!ev.onMap || !ev.ship || !ev.world) continue; test(ev.ship.position, ev, ev.hasVehicle ? 24 : 9); if (ev.venueGroup) test(V3(ev.world.x, ev.roof + 8, ev.world.z), ev, 14); }");
+    "      for (const ev of state.events) { if (!ev.onMap || !ev.ship || !ev.world) continue; if (ev.hasVehicle) test(ev.ship.position, ev, 24); if (ev.venueGroup) test(V3(ev.world.x, ev.roof + 8, ev.world.z), ev, 14); }");
   // Fly to where the thing actually is: an airship is circled at its own
   // altitude, a wall sign just above its roof. The old target (18 m over the
   // ground for anything unclaimed) put the bird under every ship.
@@ -202,7 +231,7 @@ export function wireTuning(html) {
 
   // Honest wording for the three location tiers.
   once("`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} <em>Map location unverified.</em> Harbor placement is a game placeholder.`",
-    "`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} ${ev.featured ? '<em>Venue announced closer to the day.</em> Seats are limited — RSVP early.' : ev.approxLocation ? (ev.onMap ? '<em>District only — the exact address is not public yet.</em> Its sign hangs on a building somewhere in the neighbourhood; the door is in the Discord.' : '<em>District only — the exact address is not public yet.</em> Ask in the Discord — someone there usually knows the venue.') : '<em>No public address yet.</em> Ask in the Discord — someone there usually knows the venue.'}`");
+    "`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} ${ev.featured ? '<em>Venue announced closer to the day.</em> Seats are limited — RSVP early.' : ev.approxLocation ? (ev.wantsVehicle ? '<em>District only — the exact address is not public yet.</em> Its ship flies over the neighbourhood; the door is in the Discord.' : ev.onMap ? '<em>District only — the exact address is not public yet.</em> Its poster hangs on a building somewhere in the neighbourhood; the door is in the Discord.' : '<em>District only — the exact address is not public yet.</em> Ask in the Discord — someone there usually knows the venue.') : '<em>No public address yet.</em> Ask in the Discord — someone there usually knows the venue.'}`");
 
   // ---- 7. the address question goes to Discord -----------------------------
   // Asking a stranger in a form was the wrong shape: the people who know a
