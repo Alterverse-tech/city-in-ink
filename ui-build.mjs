@@ -6,6 +6,12 @@ export function wireGameUi(html) {
     html = html.replace(from, to);
   };
 
+  // Public-address status should never stamp over the event artwork.
+  replaceOnce(
+    "    if (!ev.claimed) { g.save(); g.translate(cw / 2, H * 0.62); g.rotate(-0.2); g.strokeStyle = 'rgba(246,236,216,.9)'; g.lineWidth = 5; g.strokeRect(-150, -28, 300, 56); g.fillStyle = 'rgba(246,236,216,.9)'; g.font = '700 30px ui-monospace, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('UNCLAIMED', 0, 1); g.restore(); }\n",
+    '',
+  );
+
   replaceOnce(
     '<button type="button" class="tw-view" id="tw-view">Beak cam · V</button>',
     `<div class="tw-flight-shortcuts" role="group" aria-label="Flight shortcuts">
