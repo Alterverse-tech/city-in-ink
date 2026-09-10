@@ -27,7 +27,7 @@ function harness(raw) {
   const calls = { place: 0, metadata: 0, build: 0, posters: 0, lists: 0, lifecycle: 0 };
   const state = { events: [], past: [], citizens: [], selected: null, officialFeed: true, user: { rsvps: new Set() } };
   const context = {
-    state, calls, FEATURED_EVENT, SPOTLIGHT,
+    state, calls, FEATURED_EVENT, SPOTLIGHT, TW: { state },
     location: { protocol: 'https:' },
     CFG: { week: { start: '2026-10-05' }, fleet: 100, rsvpMin: RSVP_MIN, shipAltitude: 50,
       harbor: { lat: 37.79, lng: -122.4 }, core: { lat: 37.79, lng: -122.4 }, featured: { lat: 37.79, lng: -122.4, y: 120 } },

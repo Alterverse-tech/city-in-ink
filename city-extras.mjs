@@ -155,45 +155,6 @@ function installFleetDistance(TW, city) {
   }, 90);
 }
 
-/* ------------------------------------------- the card turns the pages for you */
-// With no tags on the walls, the card is how events introduce themselves:
-// when you have not picked anything for a while it deals the week out one
-// card every few seconds — every event with a real crowd, in a shuffled
-// order, with the host's own event back every fourth card. Any click, key or
-// selection of your own stops it, and it waits before starting again.
-const CAROUSEL_IDLE = 18000, CAROUSEL_STEP = 7000, CAROUSEL_MIN_RSVP = 30, CAROUSEL_HOST_EVERY = 4;
-function installCardCarousel(TW) {
-  let lastTouch = Date.now(), index = -1, step = 0, timer = 0, ours = null, deck = [], signature = '';
-  const touched = () => { lastTouch = Date.now(); };
-  for (const type of ['pointerdown', 'keydown', 'wheel']) window.addEventListener(type, touched, { capture: true, passive: true });
-
-  const shuffle = (list) => { for (let i = list.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } return list; };
-  const reshuffle = () => {
-    const pool = (TW.state.events || []).filter((e) => !e.featured && (e.rsvp || 0) >= CAROUSEL_MIN_RSVP);
-    const next = pool.map((e) => e.id).sort().join('|');
-    if (next === signature) return;
-    signature = next; deck = shuffle(pool.slice()); index = -1;
-  };
-
-  const tick = () => {
-    const idle = Date.now() - lastTouch;
-    const selected = TW.state.selected;
-    // The player chose something themselves: leave it alone.
-    if (selected && selected !== ours) { lastTouch = Math.max(lastTouch, Date.now() - CAROUSEL_IDLE + 4000); return; }
-    if (idle < CAROUSEL_IDLE) return;
-    reshuffle();
-    const featured = (TW.state.events || []).find((e) => e.featured);
-    step += 1;
-    if (featured && (step % CAROUSEL_HOST_EVERY === 1 || !deck.length)) ours = featured;
-    else if (deck.length) { index = (index + 1) % deck.length; ours = deck[index]; }
-    else return;
-    if (typeof TW.select !== 'function') return;
-    try { TW.select(ours); } catch (error) { console.error('[TW carousel]', error); }
-  };
-  timer = setInterval(tick, CAROUSEL_STEP);
-  return () => clearInterval(timer);
-}
-
 /* --------------------------------------------- fly close to another player */
 // The roster comes from the multiplayer layer (multiplayer.js publishes it on
 // window.__sfNet). Standalone and single-file builds have no roster, so the
@@ -632,7 +593,13 @@ function buildBillboards(TW, city) {
     const under = roofAt ? roofAt(x, z) : -Infinity;
     return { x, z, y: Number.isFinite(under) ? Math.max(y, under + 8) : y, face: Math.atan2(-seg.nx, -seg.nz) };
   };
-  window.__twSigns = { visitPoint, has: (event) => planOf.has(event), count: () => planOf.size };
+  // Read the actual displayed poster, never a hidden placeholder or a slot
+  // whose remote image failed to load. No roof queries in the proximity loop.
+  const anchorPoint = (event) => {
+    const panel = planOf.get(event)?.panels.get(event);
+    return panel && panel.visible ? panel.position : null;
+  };
+  window.__twSigns = { visitPoint, anchorPoint, has: (event) => planOf.has(event), count: () => planOf.size };
 
   const planVenue = (venue) => {
     const members = (venue.members || [])
@@ -1039,7 +1006,6 @@ function installSignPicking(TW, city, roots) {
       hideNetPanel();
       mountWhoIsHere();
       installModalEscape();
-      installCardCarousel(TW);
       installCameraClearance(TW, city);
       installFleetDistance(TW, city);
       installNeighbourCard(TW, city);

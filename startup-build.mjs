@@ -46,7 +46,7 @@ export function wireStartup(html) {
   // Scheduling after ready prevents both the request and model decoding from
   // competing with the first visible scene. Baseline events retain their existing
   // short bounded read; the larger feed already refreshes in the background.
-  once("    if (qs.get('welcome') !== '0') openWelcome();",
-    "    scheduleOptionalAirship();\n    if (qs.get('welcome') !== '0') openWelcome();");
+  once("    // Player entry happens before ready; no name or avatar chooser interrupts it.",
+    "    scheduleOptionalAirship();");
   return html;
 }
