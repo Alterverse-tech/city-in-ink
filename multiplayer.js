@@ -65,7 +65,7 @@ function renderUI() {
   const online = room.state === 'room';
   const busy = connecting || room.state === 'connecting';
   panel.dataset.online = String(online && !stale);
-  $('summary').textContent = online ? `Public World · ${room.count} flying${stale ? ' · reconnecting' : ''}` : busy ? 'Entering the public World…' : 'Public World · Fly together';
+  $('summary').textContent = online ? `Public World · ${distinctPlayers(room.players.filter(p => p.connected)).length || room.count} flying${stale ? ' · reconnecting' : ''}` : busy ? 'Entering the public World…' : 'Public World · Fly together';
   $('status').textContent = busy ? 'Joining everyone in the public World…' : stale ? 'Connection interrupted. Waiting for the server; you can also reconnect below.'
     : online ? `${room.count} players in this shard · ${room.ping || '—'} ms · World has no total player cap.`
     : authState?.userId ? 'Enter the public World to fly with everyone.' : 'Sign in to automatically join the public World. Solo flight is always available.';
@@ -77,7 +77,7 @@ function renderUI() {
   $('retry').disabled = busy;
   $('error').hidden = !errorText;
   $('error').textContent = errorText;
-  const visiblePlayers = room.players.filter(player => player.connected);
+  const visiblePlayers = distinctPlayers(room.players.filter(player => player.connected));
   const roster = JSON.stringify(visiblePlayers.map(p => [p.id, p.name, p.self]));
   if (roster !== lastRoster) {
     lastRoster = roster;
@@ -175,8 +175,9 @@ $('invite').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(url); tw?.toast('Game link copied. Your friend signs in and automatically joins the public World.'); }
   catch { $('invite-label').hidden = false; $('link').focus(); $('link').select(); }
 });
-$('rendezvous').addEventListener('click', async () => {
-  const target = room.players.find(p => !p.self && p.connected && p.lastProcessedInput > 0 && decodePose(presence.sample(p.id)));
+async function flyBeside(playerId) {
+  const candidates = room.players.filter(p => !p.self && p.connected && p.lastProcessedInput > 0 && decodePose(presence.sample(p.id)));
+  const target = (playerId && candidates.find(p => p.id === playerId)) || candidates[0];
   const pose = target && decodePose(presence.sample(target.id));
   if (!pose) return setError('Waiting for another player’s first position.');
   try { await ensureFlight(); } catch (error) { setError(error.message); return; }
@@ -187,7 +188,9 @@ $('rendezvous').addEventListener('click', async () => {
   c.flightCharacter.rotation.y = pose.yaw; c.yaw = pose.yaw + Math.PI;
   c.flightVelocity.set(Math.sin(pose.yaw) * 22, 0, Math.cos(pose.yaw) * 22);
   c.applyOrbit(); panel.open = false; c.focusScene(); setError('');
-});
+  tw.toast(`Flying beside ${target.name || 'a player'}.`);
+}
+$('rendezvous').addEventListener('click', () => void flyBeside());
 
 const unsubscribeAuth = chrona.auth.subscribe(next => {
   const previousUserId = authState?.userId;
@@ -253,7 +256,8 @@ function updateRemotes(dt, time) {
       if (wing.tip) wing.tip.rotation.z = wing.side * (0.1 + Math.sin(phase - 0.65) * amplitude * 0.52);
     }
     const metres = c.flightCharacter.position.distanceTo(remote.position);
-    remote.label.textContent = `${player.name || 'Player'} · ${metres > 1000 ? (metres / 1000).toFixed(1) + ' km' : Math.round(metres) + ' m'}`;
+    const handle = (player.handle || '').replace(/^@+/, '');
+    remote.label.textContent = `${handle ? '@' + handle : (player.name || 'Player')} · ${metres > 1000 ? (metres / 1000).toFixed(1) + ' km' : Math.round(metres) + ' m'}`;
   }
   for (const id of remotes.keys()) if (!active.has(id)) removeRemote(id);
   publishRoster();
@@ -261,17 +265,31 @@ function updateRemotes(dt, time) {
 // A read-only view of who is flying and where, for the add-on layer
 // (city-extras.mjs draws the "fly beside someone" card from it). Names come
 // from the account profile; nothing here is written back to the network.
+// One account flying from two tabs is one person, not two: presence gives each
+// connection its own entry, which showed the same name three times over and
+// inflated the "N flying" count. Collapse by account, keeping your own entry.
+function distinctPlayers(list) {
+  const byAccount = new Map();
+  for (const player of list) {
+    const key = player.userId || player.accountId || player.name || player.id;
+    const held = byAccount.get(key);
+    if (!held || (!held.self && player.self) || (!held.connected && player.connected)) byAccount.set(key, player);
+  }
+  return [...byAccount.values()];
+}
 function publishRoster() {
   window.__sfNet = {
-    players: room.players.map(player => {
+    players: distinctPlayers(room.players).map(player => {
       const remote = remotes.get(player.id);
       return {
         id: player.id, name: player.name || '', handle: player.handle || player.name || '',
         self: !!player.self, connected: !!player.connected, color: colorFor(player.id),
         position: player.self ? c?.flightCharacter?.position : (remote && remote.root.visible ? remote.position : null),
+        metres: (!player.self && remote && remote.root.visible && c?.flightCharacter) ? Math.round(remote.position.distanceTo(c.flightCharacter.position)) : null,
       };
     }),
     count: room.count, state: room.state,
+    flyBeside,
   };
 }
 function updateLabels() {

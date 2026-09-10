@@ -21,7 +21,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { renderGame } from './build.mjs';
-import { FEATURED_EVENT, HEAT_MIN } from './tuning-build.mjs';
+import { FEATURED_EVENT, RSVP_MIN } from './tuning-build.mjs';
+import { slimFeed, readFeedText } from './feed-slim.mjs';
 
 const url = path => new URL(path, import.meta.url);
 const POSITION_SCALE = 0.02; // metres — positions quantised to 2 cm steps (max error 1 cm)
@@ -84,8 +85,16 @@ const plan = {
 // rest keep their remote URL and fall back to the drawn ink poster.
 async function withEmbeddedPosters(feed) {
   if (process.env.SKIP_POSTERS) return feed;
-  const heatOf = e => (Number.isFinite(e.heatCount) ? e.heatCount : (e.rsvp || 0) + (e.interested || 0));
-  const wanted = feed.events.filter(e => e.image && (heatOf(e) > HEAT_MIN || `${e.url || ''}`.includes(FEATURED_EVENT)));
+  // Posters are the bulk of what this build can spend: the page has a 16 MB
+  // ceiling. Every event that can appear in the world — the featured one, the
+  // ships, and everything with an address or a district — is a candidate; the
+  // busiest are inlined first until the byte budget is spent, and the rest
+  // keep their remote URL and fall back to the drawn ink poster.
+  const POSTER_BUDGET = 3.4 * 1024 * 1024;   // raw JPEG bytes (base64 adds a third)
+  const featuredFirst = (e) => (`${e.url || ''}`.includes(FEATURED_EVENT) ? 1 : 0);
+  const candidates = feed.events
+    .filter(e => e.image && (featuredFirst(e) || (e.rsvp || 0) > RSVP_MIN || e.lat != null || e.address || (e.neighborhood && (e.rsvp || 0) > 0)))
+    .sort((a, b) => featuredFirst(b) - featuredFirst(a) || (b.rsvp || 0) - (a.rsvp || 0));
   const { execFile } = await import('node:child_process');
   const { promisify } = await import('node:util');
   const run = promisify(execFile);
@@ -93,23 +102,34 @@ async function withEmbeddedPosters(feed) {
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
   const dir = await mkdtemp(join(tmpdir(), 'tw-posters-'));
+  const jpegs = new Map();
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < candidates.length) {
+      const index = cursor++; const event = candidates[index];
+      try {
+        const response = await fetch(event.image, { signal: AbortSignal.timeout(20000) });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const raw = join(dir, `p${index}`), out = join(dir, `p${index}.jpg`);
+        await writeFile(raw, Buffer.from(await response.arrayBuffer()));
+        // 256 px wide is plenty for a wall poster and a card thumbnail.
+        await run('convert', [raw + '[0]', '-auto-orient', '-resize', '256x340>', '-quality', '68', '-strip', out]);
+        const jpeg = await readFile(out);
+        if (jpeg.length > 120000) throw new Error('cover too large');
+        jpegs.set(event, jpeg);
+      } catch { /* keep the remote URL; the drawn poster is the fallback */ }
+    }
+  };
+  await Promise.all(Array.from({ length: 8 }, worker));
   let ok = 0, bytes = 0;
-  await Promise.all(wanted.map(async (event, index) => {
-    try {
-      const response = await fetch(event.image, { signal: AbortSignal.timeout(20000) });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      const raw = join(dir, `p${index}`), out = join(dir, `p${index}.jpg`);
-      await writeFile(raw, Buffer.from(await response.arrayBuffer()));
-      // 360 px wide is plenty for a banner texture and a card thumbnail.
-      await run('convert', [raw, '-auto-orient', '-resize', '360x520>', '-quality', '72', '-strip', out]);
-      const jpeg = await readFile(out);
-      if (jpeg.length > 260000) throw new Error('cover too large');
-      event.image = 'data:image/jpeg;base64,' + jpeg.toString('base64');
-      ok += 1; bytes += jpeg.length;
-    } catch { /* keep the remote URL; the drawn poster is the fallback */ }
-  }));
+  for (const event of candidates) {
+    const jpeg = jpegs.get(event);
+    if (!jpeg || bytes + jpeg.length > POSTER_BUDGET) continue;
+    event.image = 'data:image/jpeg;base64,' + jpeg.toString('base64');
+    ok += 1; bytes += jpeg.length;
+  }
   await rm(dir, { recursive: true, force: true });
-  console.log(`embedded ${ok}/${wanted.length} event posters (${(bytes / 1024).toFixed(0)} KB)`);
+  console.log(`embedded ${ok}/${candidates.length} event posters (${(bytes / 1024).toFixed(0)} KB; ${jpegs.size} fetched)`);
   return feed;
 }
 
@@ -137,8 +157,11 @@ for (const [key, encoded] of Object.entries(assets)) {
   console.log(`${key.padEnd(44)} ${String(encoded.length).padStart(10)} → ${String(size).padStart(10)}${spec ? '  (' + spec[0] + ' dzv)' : ''}`);
 }
 for (const file of ['tech-week-enriched.json', 'tech-week-first.json']) {
-  let bytes = await readFile(url('./data/' + file));
-  if (file === 'tech-week-enriched.json') bytes = Buffer.from(JSON.stringify(await withEmbeddedPosters(JSON.parse(bytes))));
+  // The enriched snapshot ships as ordered parts; the artifact embeds one document.
+  let bytes = file === 'tech-week-enriched.json'
+    ? Buffer.from((await readFeedText(url('./data/'), 'tech-week-enriched')).text)
+    : await readFile(url('./data/' + file));
+  if (file === 'tech-week-enriched.json') bytes = Buffer.from(JSON.stringify(slimFeed(await withEmbeddedPosters(JSON.parse(bytes)))));
   compact['/data/' + file] = gzipSync(bytes, { level: 9 }).toString('base64');
   after += compact['/data/' + file].length;
   console.log(`data/${file} ${bytes.length} → ${compact['/data/' + file].length}`);

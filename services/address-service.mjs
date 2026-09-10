@@ -46,6 +46,22 @@ const clean = (value, max) => String(value ?? '').replace(/[\u0000-\u001f\u007f-
 const finite = value => (Number.isFinite(+value) ? +value : null);
 const approved = () => store.submissions.filter(s => s.status === 'approved');
 
+// What the world is allowed to show. A host who shares "717 Battery St, floor 4"
+// in Discord is telling that room, not the internet: the map gets the building
+// (coordinates, venue, street) so the sign lands on the right roof, and the door
+// number and floor stay in Discord, where a person can ask for them.
+const DOOR = /^\s*(?:no\.?\s*)?\d+[a-z]?(?:\s*[-–/]\s*\d+[a-z]?)?\s+/i;
+const UNIT = /[,(]?\s*(?:\b(?:suite|ste|apt|apartment|unit|floor|fl|room|rm)\b|#)\s*[\w-]+\)?/gi;
+export function streetOnly(address) {
+  return String(address || '').replace(UNIT, '').replace(DOOR, '').replace(/\s{2,}/g, ' ').replace(/^[,\s]+|[,\s]+$/g, '');
+}
+const publicView = (s) => ({
+  id: s.id, eventId: s.eventId, eventUrl: s.eventUrl,
+  venue: s.venue || '', street: streetOnly(s.address), lat: s.lat, lng: s.lng,
+  precision: 'building', approvedAt: s.approvedAt, source: s.source,
+});
+
+
 // A submission is only useful with an event to attach it to and something to
 // place: either coordinates, or an address a geocoder can resolve later.
 function normalise(input, meta) {
@@ -114,11 +130,7 @@ const server = createServer(async (req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204, cors); return res.end(); }
 
   if (req.method === 'GET' && path === '/addresses.json') {
-    return json(res, 200, {
-      updatedAt: store.updatedAt,
-      addresses: approved().map(({ id, eventId, eventUrl, address, venue, lat, lng, approvedAt, source }) =>
-        ({ id, eventId, eventUrl, address, venue, lat, lng, approvedAt, source })),
-    }, cors);
+    return json(res, 200, { updatedAt: store.updatedAt, addresses: approved().map(publicView) }, cors);
   }
 
   if (req.method === 'POST' && path === '/addresses') {
