@@ -29,7 +29,7 @@ await rm(url('./dist/'), {recursive:true, force:true});
 await mkdir(url('./dist/'), {recursive:true});
 await writeFile(url('./dist/index.html'),html);
 await writeCityAssets(cityAssets.files, url('./dist/'));
-for (const name of ['city-streaming.js','chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','hosted-bootstrap.js','gull-cluster-route.mjs','city-extras.mjs','gull-cluster-route.mjs',]) {
+for (const name of ['city-time.mjs','city-streaming.js','chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','hosted-bootstrap.js','gull-cluster-route.mjs','city-extras.mjs','gull-cluster-route.mjs',]) {
   await cp(url('./'+name), url('./dist/'+name), {recursive:true});
 }
 { const slim = await slimFeedParts(new URL('./dist/data/', import.meta.url), 'tech-week-enriched'); console.log(`events feed ${slim.before} → ${slim.after} bytes across ${slim.parts} parts (provenance stays in data/)`); }
