@@ -178,10 +178,10 @@ const decoder = await readFile(url('./artifact-assets.js'), 'utf8');
 let page = html.slice(0, a0 + assetsOpen.length) + JSON.stringify(compact) + '</script>\n  <script>\n' + decoder + '\n  </script>' + html.slice(shimClose + '</script>'.length);
 
 // ---- inline the add-on modules and styles (no multiplayer) ----------------
-const imports = 'import "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./city-extras.mjs";\n';
+const imports = 'import "./city-time.mjs";\nimport "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./city-extras.mjs";\n';
 if (page.split(imports).length !== 2) throw new Error('Add-on import block not found; keep build.mjs and build-artifact.mjs in step.');
 let inline = '';
-for (const name of ['events-sync.js', 'gull-cluster-route.mjs', 'city-extras.mjs']) {
+for (const name of ['city-time.mjs', 'events-sync.js', 'gull-cluster-route.mjs', 'city-extras.mjs']) {
   const code = await readFile(url('./' + name), 'utf8');
   if (/^\s*import\s/m.test(code)) throw new Error(`${name} imports another module; extend the inliner.`);
   inline += `<script type="module">\n${code}\n</script>\n`;

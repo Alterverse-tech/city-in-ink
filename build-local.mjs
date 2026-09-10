@@ -18,7 +18,7 @@ await rm(url('./dist-local/'), {recursive:true, force:true});
 await mkdir(url('./dist-local/'), {recursive:true});
 await writeFile(url('./dist-local/index.html'), wireStartup(wireCityStreaming(renderGame(cityAssets.html))));
 await writeCityAssets(cityAssets.files, url('./dist-local/'));
-for (const name of ['city-streaming.js','chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','gull-cluster-route.mjs','city-extras.mjs']) {
+for (const name of ['city-time.mjs','city-streaming.js','chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','gull-cluster-route.mjs','city-extras.mjs']) {
   await cp(url('./'+name), url('./dist-local/'+name), {recursive:true});
 }
 { const slim = await slimFeedParts(new URL('./dist-local/data/', import.meta.url), 'tech-week-enriched'); console.log(`events feed ${slim.before} → ${slim.after} bytes across ${slim.parts} parts (provenance stays in data/)`); }
