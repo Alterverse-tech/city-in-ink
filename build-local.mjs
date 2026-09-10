@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir, cp } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { renderGame } from './build.mjs';
-import { slimFeedFile } from './feed-slim.mjs';
+import { slimFeedParts } from './feed-slim.mjs';
 // Standalone build for local development: same reassembly and add-on wiring as
 // build-hosted.mjs, without the Chrona host-frame handshake. The add-on modules
 // already branch on window.__SF_HOST_READY__, so leaving it undefined selects
@@ -15,5 +15,5 @@ await writeFile(url('./dist-local/index.html'), renderGame(original));
 for (const name of ['chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','gull-cluster-route.mjs','city-extras.mjs']) {
   await cp(url('./'+name), url('./dist-local/'+name), {recursive:true});
 }
-{ const slim = await slimFeedFile(new URL('./dist-local/data/tech-week-enriched.json', import.meta.url)); console.log(`events feed ${slim.before} → ${slim.after} bytes (provenance stays in data/)`); }
+{ const slim = await slimFeedParts(new URL('./dist-local/data/', import.meta.url), 'tech-week-enriched'); console.log(`events feed ${slim.before} → ${slim.after} bytes across ${slim.parts} parts (provenance stays in data/)`); }
 console.log('Standalone build ready in dist-local/ — serve it with any static server; no Chrona host frame required.');

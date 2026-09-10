@@ -22,7 +22,7 @@ import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { renderGame } from './build.mjs';
 import { FEATURED_EVENT, RSVP_MIN } from './tuning-build.mjs';
-import { slimFeed } from './feed-slim.mjs';
+import { slimFeed, readFeedText } from './feed-slim.mjs';
 
 const url = path => new URL(path, import.meta.url);
 const POSITION_SCALE = 0.02; // metres — positions quantised to 2 cm steps (max error 1 cm)
@@ -157,7 +157,10 @@ for (const [key, encoded] of Object.entries(assets)) {
   console.log(`${key.padEnd(44)} ${String(encoded.length).padStart(10)} → ${String(size).padStart(10)}${spec ? '  (' + spec[0] + ' dzv)' : ''}`);
 }
 for (const file of ['tech-week-enriched.json', 'tech-week-first.json']) {
-  let bytes = await readFile(url('./data/' + file));
+  // The enriched snapshot ships as ordered parts; the artifact embeds one document.
+  let bytes = file === 'tech-week-enriched.json'
+    ? Buffer.from((await readFeedText(url('./data/'), 'tech-week-enriched')).text)
+    : await readFile(url('./data/' + file));
   if (file === 'tech-week-enriched.json') bytes = Buffer.from(JSON.stringify(slimFeed(await withEmbeddedPosters(JSON.parse(bytes)))));
   compact['/data/' + file] = gzipSync(bytes, { level: 9 }).toString('base64');
   after += compact['/data/' + file].length;
