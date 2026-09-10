@@ -46,9 +46,26 @@ async function readJson(url) {
   return response.json();
 }
 
+// A snapshot too large for the host's per-file limit ships as ordered raw text
+// parts. Join them back into the one document; an incomplete set is an error,
+// never a smaller snapshot.
+async function readParts(base) {
+  const manifest = await readJson(new URL(`./data/${base}.parts.json`, import.meta.url));
+  if (!Array.isArray(manifest.parts) || !manifest.parts.length) throw new Error('Snapshot part manifest is empty');
+  const texts = await Promise.all(manifest.parts.map(async name => {
+    if (!/^[\w.-]+$/.test(name)) throw new Error('Unexpected snapshot part name');
+    const response = await fetch(new URL('./data/' + name, import.meta.url), {cache:'no-store', signal:AbortSignal.timeout(15000)});
+    if (!response.ok) throw new Error(`Snapshot part HTTP ${response.status}`);
+    return response.text();
+  }));
+  const data = JSON.parse(texts.join(''));
+  if (manifest.events != null && data.events?.length !== manifest.events) throw new Error('Snapshot parts are incomplete');
+  return data;
+}
+
 async function readSaved() {
-  for(const file of ['tech-week-enriched.json','tech-week-first.json']) {
-    try { const data=await readJson(new URL('./data/'+file,import.meta.url)); if(validFeed(data))return data; } catch { /* Try the immutable baseline. */ }
+  for(const read of [() => readParts('tech-week-enriched'), () => readJson(new URL('./data/tech-week-enriched.json',import.meta.url)), () => readJson(new URL('./data/tech-week-first.json',import.meta.url))]) {
+    try { const data=await read(); if(validFeed(data))return data; } catch { /* Try the next form, then the immutable baseline. */ }
   }
   return null;
 }

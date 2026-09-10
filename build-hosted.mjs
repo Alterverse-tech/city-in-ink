@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, cp } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { renderGame } from './build.mjs';
 const url = path => new URL(path, import.meta.url);
@@ -18,6 +18,9 @@ try {
 let html = renderGame(original)
   .replace('<head>', '<head>\n<script>window.__SF_HOST_READY__ = import("./hosted-bootstrap.js"); window.__SF_HOST_READY__.catch(e => { console.error(e); document.body.insertAdjacentText("afterbegin", "Chrona connection failed: " + e.message); });</script>')
   .replace('<script id="tw-layer">', '<script type="module" id="tw-layer">\nawait window.__SF_HOST_READY__;');
+// Rebuild dist from scratch: a stale copy left beside a fresh one could be
+// served as the current snapshot if the fresh one ever fails to load.
+await rm(url('./dist/'), {recursive:true, force:true});
 await mkdir(url('./dist/'), {recursive:true});
 await writeFile(url('./dist/index.html'),html);
 for (const name of ['chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','hosted-bootstrap.js','gull-cluster-route.mjs','city-extras.mjs','gull-cluster-route.mjs',]) {
