@@ -346,6 +346,7 @@ async function submitClaim(claim) {
 // regenerated from public sources and would drop it.
 const HOST_EVENT_DETAIL = {
   'hgyN4UiBL4s3vA0ATTbr': {
+    cohosts: ['meshy.ai'],
     speakers: [{ name: 'Yiqi Zhao', role: 'Product Design Lead, Meta \u00b7 spatial intelligence and AI at the edge' }],
     speakerBio: [
       'Speaker \u2014 Yiqi Zhao, Product Design Lead at Meta, driving spatial intelligence and AI at the edge: AI that understands you and the world, not just words.',
@@ -360,7 +361,7 @@ function applyHostDetail(events) {
     if (!key) return event;
     const detail = HOST_EVENT_DETAIL[key];
     const speakers = (event.speakers && event.speakers.length) ? event.speakers : detail.speakers;
-    return { ...event, speakers };
+    return { ...event, cohosts: detail.cohosts, speakers };
   });
 }
 
@@ -385,7 +386,7 @@ window.__sfEventFeed = {
     initialReadDelivered = true;
     if (live) return { list: enrichWithFallbackCoordinates(live.events), citizens: [], official: true,
       source: `Official public sources · ${live.events.length} events · ${live.coverage?.complete ? 'full calendar, partial details' : 'partial snapshot'} · saved ${live.fetchedAt}` };
-    return { list: enrichWithFallbackCoordinates(seed.events || []), citizens: seed.citizens || [], official: !!seed.publicSnapshot,
+    return { list: enrichWithFallbackCoordinates(applyHostDetail(seed.events || [])), citizens: seed.citizens || [], official: !!seed.publicSnapshot,
       source: seed.publicSnapshot ? 'Public Tech Week startup snapshot · live sync pending' : 'Sample programme · live sync pending' };
   },
 };
