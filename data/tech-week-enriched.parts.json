@@ -1,0 +1,11 @@
+{
+  "file": "tech-week-enriched.json",
+  "parts": [
+    "tech-week-enriched.part-000.json",
+    "tech-week-enriched.part-001.json"
+  ],
+  "bytes": 4941976,
+  "sha256": "deae72c3c8413fa4b4feb0be3366880cb119289901ae67794aeb2d0fe1bea3c5",
+  "events": 1546,
+  "note": "The snapshot exceeds the importer's per-file text limit. Parts are raw slices of one JSON document and must be joined in order; a partial set is not a smaller snapshot."
+}
