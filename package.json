@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test test/*.test.mjs",
     "build": "node build-hosted.mjs",
     "build:local": "node build-local.mjs",
     "build:artifact": "node build-artifact.mjs"

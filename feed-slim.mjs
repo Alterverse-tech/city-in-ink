@@ -2,7 +2,7 @@
 // provenance (fieldSources) and crawl bookkeeping. The game reads a fraction of
 // it, and the rest is dead weight on every player's first load — provenance
 // alone is half the file. Builds serve this slimmed copy; data/ stays complete.
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 const DROP = ['fieldSources', 'imageUsage', 'calendarUrl', 'calendarId', 'locationVisibility', 'source', 'sourceLabel', 'acquisition'];
@@ -46,36 +46,44 @@ export async function readFeedText(dir, base) {
   return { text: texts.join(''), manifest, manifestUrl };
 }
 
-// Never cut between a surrogate pair: each part is written and read back as its
-// own UTF-8 document, so a split pair would decode as two replacement chars.
-const safeSplit = (text, index) => {
-  if (index <= 0 || index >= text.length) return index;
-  const code = text.charCodeAt(index);
-  return (code >= 0xDC00 && code <= 0xDFFF) ? index - 1 : index;
-};
+export const FEED_PART_BYTES = 200 * 1024;
 
-// Slim a copied snapshot in place, keeping whatever form it arrived in. The
-// slimmed document is strictly smaller than the original, so re-splitting it
-// across the same parts leaves every part under the limit that forced the split.
+// Each fetched part is decoded separately. Count bytes, not UTF-16 characters,
+// and move a cut back to the start of a code point so Chinese/emoji survive it.
+export function splitUtf8(text, maxBytes = FEED_PART_BYTES) {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 4) throw new Error('UTF-8 part size must be at least four bytes');
+  const bytes = Buffer.from(text), parts = [];
+  for (let start = 0; start < bytes.length;) {
+    let end = Math.min(start + maxBytes, bytes.length);
+    while (end < bytes.length && (bytes[end] & 0xc0) === 0x80) end--;
+    parts.push(bytes.subarray(start, end).toString('utf8'));
+    start = end;
+  }
+  return parts;
+}
+
+// Only the copied hosted/local build data is rewritten. Small parallel parts
+// avoid putting an entire event snapshot behind a single slow response; the
+// JSON payload and its ordered reconstruction remain exactly the same.
 export async function slimFeedParts(dir, base) {
   const { text, manifest, manifestUrl } = await readFeedText(dir, base);
-  const after = JSON.stringify(slimFeed(JSON.parse(text)));
-  if (!manifest) {
+  const slim = slimFeed(JSON.parse(text)), after = JSON.stringify(slim);
+  const beforeBytes = Buffer.byteLength(text), afterBytes = Buffer.byteLength(after);
+  if (!manifest && afterBytes <= FEED_PART_BYTES) {
     await writeFile(new URL(`${base}.json`, dir), after);
-    return { before: text.length, after: after.length, parts: 0 };
+    return { before: beforeBytes, after: afterBytes, parts: 0 };
   }
-  const count = manifest.parts.length;
-  const stride = Math.ceil(after.length / count);
-  let cut = 0;
-  for (const [i, name] of manifest.parts.entries()) {
-    const end = i === count - 1 ? after.length : safeSplit(after, (i + 1) * stride);
-    await writeFile(new URL(name, dir), after.slice(cut, end));
-    cut = end;
-  }
-  await writeFile(manifestUrl, JSON.stringify({
+  const contents = splitUtf8(after);
+  const parts = contents.map((_, index) => `${base}.part-${String(index).padStart(3, '0')}.json`);
+  await Promise.all(parts.map((name, index) => writeFile(new URL(name, dir), contents[index])));
+  await writeFile(manifestUrl || new URL(`${base}.parts.json`, dir), JSON.stringify({
     ...manifest,
-    bytes: Buffer.byteLength(after),
+    file: `${base}.json`, parts, bytes: afterBytes, events: slim.events.length,
     sha256: createHash('sha256').update(after).digest('hex'),
+    note: 'Parts are ordered raw UTF-8 slices of one JSON document, each at most 200 KiB. Join every part before parsing.',
   }, null, 2) + '\n');
-  return { before: text.length, after: after.length, parts: count };
+  // Do not ship stale fallback data or leftover parts after a smaller rebuild.
+  await Promise.all([`${base}.json`, ...(manifest?.parts || []).filter(name => !parts.includes(name))]
+    .map(name => rm(new URL(name, dir), { force: true })));
+  return { before: beforeBytes, after: afterBytes, parts: parts.length };
 }

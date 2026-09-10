@@ -14,6 +14,19 @@ export function wireEventFeed(html) {
     'const data = await backend.events(); state.officialFeed = !!data.official; state.source = data.source; const all = data.list.map(normalizeEvent);');
   once('let changed = false, structural = false;\n    for (const raw of data.list)',
     'let changed = false, structural = false;\n    if (data.official && !state.officialFeed) { nav.stop(true); state.events = []; state.past = []; state.selected = null; state.officialFeed = true; changed = structural = true; }\n    for (const raw of data.list)');
+  // New events have no world position yet. Ranking may also promote a quiet
+  // event onto the map, so decide placement before building spatial metadata.
+  // placeEvents() already calls computeMeta(); rebuild a structural change once.
+  once('  function computeMeta() {', '  function computeMeta(rankOnly = false) {');
+  once('    if (state.events.length) { const xs = state.events.map((e) => e.world.x), zs = state.events.map((e) => e.world.z);',
+    '    if (rankOnly) return;\n    if (state.events.length) { const xs = state.events.map((e) => e.world.x), zs = state.events.map((e) => e.world.z);');
+  once('    if (changed) { computeMeta(); if (state.events.some((e) => e.wantsVehicle !== !!e.hasVehicle)) structural = true; }\n    if (structural) { placeEvents(); buildWorld(); } else if (changed) for (const ev of state.events) { posterTexture(ev); refreshChip(ev); }',
+    `    if (changed && !structural) {
+      computeMeta(true);
+      if (state.events.some((e) => e.wantsVehicle !== !!e.hasVehicle || !!e.onMap !== !!e.world)) structural = true;
+    }
+    if (structural) { placeEvents(); buildWorld(); }
+    else if (changed) { computeMeta(); for (const ev of state.events) { posterTexture(ev); refreshChip(ev); } }`);
   once('  function regStatus(ev) {', `  const rsvpTotalDisplay = list => list.some(e => e.rsvp == null) ? '—' : list.reduce((sum, e) => sum + rsvpCount(e), 0);
   const rsvpDisplay = ev => ev.flagship ? rsvpTotalDisplay(state.events) : ev.rsvp == null ? '—' : rsvpCount(ev);
   function regStatus(ev) {

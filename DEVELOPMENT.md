@@ -49,6 +49,8 @@ source/part-*.txt, source/manifest.json   The original single-file game (24,130,
 build.mjs                                  renderGame(): patches the original HTML — injects the add-on
                                            module imports, the dialog fix and the event-feed hook.
 build-hosted.mjs                           `npm run build` → dist/ for Chrona. Adds the host-frame handshake.
+city-assets-build.mjs                      Packages 18 city resources as content-hashed city-assets/*.bin
+                                          files; hosted/local entries stay about 1.2 MB.
 build-local.mjs                            `npm run build:local` → dist-local/ for local work. Same source,
                                            no handshake.
 build-artifact.mjs, artifact-assets.js     `npm run build:artifact` → dist-artifact/: one self-contained HTML
@@ -163,6 +165,10 @@ node CLI publish --dir .                        # releases the live World
 ### The hosted build
 
 `npm run build` writes `dist/` for Chrona. It differs from the local build only by the handshake in `hosted-bootstrap.js`: the game runs inside Chrona's sandboxed iframe, receives the signed-in account and the authoritative room from the host, and stores preferences per account/World instead of in browser `localStorage`. `chrona/chrona-host.js` deliberately has no standalone fallback — a failed handshake never starts a separate login — so `dist/` renders only the error line when opened outside Chrona. That is expected.
+
+Both hosted and local builds extract the city's existing gzip/base64 payload from the HTML into `city-assets/*.bin`. The entry starts loading scripts immediately and the game's existing parallel fetches load the binary geometry relative to that build's directory. Three integer index arrays use lossless delta/varint encoding before gzip; floating-point positions and the other resources retain their original compressed bytes. Every decoded resource must match the original byte for byte. Serve or publish the entire output directory, including `city-assets/`; copying `index.html` alone is insufficient. The single-file artifact build retains its existing self-contained format. `npm test` rebuilds hosted/local outputs and verifies byte equivalence for all 18 resources, request concurrency, retry behavior, and entry size.
+
+Builds also split the unchanged slim event snapshot into ordered UTF-8 parts of at most 200 KiB. The game can start from the small saved baseline while the complete snapshot loads in the background; incomplete parts never become an event feed. Optional calendar/address refreshes do not block scene readiness.
 
 ### Single-file preview build
 

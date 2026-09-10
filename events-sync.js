@@ -29,12 +29,18 @@ export function mergePublicFeeds(saved, cache) {
   const [older, newer] = [saved, cache].sort((a,b) => Date.parse(a.fetchedAt)-Date.parse(b.fetchedAt));
   // A partial refresh must not erase events absent from that partial response.
   const map = new Map((newer.coverage?.complete ? [] : older.events).map(e => [eventKey(e), e]));
+  // Enrichment can add a Partiful URL to an existing calendar ID. Match that
+  // ID too, so moving from the baseline to richer data cannot duplicate it.
+  const ids = new Map([...map].filter(([, event]) => event.id != null).map(([key, event]) => [event.id, key]));
   for (const event of newer.events) {
-    const key = eventKey(event), previous = map.get(key);
-    if (!previous) { map.set(key,event); continue; }
+    const key = eventKey(event), previousKey = map.has(key) ? key : ids.get(event.id), previous = map.get(previousKey);
+    if (!previous) { map.set(key,event); if (event.id != null) ids.set(event.id, key); continue; }
     const patch = Object.fromEntries(Object.entries(event).filter(([field,value]) =>
       event.fieldSources?.[field] || (value != null && value !== '' && value !== 'unknown' && (!Array.isArray(value) || value.length))));
+    if (previousKey !== key) map.delete(previousKey);
     map.set(key, {...previous,...patch,id:previous.id,fieldSources:{...previous.fieldSources,...event.fieldSources}});
+    if (previous.id != null) ids.set(previous.id, key);
+    if (event.id != null) ids.set(event.id, key);
   }
   const events = [...map.values()].sort((a,b)=>Date.parse(a.start)-Date.parse(b.start));
   return {...newer,events,publicSnapshot:true,coverage:{...newer.coverage,events:events.length,complete:newer.coverage?.complete===true}};
@@ -46,43 +52,121 @@ async function readJson(url) {
   return response.json();
 }
 
+// These URLs belong to this published game revision. Keep completed (and
+// in-flight) parts when another part retries, and let the browser reuse them.
+// Geometry downloads share the connection, so a part gets 90 seconds; this
+// background download never holds up the initial saved programme below.
+const savedTexts = new Map();
+function readSavedText(url, timeout = 90000) {
+  const key = url.href;
+  if (savedTexts.has(key)) return savedTexts.get(key);
+  const request = (async () => {
+    try {
+      const response = await fetch(url, { cache: 'default', signal: AbortSignal.timeout(timeout) });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.text();
+    } catch (error) {
+      throw new Error(`Saved feed ${url.pathname.split('/').pop()}: ${error.name}: ${error.message}`);
+    }
+  })();
+  savedTexts.set(key, request);
+  request.catch(() => { if (savedTexts.get(key) === request) savedTexts.delete(key); });
+  return request;
+}
+async function readSavedJson(url, timeout) {
+  const text = await readSavedText(url, timeout);
+  try { return JSON.parse(text); }
+  catch (error) { savedTexts.delete(url.href); throw error; }
+}
+async function readBaseline() {
+  try {
+    const data = await readSavedJson(new URL('./data/tech-week-first.json', import.meta.url), 6000);
+    return validFeed(data) ? data : null;
+  } catch { return null; }
+}
+
 // A snapshot too large for the host's per-file limit ships as ordered raw text
 // parts. Join them back into the one document; an incomplete set is an error,
 // never a smaller snapshot.
 async function readParts(base) {
-  const manifest = await readJson(new URL(`./data/${base}.parts.json`, import.meta.url));
+  const manifest = await readSavedJson(new URL(`./data/${base}.parts.json`, import.meta.url));
   if (!Array.isArray(manifest.parts) || !manifest.parts.length) throw new Error('Snapshot part manifest is empty');
-  const texts = await Promise.all(manifest.parts.map(async name => {
+  const urls = manifest.parts.map(name => {
     if (!/^[\w.-]+$/.test(name)) throw new Error('Unexpected snapshot part name');
-    const response = await fetch(new URL('./data/' + name, import.meta.url), {cache:'no-store', signal:AbortSignal.timeout(15000)});
-    if (!response.ok) throw new Error(`Snapshot part HTTP ${response.status}`);
-    return response.text();
-  }));
-  const data = JSON.parse(texts.join(''));
-  if (manifest.events != null && data.events?.length !== manifest.events) throw new Error('Snapshot parts are incomplete');
-  return data;
+    return new URL('./data/' + name, import.meta.url);
+  });
+  const texts = await Promise.all(urls.map(url => readSavedText(url)));
+  try {
+    const data = JSON.parse(texts.join(''));
+    if (manifest.events != null && data.events?.length !== manifest.events) throw new Error('Snapshot parts are incomplete');
+    return data;
+  } catch (error) {
+    // A successful HTTP response can still have a truncated/corrupt body.
+    // Refetch that set rather than retaining a permanently broken document.
+    for (const url of urls) savedTexts.delete(url.href);
+    throw error;
+  }
 }
 
-// The enriched snapshot is about 8 MB and ships as ordered parts. One hiccup
-// fetching it used to drop the whole city to the 48-event baseline — or, if
-// that missed too, to an empty world with no explanation. Retry it before
-// settling for less: an empty sky is a much worse answer than a slow one.
+// Retry the full programme in the background while the smaller saved baseline
+// makes the city usable. Only a complete document can replace that baseline.
 async function readSaved() {
   const load = async (file) => {
-    const data = await readJson(new URL('./data/' + file, import.meta.url));
+    const data = await readSavedJson(new URL('./data/' + file, import.meta.url));
     return validFeed(data) ? data : null;
   };
   const full = async () => {
     // Parts are the current on-disk form; the single file is the older one.
-    try { const data = await readParts('tech-week-enriched'); if (validFeed(data)) return data; } catch { /* try the single file */ }
+    try { const data = await readParts('tech-week-enriched'); if (validFeed(data)) return data; }
+    catch (error) { console.warn('[events] full snapshot attempt failed', error); }
     return load('tech-week-enriched.json');
   };
   for (const attempt of [0, 1, 2]) {
     try { const data = await full(); if (data) return data; } catch { /* retry below */ }
     if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 400 * (attempt + 1)));
   }
-  console.warn('[events] the full snapshot did not load; falling back to the saved baseline');
-  try { return await load('tech-week-first.json'); } catch { return null; }
+  console.warn('[events] the full snapshot did not load; keeping the saved baseline until the next refresh');
+  return null;
+}
+
+let fullSaved = null, fullRequest = null, savedRetryAt = 0, initialReadDelivered = false;
+let refreshTimer = null;
+function refreshWhenReady() {
+  if (!initialReadDelivered || refreshTimer !== null) return;
+  const until = Date.now() + 90000;
+  const refresh = () => {
+    refreshTimer = null;
+    if (window.TW?.state?.ready && typeof window.TW.refreshEvents === 'function') {
+      Promise.resolve().then(() => window.TW.refreshEvents()).catch(error => console.warn('[events] refresh failed', error));
+    } else if (Date.now() < until) refreshTimer = setTimeout(refresh, 250);
+    // The game's existing 60-second refresh also picks up the completed feed.
+  };
+  refreshTimer = setTimeout(refresh, 0);
+}
+function readFullInBackground() {
+  if (fullSaved || Date.now() < savedRetryAt) return Promise.resolve(fullSaved);
+  if (fullRequest) return fullRequest;
+  fullRequest = readSaved().then(data => {
+    if (validFeed(data)) { fullSaved = data; refreshWhenReady(); }
+    else savedRetryAt = Date.now() + 60000;
+    return fullSaved;
+  }).finally(() => { fullRequest = null; });
+  return fullRequest;
+}
+
+let liveCache = null, liveRequest = null, liveCheckedAt = -Infinity, liveSignature = '';
+function readLiveInBackground() {
+  if (liveRequest || Date.now() - liveCheckedAt < 60000) return;
+  liveRequest = readJson(window.__SF_HOST_READY__ ? 'https://chrona.world/integrations/city-in-ink/events.json' : '/events.json')
+    .catch(() => ({ status: 'unavailable', error: 'Calendar updater is unreachable; using saved public data.' }))
+    .then(data => {
+      liveCache = data && typeof data === 'object' ? data : { status: 'unavailable' };
+      const signature = JSON.stringify(liveCache);
+      const changed = signature !== liveSignature;
+      liveSignature = signature;
+      liveCheckedAt = Date.now();
+      if (changed) refreshWhenReady();
+    }).finally(() => { liveRequest = null; });
 }
 
 const NEIGHBORHOOD_HINTS = {
@@ -201,14 +285,21 @@ function showStatus(data, live) {
 const ADDRESS_URL = window.__SF_HOST_READY__
   ? 'https://chrona.world/integrations/city-in-ink/addresses.json'
   : '/addresses.json';
-let addressCache = { at: 0, list: [] };
-async function readApprovedAddresses() {
-  if (Date.now() - addressCache.at < 60000) return addressCache.list;
-  try {
-    const data = await readJson(ADDRESS_URL);
-    addressCache = { at: Date.now(), list: Array.isArray(data?.addresses) ? data.addresses : [] };
-  } catch { addressCache = { at: Date.now(), list: addressCache.list }; }
-  return addressCache.list;
+let addressCache = { at: 0, list: [] }, addressRequest = null;
+function readApprovedAddresses() {
+  if (Date.now() - addressCache.at < 60000) return Promise.resolve(addressCache.list);
+  if (addressRequest) return addressRequest;
+  addressRequest = (async () => {
+    try {
+      const data = await readJson(ADDRESS_URL);
+      const list = Array.isArray(data?.addresses) ? data.addresses : [];
+      const changed = JSON.stringify(list) !== JSON.stringify(addressCache.list);
+      addressCache = { at: Date.now(), list };
+      if (changed) refreshWhenReady();
+    } catch { addressCache = { at: Date.now(), list: addressCache.list }; }
+    return addressCache.list;
+  })().finally(() => { addressRequest = null; });
+  return addressRequest;
 }
 function applyApprovedAddresses(events, addresses) {
   if (!addresses.length) return events;
@@ -277,18 +368,21 @@ window.__sfEventFeed = {
   coverUrl,
   submitClaim,
   async read(seed) {
-    const [saved,cache] = await Promise.all([
-      readSaved(),
-      readJson(window.__SF_HOST_READY__ ? 'https://chrona.world/integrations/city-in-ink/events.json' : '/events.json')
-        .catch(()=>({status:'unavailable',error:'Calendar updater is unreachable; using saved public data.'})),
-    ]);
-    const approvedAddresses = await readApprovedAddresses();
-    const data = mergePublicFeeds(saved,cache);
-    if (data && approvedAddresses.length) data.events = applyApprovedAddresses(data.events, approvedAddresses);
-    if (data) data.events = applyHostDetail(data.events);
-    if(data)lastGood=data;
-    const live = lastGood;
+    const full = readFullInBackground();
+    // Live updates and optional community enrichment must not hold up readiness.
+    readLiveInBackground();
+    void readApprovedAddresses();
+    const saved = fullSaved || await Promise.race([full.then(data => data || readBaseline()), readBaseline()]);
+    const cache = liveCache || { status: 'unavailable' };
+    const approvedAddresses = addressCache.list;
+    // Late/failed refreshes must never replace a newer complete programme with
+    // the startup baseline. Keep the unmodified public feed separate from the
+    // optional address and host-detail presentation patches.
+    const data = mergePublicFeeds(lastGood, mergePublicFeeds(fullSaved || saved, cache));
+    if (data) lastGood = data;
+    const live = lastGood && { ...lastGood, events: applyHostDetail(applyApprovedAddresses(lastGood.events, approvedAddresses)) };
     showStatus(live ? {...live,error:cache.error} : cache, !!live);
+    initialReadDelivered = true;
     if (live) return { list: enrichWithFallbackCoordinates(live.events), citizens: [], official: true,
       source: `Official public sources · ${live.events.length} events · ${live.coverage?.complete ? 'full calendar, partial details' : 'partial snapshot'} · saved ${live.fetchedAt}` };
     return { list: enrichWithFallbackCoordinates(seed.events || []), citizens: seed.citizens || [], official: false,
