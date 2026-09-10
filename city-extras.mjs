@@ -544,20 +544,27 @@ const WALL_CELL = 48;         // metres per grid cell
 const WALL_MIN_LEN = 8;       // metres: shorter walls are corner facets
 const WALL_MIN_H = 8;         // metres: lower walls are podium steps
 
-function findBuildingsMesh(city) {
-  let mesh = null;
-  city.scene.traverse((o) => { if (!mesh && o.isMesh && /Refined DataSF footprints/.test(o.name)) mesh = o; });
-  return mesh;
+function findBuildingsMeshes(city) {
+  const meshes = [];
+  city.scene.traverse((o) => {
+    if (o.isMesh && /Refined DataSF footprints/.test(o.name) && o.geometry?.attributes?.position && o.position.lengthSq() < 1e-6 && Math.abs(o.rotation.y) < 1e-6) meshes.push(o);
+  });
+  return meshes;
 }
 
 function buildWallIndex(city, bounds, done) {
-  const mesh = findBuildingsMesh(city);
-  const geometry = mesh && mesh.geometry;
-  if (!geometry || !geometry.attributes.position || mesh.position.lengthSq() > 1e-6 || Math.abs(mesh.rotation.y) > 1e-6) { done(null); return; }
-  const pos = geometry.attributes.position.array;
-  const idx = geometry.index ? geometry.index.array : null;
-  const s = mesh.scale.x || 1;
-  const triCount = Math.floor((idx ? idx.length : pos.length / 3) / 3);
+  const meshes = findBuildingsMeshes(city);
+  if (!meshes.length) { done(null); return; }
+  const s = meshes[0].scale.x || 1;
+  if (meshes.some(mesh => Math.abs((mesh.scale.x || 1) - s) > 1e-6)) { done(null); return; }
+  let meshIndex = 0, pos, idx, triCount;
+  const selectMesh = () => {
+    const geometry = meshes[meshIndex].geometry;
+    pos = geometry.attributes.position.array;
+    idx = geometry.index ? geometry.index.array : null;
+    triCount = Math.floor((idx ? idx.length : pos.length / 3) / 3);
+  };
+  selectMesh();
   const segs = new Map();
   const minX = bounds.minX / s, maxX = bounds.maxX / s, minZ = bounds.minZ / s, maxZ = bounds.maxZ / s;
   const minLen = WALL_MIN_LEN / s, minH = 3 / s, flat = 0.6 / s;
@@ -621,6 +628,8 @@ function buildWallIndex(city, bounds, done) {
       }
     }
     if (t < triCount) { setTimeout(step, 0); return; }
+    if (++meshIndex < meshes.length) { selectMesh(); t = 0; setTimeout(step, 0); return; }
+    if (city.disposed) return;
     const cells = new Map();
     const cellKey = (x, z) => `${Math.floor(x / WALL_CELL)},${Math.floor(z / WALL_CELL)}`;
     let count = 0;
@@ -888,8 +897,10 @@ function buildBillboards(TW, city) {
   // venue list we plan from can be empty or half-built at that point. Watch a
   // cheap signature of it rather than trusting one timer.
   let signature = '';
+  const fenceSignature = () => { const f = TW.state.fence; return f ? [f.minX,f.maxX,f.minZ,f.maxZ].join(':') : ''; };
   const sync = () => {
     if (!index) return;
+    if (fenceSignature() !== indexedFence) scheduleIndex();
     const venues = TW.state.venues || [];
     let signed = 0;
     for (const venue of venues) for (const member of venue.members || []) if (member.onMap && (member.claimed || member.approxLocation) && !member.wantsVehicle) signed += 1;
@@ -898,7 +909,13 @@ function buildBillboards(TW, city) {
     signature = next;
     plan();
   };
+  let indexing = false, indexDirty = false, indexTimer = null, indexedRevision = -1, indexedFence = '';
   const start = () => {
+    indexTimer = null;
+    if (city.disposed) return;
+    if (indexing) { indexDirty = true; return; }
+    indexing = true; indexDirty = false;
+    const revision = city.streaming?.revision || 0, fenceKey = fenceSignature();
     // The event area, but never more than a few kilometres around downtown:
     // one stray coordinate in the feed would otherwise size the roof grid to
     // the whole bay.
@@ -909,15 +926,25 @@ function buildBillboards(TW, city) {
       minZ: Math.max(centre.z - REACH, fence ? fence.minZ - 200 : -Infinity), maxZ: Math.min(centre.z + REACH, fence ? fence.maxZ + 200 : Infinity),
     };
     buildWallIndex(city, bounds, (built) => {
-      if (!built) { console.warn('[TW signage] no building mesh found; signs stay off'); return; }
-      index = built;
-      window.__twWalls = built;
-      sync();
+      indexing = false; indexedRevision = revision; indexedFence = fenceKey;
+      if (built) {
+        index = built; window.__twWalls = built;
+        signature = ''; sync();
+      } else console.warn('[TW signage] no building mesh found; signs stay off');
+      if ((indexDirty || (city.streaming?.revision || 0) !== indexedRevision) && !city.disposed) scheduleIndex();
     });
   };
-  setTimeout(start, SIGN_START_DELAY);
+  const scheduleIndex = () => {
+    if (indexTimer === null && !city.disposed) indexTimer = setTimeout(start, 1200);
+  };
+  const onGeometry = event => { if (event.detail?.city === city) scheduleIndex(); };
+  window.addEventListener('sf-city-geometry-updated', onGeometry);
+  const previousDispose = city.dispose.bind(city);
+  city.dispose = () => { window.removeEventListener('sf-city-geometry-updated', onGeometry); clearTimeout(indexTimer); clearInterval(watcher); previousDispose(); };
+  indexTimer = setTimeout(start, SIGN_START_DELAY);
   const watcher = setInterval(sync, 2500);
-  setTimeout(() => clearInterval(watcher), 120000);
+  // Live calendar updates may change the event fence long after two minutes.
+  // Keep this small signature check until the city is disposed.
   // Rebuild whenever the fleet changes (a refresh, or an event ending).
   const originalRebuild = TW.rebuildWorld;
   if (typeof originalRebuild === 'function') TW.rebuildWorld = () => { originalRebuild(); try { signature = ''; sync(); } catch (error) { console.error('[TW signage]', error); } };

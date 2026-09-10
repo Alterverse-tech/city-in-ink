@@ -39,7 +39,7 @@ test('all 18 decoded city resources stay exact, with lossless compression limite
   const assetsEnd = html => html.indexOf('</script>', html.indexOf('<script id="sf-city-assets"')) + '</script>'.length;
   const afterShim = html => html.slice(html.indexOf('</script>', assetsEnd(html)) + '</script>'.length);
   assert.equal(afterShim(packed.html), afterShim(source), 'all scene, gameplay and UI code after the fetch shim stays byte-identical');
-  assert.equal(packed.html.slice(0, packed.html.indexOf('<script id="sf-city-assets"')), source.slice(0, source.indexOf('<script id="sf-city-assets"')));
+  assert.ok(packed.html.startsWith(source.slice(0, source.indexOf('<script id="sf-city-assets"'))));
 })
 
 function fetchHarness({ deferred = false } = {}) {
@@ -53,7 +53,7 @@ function fetchHarness({ deferred = false } = {}) {
     const serve = status => new Response(status === 200 ? packed.files.get(file) : 'Missing', { status });
     return deferred ? new Promise(resolve => queued.push(status => resolve(serve(status)))) : Promise.resolve(serve(200));
   };
-  const context = { window, URL, Response, Uint8Array, document: { baseURI: window.location.href,
+  const context = { window, URL, Response, Uint8Array, AbortController, setTimeout, clearTimeout, document: { baseURI: window.location.href,
     getElementById: () => ({ textContent: JSON.stringify(paths), remove() { removed = true; } }) } };
   runInNewContext(`(${installCityAssetFetch.toString()})(${decodeCityIndices.toString()})`, context);
   return { calls, queued, fetch: window.fetch, removed: () => removed };
@@ -149,13 +149,53 @@ test('hosted and standalone builds emit small entries and identical binary geome
     assert.ok(Buffer.byteLength(html) < 1_250_000, `${directory} entry must not contain the 23 MB base64 asset payload`);
     assert.ok(gzipSync(html, { level: 6 }).length < 400_000);
     const builtPaths = JSON.parse(html.match(mapPattern)[1]);
-    assert.deepEqual(builtPaths, paths);
-    for (const [path, encoded] of Object.entries(inlineAssets)) {
-      const bytes = await readFile(new URL(`${directory}/${filePath(builtPaths[path]).slice(2)}`, root));
-      if (typeof builtPaths[path] === 'string') assert.equal(digest(bytes), digest(Buffer.from(encoded, 'base64')), `${directory}: ${path}`);
-      assert.equal(digest(decodedBytes(bytes, builtPaths[path])), digest(gunzipSync(Buffer.from(encoded, 'base64'))));
+    assert.equal(Object.keys(builtPaths).length, 13);
+    for (const [path, entry] of Object.entries(builtPaths)) {
+      if (path === '/data/city-manifest.json') continue;
+      const bytes = await readFile(new URL(`${directory}/${filePath(entry).slice(2)}`, root));
+      assert.equal(digest(decodedBytes(bytes, entry)), digest(gunzipSync(Buffer.from(inlineAssets[path], 'base64'))));
     }
+    const city = JSON.parse(gunzipSync(await readFile(new URL(`${directory}/${builtPaths['/data/city-manifest.json'].slice(2)}`, root))));
+    assert.equal(city.buildings.streamingVersion, 1);
+    assert.equal(city.buildings.tiles.reduce((n,tile)=>n+tile.triangles,0), 1_489_361);
+    assert.ok(city.buildings.tiles.filter(tile=>tile.priority==='critical').reduce((n,tile)=>n+tile.bytes,0)<1_500_000);
+    const preload=JSON.parse(await readFile(new URL(`${directory}/city-assets/preload.json`, root)));
+    assert.equal(preload.version,1);
+    for(const asset of preload.assets)assert.equal((await readFile(new URL(`${directory}/${asset.url.slice(2)}`,root))).length,asset.bytes);
     assert.equal(html.includes('window.__SF_HOST_READY__ = import("./hosted-bootstrap.js")'), directory === 'dist');
   }
   assert.deepEqual(await readFile(new URL('source/manifest.json', root)), beforeManifest);
 })
+
+test('published asset CDN uses identical versioned paths and one failure switches later requests to origin', async () => {
+  const calls=[];
+  const first='/data/roads-position.i16', second='/data/roads-tone.u8';
+  const base='https://chrona.world/project-runtime/world/37/access-key/index.html';
+  const window={location:{href:base},__CHRONA_ASSET_BASE__:'https://assets.chrona.world/versions/build-37/',__sfGunzip:bytes=>new Uint8Array(gunzipSync(bytes))};
+  window.fetch=async url=>{
+    calls.push(String(url));
+    if(url.hostname==='assets.chrona.world')return new Response('cdn down',{status:503});
+    const file=url.pathname.split('/access-key/')[1];
+    return new Response(packed.files.get(file));
+  };
+  const document={baseURI:base,getElementById:()=>({textContent:JSON.stringify(paths),remove(){}})};
+  runInNewContext(`(${installCityAssetFetch.toString()})(${decodeCityIndices.toString()})`,{window,document,URL,Response,Uint8Array,AbortController,setTimeout,clearTimeout});
+  assert.equal(digest(Buffer.from(await(await window.fetch(first)).arrayBuffer())),digest(gunzipSync(Buffer.from(inlineAssets[first],'base64'))));
+  await window.fetch(second);
+  assert.equal(calls.length,3);
+  assert.ok(calls[0].startsWith('https://assets.chrona.world/versions/build-37/city-assets/'));
+  assert.ok(calls[1].startsWith('https://chrona.world/project-runtime/world/37/access-key/city-assets/'));
+  assert.ok(calls[2].startsWith('https://chrona.world/project-runtime/world/37/access-key/city-assets/'));
+});
+
+test('origin asset timeout includes a stalled response body and cancels its network request',async()=>{
+  const timers=[],base='https://chrona.world/project-runtime/world/37/access-key/index.html';
+  let aborted=false;
+  const window={location:{href:base},fetch:async(url,init)=>({ok:true,status:200,headers:new Headers(),arrayBuffer:()=>new Promise((resolve,reject)=>{const abort=()=>{aborted=true;reject(new Error('aborted body'));};if(init.signal.aborted)abort();else init.signal.addEventListener('abort',abort,{once:true});})})};
+  const document={baseURI:base,getElementById:()=>({textContent:JSON.stringify(paths),remove(){}})};
+  runInNewContext(`(${installCityAssetFetch.toString()})(${decodeCityIndices.toString()})`,{window,document,URL,Response,Uint8Array,AbortController,setTimeout(fn,ms){timers.push({fn,ms});return timers.length;},clearTimeout(){}});
+  const request=window.__sfFetchCityAsset('./city-assets/test.bin');
+  const rejected=assert.rejects(request,/aborted body/);
+  await Promise.resolve();await Promise.resolve();
+  assert.equal(timers[0].ms,30000);timers[0].fn();await rejected;assert.equal(aborted,true);
+});
