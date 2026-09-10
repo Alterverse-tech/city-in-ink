@@ -21,6 +21,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { renderGame } from './build.mjs';
+import { readInitialEventFeed, wireInitialEventSeed } from './initial-event-feed.mjs';
 import { FEATURED_EVENT, RSVP_MIN } from './tuning-build.mjs';
 import { slimFeed, readFeedText } from './feed-slim.mjs';
 
@@ -137,7 +138,8 @@ async function withEmbeddedPosters(feed) {
 const manifest = JSON.parse(await readFile(url('./source/manifest.json'), 'utf8'));
 const original = (await Promise.all(manifest.parts.map(part => readFile(url('./source/' + part), 'utf8')))).join('');
 if (createHash('sha256').update(original).digest('hex') !== manifest.sha256) throw new Error('Source bytes changed. Run `node build-hosted.mjs --accept-source-update` first to refresh the manifest.');
-const html = renderGame(original);
+const initialFeed = await readInitialEventFeed(url('./data/'));
+const html = wireInitialEventSeed(renderGame(original), initialFeed);
 
 // ---- swap the asset map and its shim -------------------------------------
 const assetsOpen = '<script id="sf-city-assets" type="application/json">';
@@ -160,7 +162,7 @@ for (const file of ['tech-week-enriched.json', 'tech-week-first.json']) {
   // The enriched snapshot ships as ordered parts; the artifact embeds one document.
   let bytes = file === 'tech-week-enriched.json'
     ? Buffer.from((await readFeedText(url('./data/'), 'tech-week-enriched')).text)
-    : await readFile(url('./data/' + file));
+    : Buffer.from(JSON.stringify(initialFeed));
   if (file === 'tech-week-enriched.json') bytes = Buffer.from(JSON.stringify(slimFeed(await withEmbeddedPosters(JSON.parse(bytes)))));
   compact['/data/' + file] = gzipSync(bytes, { level: 9 }).toString('base64');
   after += compact['/data/' + file].length;
@@ -178,10 +180,10 @@ const decoder = await readFile(url('./artifact-assets.js'), 'utf8');
 let page = html.slice(0, a0 + assetsOpen.length) + JSON.stringify(compact) + '</script>\n  <script>\n' + decoder + '\n  </script>' + html.slice(shimClose + '</script>'.length);
 
 // ---- inline the add-on modules and styles (no multiplayer) ----------------
-const imports = 'import "./city-time.mjs";\nimport "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./city-extras.mjs";\n';
+const imports = 'import "./city-time.mjs";\nimport "./event-card.mjs";\nimport "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./city-extras.mjs";\n';
 if (page.split(imports).length !== 2) throw new Error('Add-on import block not found; keep build.mjs and build-artifact.mjs in step.');
 let inline = '';
-for (const name of ['city-time.mjs', 'events-sync.js', 'gull-cluster-route.mjs', 'city-extras.mjs']) {
+for (const name of ['city-time.mjs', 'event-card.mjs', 'events-sync.js', 'gull-cluster-route.mjs', 'city-extras.mjs']) {
   const code = await readFile(url('./' + name), 'utf8');
   if (/^\s*import\s/m.test(code)) throw new Error(`${name} imports another module; extend the inliner.`);
   inline += `<script type="module">\n${code}\n</script>\n`;

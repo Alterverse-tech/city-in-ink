@@ -272,7 +272,7 @@ function showStatus(data, live) {
     badge.setAttribute('role', 'status');
     document.body.append(badge);
   }
-  const next = data.nextAttemptAt ? new Date(data.nextAttemptAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+  const next = data.nextAttemptAt ? new Date(data.nextAttemptAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : null;
   badge.textContent = live
     ? `Public snapshot · ${data.events.length} events · ${data.coverage?.complete ? 'full calendar · partial details' : 'partial calendar'} · updater every 30 min`
     : `Sample events · official sync unavailable${next ? ' · retry ' + next : ''}`;
@@ -385,7 +385,7 @@ window.__sfEventFeed = {
     initialReadDelivered = true;
     if (live) return { list: enrichWithFallbackCoordinates(live.events), citizens: [], official: true,
       source: `Official public sources · ${live.events.length} events · ${live.coverage?.complete ? 'full calendar, partial details' : 'partial snapshot'} · saved ${live.fetchedAt}` };
-    return { list: enrichWithFallbackCoordinates(seed.events || []), citizens: seed.citizens || [], official: false,
-      source: 'sample programme · official sync pending · refresh every 30 min' };
+    return { list: enrichWithFallbackCoordinates(seed.events || []), citizens: seed.citizens || [], official: !!seed.publicSnapshot,
+      source: seed.publicSnapshot ? 'Public Tech Week startup snapshot · live sync pending' : 'Sample programme · live sync pending' };
   },
 };

@@ -30,7 +30,7 @@ export function wireGameUi(html) {
   replaceOnce('</head>', `<style id="tw-game-ui">
 html .scene-host canvas:focus-visible { outline: none; }
 .tw-masthead, #tw-pause, #tw-who, #tw-who-list, #tw-discord,
-.tw-sortrow, #tw-cruise, .gull-telemetry, .mode-dock { display: none !important; }
+.tw-sortrow, #tw-cruise, .gull-telemetry, .mode-dock, .view-dock, .landmark-card { display: none !important; }
 
 .city-shell .tw-card {
   left: 24px; bottom: 24px; width: min(352px, calc(100vw - 48px));

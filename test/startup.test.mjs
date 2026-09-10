@@ -36,7 +36,7 @@ function harness({ rebuildError = false } = {}) {
     addEventListener(type, listener) { listeners.set(type, listener); },
     removeEventListener(type, listener) { if (listeners.get(type) === listener) listeners.delete(type); },
   };
-  for (const name of ['loadCover', 'injectUI', 'placeEvents', 'installPicking', 'tagGullParts', 'renderList', 'renderBoard', 'frame', 'updateChips', 'applyView', 'applyBannerLight', 'applyBird', 'select', 'flyTo', 'look', 'lookAt', 'toast', 'drawPoster', 'geocodeSF', 'leaderboard', 'rebuildVenue', 'moveShip', 'refreshChip', 'renderCard', 'setView', 'enterCity', 'retireEvent', 'lifecycleTick', 'refreshEvents', 'updateClock', 'downloadIcs', 'nowMs']) context[name] = empty;
+  for (const name of ['startPlayer', 'loadCover', 'injectUI', 'placeEvents', 'installPicking', 'tagGullParts', 'renderList', 'renderBoard', 'frame', 'updateChips', 'applyView', 'applyBannerLight', 'applyBird', 'select', 'flyTo', 'look', 'lookAt', 'toast', 'drawPoster', 'geocodeSF', 'leaderboard', 'rebuildVenue', 'moveShip', 'refreshChip', 'renderCard', 'setView', 'enterCity', 'retireEvent', 'lifecycleTick', 'refreshEvents', 'updateClock', 'downloadIcs', 'nowMs']) context[name] = empty;
   runInNewContext(`${functions}\nglobalThis.start = init;`, context);
   return { calls, state, context, timers, listeners, resolveModel, rejectModel,
     frame() { for (const callback of frames.splice(0)) callback(); } };
@@ -47,7 +47,7 @@ test('the actual game init becomes ready with procedural ships while an optional
   await h.context.start();
   assert.equal(h.state.ready, true);
   assert.equal(h.state.events.length, 1);
-  assert.equal(h.calls.welcome, 1);
+  assert.equal(h.calls.welcome, 0);
   assert.deepEqual(h.calls.builds, [null]);
   assert.equal(h.calls.requests.length, 0);
   h.frame();
