@@ -1,6 +1,6 @@
 # SF Tech Week public data coverage
 
-Saved: 2026-09-10T03:14:44.701Z
+Saved: 2026-09-10T04:47:50.184Z
 
 1546 unique events; 1524 successfully read detail pages. **Complete calendar inventory; detail fields remain partial.**
 
@@ -15,7 +15,8 @@ Calendar pages: 33; reported total: 1546.
 | tags | 366 / 1546 |
 | neighborhood | 1544 / 1546 |
 | address | 189 / 1546 |
-| venue | 210 / 1546 |
+| venue | 199 / 1546 |
+| mapUrl | 222 / 1546 |
 | lat | 159 / 1546 |
 | lng | 159 / 1546 |
 | description | 1524 / 1546 |
