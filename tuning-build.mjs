@@ -128,12 +128,14 @@ export function wireTuning(html) {
       // A neighbourhood centroid is not an address: fan these out over the
       // district on a golden-angle spiral so no two share a rooftop.
       if (ev.approxLocation) {
-        const seed = hash(ev.id), a = seed * 2.399963229, r = 240 + (seed % 89) * 11;
-        const p = GEO.Hn(+ev.lng, +ev.lat, 0);
-        const x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r;
+        const seed = hash(ev.id), p = GEO.Hn(+ev.lng, +ev.lat, 0);
+        // Fan out across the district, but land on a block: a spot with no
+        // building within thirty metres is a park or the water, so try the
+        // next turn of the spiral instead.
+        let x = p.x, z = p.z, roof = -Infinity;
+        for (let j = 0; j < 8 && !Number.isFinite(roof); j++) { const a = seed * 2.399963229 + j * 1.1, r = 110 + (seed % 23) * 12 + j * 30; x = p.x + Math.cos(a) * r; z = p.z + Math.sin(a) * r; roof = roofHeightAt(x, z, 28); }
         ev.venueKey = 'approx:' + ev.id; ev.world = V3(x, 0, z);
         ev.ground = c.sampleTerrain(+ev.lng, +ev.lat) || 0;
-        const roof = roofHeightAt(x, z, 24);
         ev.roof = Number.isFinite(roof) && roof > ev.ground + 2 ? roof : ev.ground + 4;
         ev.shipY = (ev.wantsVehicle ? ev.roof + CFG.shipAltitude : ev.roof + 40) + (seed % 9) * 16;
         ev.anchorY = ev.roof + 12;
@@ -184,6 +186,21 @@ export function wireTuning(html) {
   once("      const q = state.events.filter((e) => e.claimed).sort((a, b) => heat(b) - heat(a)); if (!q.length) return;",
     "      const q = state.events.filter((e) => e.onMap && e.ship && !String(e.venueKey || '').startsWith('harbor:')).sort((a, b) => heat(b) - heat(a)); if (!q.length) return;");
   once("  function look(ev) { lookAt(", "  function look(ev) { if (!ev.ship) return; lookAt(");
+  once("    if (buildingsMesh) {\n      const a = buildingsMesh.geometry.attributes.position.array, s = buildingsMesh.scale.x; const lx = x / s, lz = z / s, lr = radius / s, lr2 = lr * lr;\n      for (let i = 0; i < a.length; i += 3) { const dx = a[i] - lx; if (dx > lr || dx < -lr) continue; const dz = a[i + 2] - lz; if (dz > lr || dz < -lr) continue; if (dx * dx + dz * dz < lr2) { const y = a[i + 1] * s; if (y > best) best = y; } }\n    }", "    if (buildingsMesh) {\n      // One pass over the mesh builds a 10 m grid of the highest vertex per\n      // cell; every query after that is a handful of cells. The old scan of\n      // 2.5 million vertices per call cost placeEvents() a second and a half.\n      const g = roofGrid || (roofGrid = buildRoofGrid(buildingsMesh));\n      const c0 = Math.max(0, Math.floor((x - radius - g.x0) / g.cell)), c1 = Math.min(g.cols - 1, Math.floor((x + radius - g.x0) / g.cell));\n      const r0 = Math.max(0, Math.floor((z - radius - g.z0) / g.cell)), r1 = Math.min(g.rows - 1, Math.floor((z + radius - g.z0) / g.cell));\n      for (let cz = r0; cz <= r1; cz++) for (let cx = c0; cx <= c1; cx++) { const y = g.h[cz * g.cols + cx]; if (y > best) best = y; }\n    }");
+  once("  function roofHeightAt(x, z, radius) {",
+    `  let roofGrid = null;
+  function buildRoofGrid(mesh) {
+    const a = mesh.geometry.attributes.position.array, s = mesh.scale.x || 1, cell = 10;
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (let i = 0; i < a.length; i += 3) { const x = a[i], z = a[i + 2]; if (x < minX) minX = x; if (x > maxX) maxX = x; if (z < minZ) minZ = z; if (z > maxZ) maxZ = z; }
+    const x0 = minX * s - cell, z0 = minZ * s - cell, cols = Math.ceil((maxX * s - x0) / cell) + 2, rows = Math.ceil((maxZ * s - z0) / cell) + 2;
+    const h = new Float32Array(cols * rows).fill(-Infinity);
+    for (let i = 0; i < a.length; i += 3) { const k = Math.floor((a[i + 2] * s - z0) / cell) * cols + Math.floor((a[i] * s - x0) / cell); const y = a[i + 1] * s; if (y > h[k]) h[k] = y; }
+    return { x0, z0, cell, cols, rows, h };
+  }
+  function roofHeightAt(x, z, radius) {`);
+  once("      const err = wrapAngle(desired - H), inp = c.flightInput, aligned = Math.abs(err) < 0.5;", "      // The add-on layer knows the roofs (window.__twTerrain); a flight that\n      // would cut through a tower climbs over it instead.\n      if (window.__twTerrain) { const lift = window.__twTerrain.roofAhead(P.x, P.z, desired, 140) + 24; if (lift > cruiseY) cruiseY = lift; }\n      const err = wrapAngle(desired - H), inp = c.flightInput, aligned = Math.abs(err) < 0.5;");
+  once("        const k = harborIndex++; ev.venueKey = 'harbor:' + k; const cols = Math.max(1, Math.ceil(Math.sqrt(unclaimed))); const stepLng = 0.0052, stepLat = 0.0039; const lng = CFG.harbor.lng + (k % cols - (cols - 1) / 2) * stepLng, lat = CFG.harbor.lat + (Math.floor(k / cols) - (Math.ceil(unclaimed / cols) - 1) / 2) * stepLat;\n        const p = GEO.Hn(lng, lat, 0); ev.world = V3(p.x, 0, p.z); ev.ground = 0; ev.roof = 0; ev.shipY = ev.wantsVehicle ? 86 + (k % 2) * 18 : 40 + (k % 2) * 8; ev.anchorY = 4;", "        // No district and no address, but a crowd: the ship flies over the\n        // downtown core on a spiral, always above a building \u2014 never parked\n        // out on the bay, where a third of the fleet used to sit.\n        const k = harborIndex++; ev.venueKey = 'core:' + k; const seed = hash(ev.id);\n        const centre = GEO.Hn(CFG.core.lng, CFG.core.lat, 0); let px = centre.x, pz = centre.z, roof = -Infinity;\n        for (let j = 0; j < 8 && !Number.isFinite(roof); j++) { const a = k * 2.399963229 + j * 0.9, r = 150 + 46 * Math.sqrt(k) + j * 25; px = centre.x + Math.cos(a) * r; pz = centre.z + Math.sin(a) * r; roof = roofHeightAt(px, pz, 40); }\n        ev.world = V3(px, 0, pz); ev.ground = c.sampleTerrain(CFG.core.lng, CFG.core.lat) || 0; ev.roof = Number.isFinite(roof) ? roof : ev.ground + 40;\n        ev.shipY = ev.roof + CFG.shipAltitude + (seed % 3) * 24; ev.anchorY = ev.roof + 12;");
 
   // ---- 8. nothing is "unclaimed" ------------------------------------------
   // An event without a public address is still a party, a demo night or an
@@ -194,7 +211,7 @@ export function wireTuning(html) {
   once("const k = ev.claimed ? (ev.neighborhood || ev.venue || 'Downtown') : 'Harbor · unclaimed'",
     "const k = ev.claimed ? (ev.neighborhood || ev.venue || 'Downtown') : ev.approxLocation ? (ev.neighborhood || 'Downtown') : 'Venue to be announced'");
   once("name: m0.claimed ? (m0.venue || m0.address) : 'Harbor'",
-    "name: m0.claimed ? (m0.venue || m0.address) : m0.approxLocation ? (m0.neighborhood || 'District') : 'Harbor'");
+    "name: m0.claimed ? (m0.venue || m0.address) : m0.approxLocation ? (m0.neighborhood || 'District') : 'Downtown'");
   once("ev.chip.classList.toggle('unclaimed', !ev.claimed)", "ev.chip.classList.toggle('unclaimed', false)");
   // The sky is for the ships. A signed building wears its posters on the wall;
   // the little kite that used to fly from its roof is not drawn (it still
@@ -265,7 +282,7 @@ export function wireTuning(html) {
       const onScreen = p.x > 30 && p.x < W - 30 && p.y > 64 && p.y < H - 64;   // a half-visible chip at an edge is only clutter
       // An event on a wall is found by flying, the board and the card — never by a
       // sticker in the sky. Only ships get a tag, and only while you can read it.
-      const keep = sel || (!signed && onScreen && (level === 'near' || (level === 'mid' && ev.rank < 6) || (level === 'far' && !clustered && ev.rank < 2)));`);
+      const keep = sel || (!signed && onScreen && (!ev.ship || ev.ship.visible !== false) && (level === 'near' || (level === 'mid' && ev.rank < 6) || (level === 'far' && !clustered && ev.rank < 2)));`);
 
   // The card already opens on the event's poster; the wall of text under it goes.
   once("      ${ev.description ? `<p class=\"tw-desc\">${esc(ev.description)}</p>` : ''}", "");
@@ -325,7 +342,8 @@ export function wireTuningConfig(html) {
   const to = `    lod: { near: 420, mid: 2600 },                           // chip detail bands (metres from the camera)
     rsvpMin: ${RSVP_MIN},                                          // RSVPs an event needs before it gets an airship of its own
     posterReveal: 620,                                       // metres: closer than this the real poster loads onto the banner
-    featured: { lat: 37.7969, lng: -122.3931, y: 196 },      // the host's own event, parked over the spawn point`;
+    featured: { lat: 37.7969, lng: -122.3931, y: 196 },      // the host's own event, parked over the spawn point
+    core: { lat: 37.7915, lng: -122.4005 },                  // downtown: where ships with no address of their own fly`;
   if (html.split(from).length !== 2) throw new Error('Tuning patch target changed: CFG.lod');
   return html.replace(from, to);
 }

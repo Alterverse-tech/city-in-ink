@@ -102,27 +102,33 @@ function mountDiscord() {
 }
 
 /* ---------------------------------------- the bird flies the city by itself */
-// Left alone, the bird tours downtown: it picks a building that has a sign,
-// flies to it at sign height, hangs there a moment, picks the next. Any key or
-// pointer hands control back at once; a few idle seconds later it resumes.
-// Pause (the button, or P) holds it in place until you say otherwise.
+// Left alone, the bird tours downtown: it picks a building that wears posters,
+// flies to a spot in front of that wall at poster height, hangs there facing
+// the wall a moment, picks the next. It steers around the towers on the way —
+// it reads the roofs (window.__twTerrain) and turns toward the clearest
+// heading, climbing only when boxed in. Any key or pointer hands control back
+// at once; a few idle seconds later it resumes. Pause (the button, or P)
+// holds it in place until you say otherwise.
 const IDLE_RESUME = 6;          // seconds without input before the tour resumes
-const VISIT_RADIUS = 70;        // metres: close enough to count as "arrived"
-const DWELL = 2.4;              // seconds beside a sign before moving on
+const VISIT_RADIUS = 34;        // metres: close enough to count as "arrived"
+const DWELL = 3.2;              // seconds in front of the posters before moving on
 const HOP_MAX = 520;            // prefer the next stop within this distance
+const LOOK_AHEAD = 130;         // metres of clear air the bird wants ahead of it
 
 function installAutoFlight(TW, city) {
   const nav = TW.nav, GEO = window.__sfGeo;
   if (!nav || !GEO || typeof nav.tick !== 'function') return;
   const centre = GEO.Hn(DOWNTOWN.lng, DOWNTOWN.lat, 0);
   const auto = { idle: IDLE_RESUME, driving: false, paused: false, sign: 1, calibrating: undefined, yaw0: 0,
-                 target: null, dwell: 0, visited: [], wobble: 0 };
+                 target: null, dwell: 0, visited: [], wobble: 0, blocked: 0 };
   const originalTick = nav.tick.bind(nav);
   const pressed = (input) => !!(input && (input.forward || input.backward || input.left || input.right || input.up || input.down || input.boost));
   const inCity = (ev) => ev.world && Math.hypot(ev.world.x - centre.x, ev.world.z - centre.z) < DOWNTOWN.radius;
+  const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
   const nextStop = (from) => {
-    const stops = (TW.state.events || []).filter((e) => e.onMap && e.claimed && e.world && inCity(e) && !auto.visited.includes(e));
+    const signs = window.__twSigns;
+    const stops = (TW.state.events || []).filter((e) => e.onMap && e.world && inCity(e) && !auto.visited.includes(e) && (!signs || signs.has(e)));
     if (!stops.length) { auto.visited = []; return null; }
     const near = stops.filter((e) => Math.hypot(e.world.x - from.x, e.world.z - from.z) < HOP_MAX);
     const pool = near.length ? near : stops;
@@ -152,22 +158,25 @@ function installAutoFlight(TW, city) {
     if (auto.calibrating > 0) {
       auto.calibrating -= dt;
       input.left = true; input.right = false; input.forward = true; input.backward = false; input.boost = false;
-      if (auto.calibrating <= 0) { const moved = Math.atan2(Math.sin(yaw - auto.yaw0), Math.cos(yaw - auto.yaw0)); if (Math.abs(moved) > 0.01) auto.sign = moved > 0 ? 1 : -1; }
+      if (auto.calibrating <= 0) { const moved = wrap(yaw - auto.yaw0); if (Math.abs(moved) > 0.01) auto.sign = moved > 0 ? 1 : -1; }
       return;
     }
 
-    // Choose a stop, arrive, hang there, move on.
+    // Choose a stop, arrive, hang there facing the posters, move on.
     if (!auto.target) auto.target = nextStop(P);
-    let goalX, goalZ, goalY;
+    const signs = window.__twSigns, terrain = window.__twTerrain;
+    let goalX, goalZ, goalY, face = null, arrived = false;
     if (auto.target) {
       const tg = auto.target;
-      const d = Math.hypot(tg.world.x - P.x, tg.world.z - P.z);
-      if (d < VISIT_RADIUS) {
+      const vp = signs && signs.visitPoint(tg);
+      if (vp) { goalX = vp.x; goalZ = vp.z; goalY = vp.y; face = vp.face; }
+      else { goalX = tg.world.x; goalZ = tg.world.z; goalY = Math.max(42, (tg.roof || 60) + 14); }
+      const d = Math.hypot(goalX - P.x, goalZ - P.z);
+      arrived = d < VISIT_RADIUS;
+      if (arrived) {
         auto.dwell += dt;
-        if (auto.dwell > DWELL) { auto.visited.push(tg); if (auto.visited.length > 12) auto.visited.shift(); auto.target = nextStop(P); auto.dwell = 0; }
+        if (auto.dwell > DWELL) { auto.visited.push(tg); if (auto.visited.length > 14) auto.visited.shift(); auto.target = nextStop(P); auto.dwell = 0; }
       }
-      goalX = tg.world.x; goalZ = tg.world.z;
-      goalY = Math.max(42, (tg.roof || 60) - 8);          // level with the signs, not above the roof
     } else {
       // Nothing to visit: a slow loop around the core.
       auto.wobble += dt * 0.3;
@@ -177,17 +186,55 @@ function installAutoFlight(TW, city) {
     const offCentre = Math.hypot(P.x - centre.x, P.z - centre.z);
     if (offCentre > DOWNTOWN.radius) { goalX = centre.x; goalZ = centre.z; }
 
-    const desired = Math.atan2(goalX - P.x, goalZ - P.z);
-    const err = Math.atan2(Math.sin(desired - yaw), Math.cos(desired - yaw));
+    let desired = arrived && face !== null ? face : Math.atan2(goalX - P.x, goalZ - P.z);
+    let slow = false, clearAhead = Infinity;
+    const speed = city.flightVelocity ? city.flightVelocity.length() : 20;
+    const look = Math.min(240, Math.max(LOOK_AHEAD, speed * 4.5));   // the faster it flies, the further it reads
+    if (terrain && !arrived) {
+      // Of the headings near the one we want, take the one with the most clear
+      // air; if even that is short, climb over what is ahead.
+      const floor = P.y - 3;
+      let best = null;
+      for (const off of [0, 0.3, -0.3, 0.6, -0.6, 0.95, -0.95, 1.3, -1.3]) {
+        const h = desired + off;
+        // A heading is only as clear as its shoulders: a wingspan either side
+        // must be free too, or a corner gets clipped on the way through.
+        const clear = Math.min(terrain.clearance(P.x, P.z, floor, h, look), terrain.clearance(P.x, P.z, floor, h + 0.14, look * 0.6), terrain.clearance(P.x, P.z, floor, h - 0.14, look * 0.6));
+        const score = Math.min(clear, look) - Math.abs(off) * 42;
+        if (!best || score > best.score) best = { h, clear, score };
+      }
+      clearAhead = best.clear;
+      if (best.clear < look * 0.7) {
+        // Climb over whatever the chosen heading runs into, and shed speed
+        // while doing it: a tower is cleared by height, not by luck.
+        const roof = Math.max(terrain.roofAhead(P.x, P.z, best.h, best.clear + 70), terrain.roofAhead(P.x, P.z, desired, Math.max(100, speed * 3)));
+        if (Number.isFinite(roof)) goalY = Math.max(goalY, roof + 16);
+        if (best.clear < Math.max(60, speed * 2.2)) slow = true;
+      }
+      desired = best.h;
+      auto.blocked = slow ? auto.blocked + dt : 0;
+    }
+    if (terrain) {
+      // Never sink into the block underneath, or the one just ahead.
+      const under = Math.max(terrain.roofAt(P.x, P.z), terrain.roofAhead(P.x, P.z, yaw, Math.max(40, speed * 2.5)));
+      if (Number.isFinite(under)) goalY = Math.max(goalY, under + 10);
+    }
+
+    const err = wrap(desired - yaw);
     const turn = err * auto.sign;
-    const near = auto.target && Math.hypot(goalX - P.x, goalZ - P.z) < VISIT_RADIUS;
     input.left = turn > 0.05;
     input.right = turn < -0.05;
-    input.forward = !near && Math.abs(err) < 0.9;
-    input.backward = false;
-    input.boost = offCentre > DOWNTOWN.radius * 1.15 && Math.abs(err) < 0.4;
-    input.up = P.y < goalY - 5;
-    input.down = P.y > goalY + 5;
+    // The bird glides between buildings (about 22 m/s) and only puts its
+    // wings into it on a long, clear stretch: at cruising speed the turn is
+    // twice as wide and a tower comes up in three seconds.
+    const dGoal = Math.hypot(goalX - P.x, goalZ - P.z);
+    input.forward = !arrived && !slow && Math.abs(err) < 0.6 && dGoal > 260 && clearAhead >= look;
+    input.backward = (slow && speed > 14) || (arrived && speed > 14) || (!arrived && dGoal < 90 && speed > 24);   // air brake: a tight spot, or the last stretch
+    input.boost = offCentre > DOWNTOWN.radius * 1.15 && Math.abs(err) < 0.4 && clearAhead >= look && dGoal > 500;
+    input.up = P.y < goalY - 4;
+    input.down = P.y > goalY + 6;
+    // In front of the posters: hang there rather than overshoot.
+    if (arrived && city.flightVelocity) city.flightVelocity.multiplyScalar(Math.max(0, 1 - dt * 2.5));
   };
 
   const release = () => {
@@ -213,21 +260,78 @@ function installAutoFlight(TW, city) {
   window.__twAutoFlight = auto;
 }
 
+/* ------------------------------------------- the chase camera stays outside */
+// The chase camera trails the bird by a fixed distance, which put it inside
+// whatever tower the bird had just flown past. After every simulation step the
+// line from the bird back to the camera is checked against the roofs: if it
+// crosses a building, the camera comes forward to the near side of it, and if
+// it still sits inside one it rises above the roof. Smoothed, so a tower
+// passing behind you reads as the camera tucking in, not jumping.
+function installCameraClearance(TW, city) {
+  if (typeof city.updateSimulation !== 'function' || !city.camera || !city.target) return;
+  const previous = city.updateSimulation.bind(city);
+  let smooth = 1;
+  city.updateSimulation = (dt) => {
+    previous(dt);
+    const terrain = window.__twTerrain;
+    if (!terrain || !city.freeFlightEnabled || TW.state.view === 'fpv') { smooth = 1; return; }
+    const cam = city.camera.position, tgt = city.target;
+    const dx = cam.x - tgt.x, dy = cam.y - tgt.y, dz = cam.z - tgt.z;
+    let want = 1;
+    for (let f = 0.12; f <= 1.0001; f += 0.08) {
+      if (terrain.roofAt(tgt.x + dx * f, tgt.z + dz * f) > tgt.y + dy * f + 1.5) { want = Math.max(0.1, f - 0.1); break; }
+    }
+    smooth += (want - smooth) * Math.min(1, (dt || 0.016) * (want < smooth ? 14 : 4));
+    if (smooth < 0.999) { cam.set(tgt.x + dx * smooth, tgt.y + dy * smooth, tgt.z + dz * smooth); city.camera.lookAt(tgt); }
+    const roofHere = terrain.roofAt(cam.x, cam.z);
+    if (roofHere > cam.y - 1) { cam.y = roofHere + 4; city.camera.lookAt(tgt); }
+  };
+}
+
+/* ------------------------------------------------ the fleet at a distance */
+// Only the flagships read from across the city. The rest of the fleet is drawn
+// when you are within reach of it and grows in as you arrive — so the skyline
+// stays quiet from afar, and the frame stays cheap.
+const SHIP_FAR = 1000;
+function installFleetDistance(TW, city) {
+  const ease = (k) => 1 - (1 - k) * (1 - k) * (1 - k);
+  setInterval(() => {
+    const cam = city.camera || city.flightCharacter;
+    if (!cam || !cam.position) return;
+    for (const ev of TW.state.events || []) {
+      const ship = ev.ship;
+      if (!ship || !ev.hasVehicle) continue;
+      if (ev.featured || ev.spotlightPick) { ship.visible = true; continue; }
+      const d = ship.position.distanceTo(cam.position);
+      const want = d < SHIP_FAR;
+      if (want !== ship.visible) { ship.visible = want; if (want) ship.userData.twAppear = 0; }
+      if (want && ship.userData.twAppear !== undefined && ship.userData.twAppear < 1) {
+        ship.userData.twAppear = Math.min(1, ship.userData.twAppear + 0.08);
+        ship.scale.setScalar(0.15 + 0.85 * ease(ship.userData.twAppear));
+      }
+    }
+  }, 90);
+}
+
 /* ------------------------------------------- the card turns the pages for you */
-// With no tags on the walls, the card is how the busiest events introduce
-// themselves: when you have not picked anything for a while it walks the
-// ranking — the host event first — one every few seconds. Any click, key or
+// With no tags on the walls, the card is how events introduce themselves:
+// when you have not picked anything for a while it deals the week out one
+// card every few seconds — every event with a real crowd, in a shuffled
+// order, with the host's own event back every fourth card. Any click, key or
 // selection of your own stops it, and it waits before starting again.
-const CAROUSEL_IDLE = 18000, CAROUSEL_STEP = 7000, CAROUSEL_LENGTH = 12;
+const CAROUSEL_IDLE = 18000, CAROUSEL_STEP = 7000, CAROUSEL_MIN_RSVP = 30, CAROUSEL_HOST_EVERY = 4;
 function installCardCarousel(TW) {
-  let lastTouch = Date.now(), index = -1, timer = 0, ours = null;
+  let lastTouch = Date.now(), index = -1, step = 0, timer = 0, ours = null, deck = [], signature = '';
   const touched = () => { lastTouch = Date.now(); };
   for (const type of ['pointerdown', 'keydown', 'wheel']) window.addEventListener(type, touched, { capture: true, passive: true });
 
-  const ranked = () => (TW.state.events || [])
-    .filter((e) => e.onMap && (e.featured || (e.rsvp || 0) > 0))
-    .sort((a, b) => (b.featured ? 1e6 : 0) - (a.featured ? 1e6 : 0) || (b.rsvp || 0) - (a.rsvp || 0))
-    .slice(0, CAROUSEL_LENGTH);
+  const shuffle = (list) => { for (let i = list.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } return list; };
+  const reshuffle = () => {
+    const pool = (TW.state.events || []).filter((e) => !e.featured && (e.rsvp || 0) >= CAROUSEL_MIN_RSVP);
+    const next = pool.map((e) => e.id).sort().join('|');
+    if (next === signature) return;
+    signature = next; deck = shuffle(pool.slice()); index = -1;
+  };
 
   const tick = () => {
     const idle = Date.now() - lastTouch;
@@ -235,10 +339,13 @@ function installCardCarousel(TW) {
     // The player chose something themselves: leave it alone.
     if (selected && selected !== ours) { lastTouch = Math.max(lastTouch, Date.now() - CAROUSEL_IDLE + 4000); return; }
     if (idle < CAROUSEL_IDLE) return;
-    const list = ranked();
-    if (!list.length || typeof TW.select !== 'function') return;
-    index = (index + 1) % list.length;
-    ours = list[index];
+    reshuffle();
+    const featured = (TW.state.events || []).find((e) => e.featured);
+    step += 1;
+    if (featured && (step % CAROUSEL_HOST_EVERY === 1 || !deck.length)) ours = featured;
+    else if (deck.length) { index = (index + 1) % deck.length; ours = deck[index]; }
+    else return;
+    if (typeof TW.select !== 'function') return;
     try { TW.select(ours); } catch (error) { console.error('[TW carousel]', error); }
   };
   timer = setInterval(tick, CAROUSEL_STEP);
@@ -453,8 +560,30 @@ function buildWallIndex(city, bounds, done) {
   const triCount = Math.floor((idx ? idx.length : pos.length / 3) / 3);
   const segs = new Map();
   const minX = bounds.minX / s, maxX = bounds.maxX / s, minZ = bounds.minZ / s, maxZ = bounds.maxZ / s;
-  const minLen = WALL_MIN_LEN / s, minH = 3 / s;
+  const minLen = WALL_MIN_LEN / s, minH = 3 / s, flat = 0.6 / s;
   const same = (x0, z0, x1, z1) => Math.abs(x0 - x1) < 0.03 && Math.abs(z0 - z1) < 0.03;
+  // The roofs, rasterised: every flat triangle paints its height into an
+  // 8 m grid, so "is there a building here, and how tall" is one lookup.
+  // That is what keeps the bird and the camera out of the towers.
+  const ROOF_CELL = 8;
+  const gx0 = bounds.minX, gz0 = bounds.minZ, gcols = Math.ceil((bounds.maxX - bounds.minX) / ROOF_CELL) + 1, grows = Math.ceil((bounds.maxZ - bounds.minZ) / ROOF_CELL) + 1;
+  const roofs = new Float32Array(gcols * grows).fill(-Infinity);
+  const paintRoof = (x0, z0, x1, z1, x2, z2, h) => {
+    const c0 = Math.max(0, Math.floor((Math.min(x0, x1, x2) - gx0) / ROOF_CELL)), c1 = Math.min(gcols - 1, Math.floor((Math.max(x0, x1, x2) - gx0) / ROOF_CELL));
+    const r0 = Math.max(0, Math.floor((Math.min(z0, z1, z2) - gz0) / ROOF_CELL)), r1 = Math.min(grows - 1, Math.floor((Math.max(z0, z1, z2) - gz0) / ROOF_CELL));
+    const det = (x1 - x0) * (z2 - z0) - (x2 - x0) * (z1 - z0);
+    if (Math.abs(det) < 1e-9) return;
+    for (let r = r0; r <= r1; r += 1) for (let c = c0; c <= c1; c += 1) {
+      const k = r * gcols + c;
+      if (roofs[k] >= h) continue;
+      if (c0 === c1 && r0 === r1) { roofs[k] = h; continue; }                   // a triangle smaller than a cell still counts
+      const px = gx0 + (c + 0.5) * ROOF_CELL, pz = gz0 + (r + 0.5) * ROOF_CELL;
+      const w0 = ((x1 - px) * (z2 - pz) - (x2 - px) * (z1 - pz)) / det;
+      const w1 = ((x2 - px) * (z0 - pz) - (x0 - px) * (z2 - pz)) / det;
+      const w2 = 1 - w0 - w1;
+      if (w0 >= -0.02 && w1 >= -0.02 && w2 >= -0.02) roofs[k] = h;
+    }
+  };
   let t = 0;
   const step = () => {
     const until = performance.now() + 14;
@@ -465,10 +594,11 @@ function buildWallIndex(city, bounds, done) {
         const i0 = (idx ? idx[k] : k) * 3, i1 = (idx ? idx[k + 1] : k + 1) * 3, i2 = (idx ? idx[k + 2] : k + 2) * 3;
         const y0 = pos[i0 + 1], y1 = pos[i1 + 1], y2 = pos[i2 + 1];
         const ymin = Math.min(y0, y1, y2), ymax = Math.max(y0, y1, y2);
-        if (ymax - ymin < minH) continue;                                          // roofs, kerbs
         const x0 = pos[i0], z0 = pos[i0 + 2], x1 = pos[i1], z1 = pos[i1 + 2], x2 = pos[i2], z2 = pos[i2 + 2];
         const cx = (x0 + x1 + x2) / 3, cz = (z0 + z1 + z2) / 3;
         if (cx < minX || cx > maxX || cz < minZ || cz > maxZ) continue;
+        if (ymax - ymin < flat) { if (ymax * s > 2) paintRoof(x0 * s, z0 * s, x1 * s, z1 * s, x2 * s, z2 * s, ymax * s); continue; }   // a roof
+        if (ymax - ymin < minH) continue;                                          // kerbs, steps
         let ax, az, bx, bz;                                                        // the two distinct corners of a vertical quad
         if (same(x0, z0, x1, z1)) { ax = x0; az = z0; bx = x2; bz = z2; }
         else if (same(x1, z1, x2, z2)) { ax = x1; az = z1; bx = x0; bz = z0; }
@@ -511,7 +641,26 @@ function buildWallIndex(city, bounds, done) {
       for (let cx = x0; cx <= x1; cx += 1) for (let cz = z0; cz <= z1; cz += 1) for (const seg of cells.get(`${cx},${cz}`) || []) out.add(seg);
       return [...out];
     };
-    done({ near, count, cellKey });
+    const roofAt = (x, z) => {
+      const c = Math.floor((x - gx0) / ROOF_CELL), r = Math.floor((z - gz0) / ROOF_CELL);
+      if (c < 0 || r < 0 || c >= gcols || r >= grows) return -Infinity;
+      return roofs[r * gcols + c];
+    };
+    // The tallest roof under a straight line ahead, and how far you can fly
+    // along it at a given height before something is in the way.
+    const roofAhead = (x, z, heading, dist) => {
+      let best = roofAt(x, z);
+      const sx = Math.sin(heading), sz = Math.cos(heading);
+      for (let d = ROOF_CELL; d <= dist; d += ROOF_CELL) { const h = roofAt(x + sx * d, z + sz * d); if (h > best) best = h; }
+      return best;
+    };
+    const clearance = (x, z, y, heading, dist) => {
+      const sx = Math.sin(heading), sz = Math.cos(heading), step = ROOF_CELL / 2;
+      for (let d = step; d <= dist; d += step) if (roofAt(x + sx * d, z + sz * d) > y) return d;
+      return dist;
+    };
+    window.__twTerrain = { roofAt, roofAhead, clearance, cell: ROOF_CELL };
+    done({ near, count, cellKey, roofAt });
   };
   setTimeout(step, 0);
 }
@@ -533,6 +682,16 @@ function wallBlocked(index, seg) {
     if (segmentDistance(mx, mz, other).d < 7) return true;
   }
   return false;
+}
+
+// How far the air in front of a wall stays clear at a given height — a wall
+// with another building a few metres in front of it is not a place for a
+// poster, and a bird cannot hover there to read one.
+function frontClear(index, seg, y, limit) {
+  if (typeof index.roofAt !== 'function') return limit;
+  const mx = (seg.ax + seg.bx) / 2, mz = (seg.az + seg.bz) / 2;
+  for (let d = 6; d <= limit; d += 6) if (index.roofAt(mx + seg.nx * d, mz + seg.nz * d) > y - 4) return d - 6;
+  return limit;
 }
 
 // Free room along a wall for `n` posters of width `w`: the first gap that fits
@@ -561,11 +720,13 @@ function planSignage(index, venue, anchor, count) {
     if (seg.len < 10 || height < WALL_MIN_H || seg.y1 < ground + 6) continue;
     const { d } = segmentDistance(x, z, seg);
     if (d > 44) continue;
-    const score = (Math.min(seg.len, 40) / 40) * (Math.min(height, 40) / 40) / (1 + d / 18);
-    cands.push({ seg, d, score });
+    const front = frontClear(index, seg, seg.y1 - SIGN_TOP_GAP - 8, 48);
+    if (front < 12) continue;
+    const score = (Math.min(seg.len, 40) / 40) * (Math.min(height, 40) / 40) / (1 + d / 18) * (0.5 + 0.5 * front / 48);
+    cands.push({ seg, d, score, front });
   }
   cands.sort((a, b) => b.score - a.score);
-  for (const { seg } of cands.slice(0, 8)) {
+  for (const { seg, front } of cands.slice(0, 8)) {
     if (wallBlocked(index, seg)) continue;
     const height = seg.y1 - seg.y0;
     const w = Math.max(9, Math.min(24, seg.len * 0.5));
@@ -584,7 +745,7 @@ function planSignage(index, venue, anchor, count) {
         const col = i % cols, row = Math.floor(i / cols);
         slots.push({ u: u0 + col * (w + SIGN_GAP) + w / 2, yTop: seg.y1 - SIGN_TOP_GAP - row * rowPitch, w });
       }
-      return { seg, slots, w };
+      return { seg, slots, w, front };
     }
   }
   return null;
@@ -601,6 +762,26 @@ function buildBillboards(TW, city) {
   let plans = new Map();    // venue key → { seg, slots, members, panels }
   let pending = 0;
   const touched = new Set(); // walls that carry signs, so a replan can free them
+  const planOf = new Map();  // event → its plan, for the bird's tour
+  // Where to hover to read a building's posters: in front of the wall, level
+  // with the top row, looking at it.
+  const VISIT_STANDOFF = 46;
+  const visitPoint = (event) => {
+    const p = planOf.get(event);
+    if (!p) return null;
+    const seg = p.seg, slots = p.slots;
+    const u = slots.reduce((sum, slot) => sum + slot.u, 0) / slots.length;
+    const dx = (seg.bx - seg.ax) / seg.len, dz = (seg.bz - seg.az) / seg.len;
+    const y = Math.max(24, slots[0].yTop - 9);
+    // As far back as the street allows, never inside the building opposite.
+    let stand = Math.min(VISIT_STANDOFF, Math.max(14, (p.front || VISIT_STANDOFF) - 8));
+    const roofAt = index && index.roofAt;
+    if (roofAt) while (stand > 14 && roofAt(seg.ax + dx * u + seg.nx * stand, seg.az + dz * u + seg.nz * stand) > y - 6) stand -= 4;
+    const x = seg.ax + dx * u + seg.nx * stand, z = seg.az + dz * u + seg.nz * stand;
+    const under = roofAt ? roofAt(x, z) : -Infinity;
+    return { x, z, y: Number.isFinite(under) ? Math.max(y, under + 8) : y, face: Math.atan2(-seg.nx, -seg.nz) };
+  };
+  window.__twSigns = { visitPoint, has: (event) => planOf.has(event), count: () => planOf.size };
 
   const planVenue = (venue) => {
     const members = (venue.members || [])
@@ -619,6 +800,7 @@ function buildBillboards(TW, city) {
     plan.members = members.slice(0, plan.slots.length);
     plan.panels = new Map();
     plans.set(venue.key, plan);
+    for (const member of plan.members) planOf.set(member, plan);
   };
 
   // One venue per slice, with a millisecond budget: planning walks the grid,
@@ -628,6 +810,7 @@ function buildBillboards(TW, city) {
     for (const p of plans.values()) for (const panel of p.panels.values()) { panel.geometry.dispose(); panel.material.dispose(); }
     root.clear();
     plans = new Map();
+    planOf.clear();
     for (const seg of touched) seg.used = [];
     touched.clear();
     const uses = new Map();
@@ -657,6 +840,7 @@ function buildBillboards(TW, city) {
     panel.position.set(seg.ax + dx * slot.u + seg.nx * SIGN_CLEAR, slot.yTop - h / 2, seg.az + dz * slot.u + seg.nz * SIGN_CLEAR);
     panel.rotation.y = Math.atan2(seg.nx, seg.nz);
     panel.userData.ev = event; panel.userData.textured = true; panel.userData.aspect = aspect;
+    panel.userData.appear = 0; panel.scale.setScalar(0.01);            // it grows onto the glass over a few frames
     (panel.material.uniforms.map.value.userData.meshes ||= []).push(panel);
     root.add(panel);
     plan.panels.set(event, panel);
@@ -680,6 +864,7 @@ function buildBillboards(TW, city) {
           if (d > FAR_SIGN) return;
           const panel = raise(p, i, event);
           panel.visible = true;
+          if (panel.userData.appear < 1) { panel.userData.appear = Math.min(1, panel.userData.appear + 0.14); const k = panel.userData.appear; panel.scale.setScalar(0.01 + 0.99 * (1 - (1 - k) * (1 - k))); }
           if (!panel.userData.textured) {
             const texture = coverTexture(T, event, panel.userData.aspect);
             (texture.userData.meshes ||= []).push(panel);
@@ -714,10 +899,15 @@ function buildBillboards(TW, city) {
     plan();
   };
   const start = () => {
-    const fence = TW.state.fence;
-    const bounds = fence
-      ? { minX: fence.minX - 200, maxX: fence.maxX + 200, minZ: fence.minZ - 200, maxZ: fence.maxZ + 200 }
-      : { minX: -6000, maxX: 6000, minZ: -6000, maxZ: 6000 };
+    // The event area, but never more than a few kilometres around downtown:
+    // one stray coordinate in the feed would otherwise size the roof grid to
+    // the whole bay.
+    const GEO = window.__sfGeo, centre = GEO ? GEO.Hn(DOWNTOWN.lng, DOWNTOWN.lat, 0) : { x: 0, z: 0 };
+    const REACH = 3200, fence = TW.state.fence;
+    const bounds = {
+      minX: Math.max(centre.x - REACH, fence ? fence.minX - 200 : -Infinity), maxX: Math.min(centre.x + REACH, fence ? fence.maxX + 200 : Infinity),
+      minZ: Math.max(centre.z - REACH, fence ? fence.minZ - 200 : -Infinity), maxZ: Math.min(centre.z + REACH, fence ? fence.maxZ + 200 : Infinity),
+    };
     buildWallIndex(city, bounds, (built) => {
       if (!built) { console.warn('[TW signage] no building mesh found; signs stay off'); return; }
       index = built;
@@ -982,6 +1172,8 @@ function installSignPicking(TW, city, roots) {
       installModalEscape();
       installCardCarousel(TW);
       installAutoFlight(TW, city);
+      installCameraClearance(TW, city);
+      installFleetDistance(TW, city);
       installNeighbourCard(TW, city);
       const signage = buildBillboards(TW, city);
       featureShips(TW);
