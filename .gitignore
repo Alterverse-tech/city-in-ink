@@ -6,3 +6,4 @@ dist-artifact/
 .DS_Store
 .env*
 .local/
+dist-trailer/

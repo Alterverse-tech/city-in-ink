@@ -257,6 +257,34 @@ INK_CALENDAR_PORT=8138 INK_CALENDAR_DATA=.cache node calendar-server.mjs   # bin
 
 Static hosting alone does not run it. On the Chrona host it is deployed separately and nginx routes `https://chrona.world/integrations/city-in-ink/events.json` to `127.0.0.1:8138`; the hosted build reads that URL, the standalone build reads `/events.json` on its own origin. When neither is reachable the game uses the saved public data in `data/` (`tech-week-first.json` is the immutable baseline). Hosted `localStorage` is account/World-scoped browser preferences, not cloud saves.
 
+## Social trailer
+
+`node scripts/trailer.mjs` renders the X / LinkedIn trailer from the game itself: a standalone build (`npm run build:local` first) is loaded in headless Chromium, the engine's animation loop is stopped, and every frame is one fixed simulation step, one render and one screenshot. Frames are assembled with ffmpeg into an H.264 MP4 (`dist-trailer/sf-tech-week-city-720p.mp4`, plus `poster.jpg` for the post). Because the frames are stepped, not recorded, the result is smooth and identical on every run, GPU or not — on a machine without a GPU a 720p frame costs about 1.5 s (reading the pixels back, the render itself is milliseconds), so the 51-second cut takes roughly half an hour.
+
+```bash
+node scripts/trailer.mjs                                   # 1280x720, 24 fps
+node scripts/trailer.mjs --width 1920 --height 1080        # about twice as long per frame
+node scripts/trailer.mjs --shots title,airship --fps 4     # a quick storyboard check of two shots
+```
+
+Needs Playwright with Chromium (`npm i -g playwright && npx playwright install chromium`, or `--playwright <path to playwright/index.mjs>`) and ffmpeg with libx264 (`--ffmpeg`, `$FFMPEG`, PATH, or `pip install imageio-ffmpeg`, whose binary the script finds by itself).
+
+The script is the `SHOTS` table at the top of the file: one entry per shot with its length, the flight keys held, the game UI kept visible (event card, cruise chip, neighbour card) and the caption. A shot with a `setup` starts with a cut (a teleport, `flyTo`, the poster wall, the street canyon, the cruise); a shot without one continues the previous flight. Copy changes are edits to that table; the light slides from dusk to night over the whole cut.
+
+| # | Shot | What is on screen | Caption |
+| --- | --- | --- | --- |
+| 0 | title (3 s) | glide over the Embarcadero towards downtown, title card | SF TECH WEEK CITY · Fly the week |
+| 1 | city (6 s) | same flight, the skyline and the airships | Every Tech Week event, in the city where it happens. |
+| 2 | airship (7 s) | `flyTo` the featured airship, arrive, circle | Airships fly over the busiest events. Pick one and your bird flies there. |
+| 3 | card (6 s) | circling with the event card open | RSVP in one click. Venue not public yet? The Discord knows. |
+| 4 | posters (6 s) | glide towards a facade wearing posters | Posters on the real facades. |
+| 5 | friends (6 s) | a second bird beside yours, the neighbour card | See who is flying beside you. Follow them on X, or fly beside them. |
+| 6 | beak (6 s) | beak cam through a downtown street canyon | Chase cam or beak cam. Buildings are solid. |
+| 7 | cruise (6 s) | T: the auto-cruise towards the hottest event, nav chip on | Press T and your bird tours the hottest events for you. |
+| 8 | end (5 s) | the cruise continues under the end card | chrona.world · in your browser · Discord |
+
+In this sandbox the poster CDNs are unreachable, so the billboards show the drawn posters (title, host, hour); a run on a normal connection shows the real covers.
+
 ## Troubleshooting
 
 - **`dist/index.html` opens blank with "Chrona connection failed: A trusted HTTPS host origin is required".** You opened the hosted build outside Chrona. Use `npm run build:local` and `dist-local/`.
