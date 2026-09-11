@@ -128,15 +128,37 @@ function injectStyles() {
 // did nothing when clicked. When a new tab cannot open, show the address and
 // copy it instead: the classic execCommand copy still works in that sandbox,
 // the asynchronous Clipboard API is blocked by permissions policy.
+// What the box says depends on where the link goes: the Discord invite is
+// where the exact address and a way in are found, so say that; any other
+// link is named by its site.
+function linkCopy(url) {
+  if (url.startsWith(DISCORD_INVITE)) {
+    return {
+      title: 'The venue is in the Discord',
+      copied: 'The exact address, and someone to get you in, are in the Discord. The invite link is copied — paste it into a new tab to join.',
+      manual: 'The exact address, and someone to get you in, are in the Discord. Copy the invite link and paste it into a new tab to join.',
+    };
+  }
+  let host = '';
+  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+  return {
+    title: host ? `Open ${host} in a new tab` : 'Open in a new tab',
+    copied: 'This window cannot open new tabs. The link is copied — paste it into a new tab.',
+    manual: 'This window cannot open new tabs. Copy the link and paste it into a new tab.',
+  };
+}
+
 function showLink(url) {
   document.getElementById('tw-linkbox')?.remove();
+  const text = linkCopy(url);
   const box = document.createElement('div');
   box.id = 'tw-linkbox';
   box.setAttribute('role', 'dialog');
-  box.setAttribute('aria-label', 'Open this link in a new tab');
-  box.innerHTML = `<h4>Open in a new tab</h4><p></p>
+  box.setAttribute('aria-label', text.title);
+  box.innerHTML = `<h4></h4><p></p>
     <div class="tw-linkrow"><code class="tw-linkurl"></code><button type="button" class="tw-linkcopy">Copy</button><button type="button" class="tw-linkclose" aria-label="Close">✕</button></div>`;
   const code = box.querySelector('code'), note = box.querySelector('p');
+  box.querySelector('h4').textContent = text.title;
   code.textContent = url;
   // A Range selection copies without moving focus; focusing a field inside a
   // cross-origin frame is what browsers refuse and log.
@@ -148,9 +170,9 @@ function showLink(url) {
     selectUrl();
     let ok = false;
     try { ok = document.execCommand('copy'); } catch {}
-    if (ok) { note.textContent = 'This window cannot open new tabs. The link is copied — paste it into a new tab.'; return; }
-    note.textContent = 'This window cannot open new tabs. Copy the link and paste it into a new tab.';
-    navigator.clipboard?.writeText(url).then(() => { note.textContent = 'This window cannot open new tabs. The link is copied — paste it into a new tab.'; }, () => {});
+    if (ok) { note.textContent = text.copied; return; }
+    note.textContent = text.manual;
+    navigator.clipboard?.writeText(url).then(() => { note.textContent = text.copied; }, () => {});
   };
   box.querySelector('.tw-linkcopy').addEventListener('click', copy);
   box.querySelector('.tw-linkclose').addEventListener('click', () => box.remove());
