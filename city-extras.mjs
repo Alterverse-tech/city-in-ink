@@ -160,6 +160,12 @@ function installLinkFallback() {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const a = event.target.closest?.('a[href][target="_blank"]');
     if (!a || !/^https?:/i.test(a.href)) return;
+    // This card has a dedicated parent bridge. Let its target click handler
+    // run before attempting a sandbox-blocked popup or showing a copy box.
+    const xHandle = a.dataset.chronaXHandle;
+    if (window.__SF_HOST_CLIENT__ && window.parent !== window &&
+        typeof xHandle === 'string' && /^[A-Za-z0-9_]{1,15}$/.test(xHandle) &&
+        a.href === `https://x.com/${xHandle}`) return;
     event.preventDefault();
     if (!openTab(a.href)) showLink(a.href);
   }, true);
@@ -280,6 +286,7 @@ function installNeighbourCard(TW, city) {
     card.querySelector('b').textContent = `@${handle}`;
     const follow = card.querySelector('.tw-follow');
     follow.href = `https://x.com/${handle}`;
+    follow.dataset.chronaXHandle = handle;
     follow.addEventListener('click', (event) => openHostedXProfile(event, handle));
     card.querySelector('.tw-dismiss').addEventListener('click', remove);
     document.body.appendChild(card);

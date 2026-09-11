@@ -8,20 +8,25 @@ const source = readFileSync(new URL('../city-extras.mjs', import.meta.url), 'utf
 const start = source.indexOf('function neighbourXHandle(');
 const end = source.indexOf('/* ------------------------------------- Tokyo-style signage', start);
 assert.ok(start >= 0 && end > start, 'Neighbour card functions must be present');
+const fallbackStart = source.indexOf('function installLinkFallback(');
+const fallbackEnd = source.indexOf('/* ------------------------------------------------------------------ Discord', fallbackStart);
+assert.ok(fallbackStart >= 0 && fallbackEnd > fallbackStart, 'Generic link fallback must be retained');
 
 function fixture({ hosted = true } = {}) {
-  const messages = [], nodes = [], ticks = [];
+  const messages = [], nodes = [], ticks = [], opened = [], links = [], listeners = {};
   const window = {};
+  window.open = (...args) => { opened.push(args); return null; };
   window.parent = hosted ? { postMessage: (message, origin) => messages.push({ message, origin }) } : window;
   if (hosted) window.__SF_HOST_CLIENT__ = {};
   const document = {
+    addEventListener(type, callback) { listeners[type] = callback; },
     createElement() {
       const children = new Map();
       return {
         innerHTML: '',
         querySelector(selector) {
           if (!children.has(selector)) children.set(selector, {
-            style: {}, listeners: {},
+            style: {}, dataset: {}, listeners: {},
             addEventListener(type, callback) { this.listeners[type] = callback; },
           });
           return children.get(selector);
@@ -31,14 +36,15 @@ function fixture({ hosted = true } = {}) {
     },
     body: { appendChild: (node) => nodes.push(node) },
   };
-  const context = vm.createContext({ window, document, setInterval: (callback) => ticks.push(callback) });
+  const context = vm.createContext({ window, document, setInterval: (callback) => ticks.push(callback), showLink: (url) => links.push(url) });
   vm.runInContext(`const X_LOGO = '<svg aria-hidden="true"></svg>'; const NEAR_PLAYER = 90, LEAVE_PLAYER = 150;\n${source.slice(start, end)}`, context);
-  return { ...context, messages, nodes, ticks };
+  vm.runInContext(source.slice(fallbackStart, fallbackEnd), context);
+  return { ...context, messages, nodes, ticks, opened, links, listeners };
 }
 
 function click(overrides = {}) {
   return {
-    type: 'click', isTrusted: true, prevented: 0,
+    type: 'click', button: 0, isTrusted: true, prevented: 0,
     preventDefault() { this.prevented++; }, ...overrides,
   };
 }
@@ -129,4 +135,42 @@ test('A nearer player with no valid profile cannot leave a stale Follow card beh
   f.window.__sfNet.players.unshift({ id: 'other', name: 'Ben Scott', connected: true, position: { x: 1, y: 0, z: 0 } });
   f.ticks[0]();
   assert.equal(f.nodes.length, 0);
+});
+
+test('Generic capture handling yields to the hosted X card before its target handler runs', () => {
+  const f = fixture();
+  f.installLinkFallback();
+  f.window.__sfNet = { players: [{ id: 'peer', name: 'pengpeng1366', connected: true, position: { x: 10, y: 0, z: 0 } }] };
+  f.installNeighbourCard({}, { freeFlightEnabled: true, flightCharacter: { position: { x: 0, y: 0, z: 0 } } });
+  f.ticks[0]();
+  const follow = f.nodes[0].querySelector('.tw-follow');
+  const event = click({ target: { closest: () => follow } });
+  f.listeners.click(event); // Document capture runs before the card's target handler.
+  assert.equal(event.prevented, 0);
+  follow.listeners.click(event);
+  assert.equal(event.prevented, 1);
+  assert.equal(f.messages.length, 1);
+  assert.equal(f.messages[0].message.handle, 'pengpeng1366');
+  assert.equal(f.opened.length, 0, 'No forbidden iframe popup attempt before the parent opens X');
+  assert.equal(f.links.length, 0, 'No duplicate copy box after a successful host request');
+});
+
+test('Other external links and standalone X links retain the newer popup/copy fallback', () => {
+  for (const hosted of [false, true]) {
+    const f = fixture({ hosted }); f.installLinkFallback();
+    const links = [
+      { href: 'https://discord.gg/example', dataset: {} },
+      { href: 'https://partiful.com/e/example', dataset: { chronaXHandle: 'pengpeng1366' } },
+      { href: 'https://x.com/user/other', dataset: { chronaXHandle: 'user/other' } },
+    ];
+    if (!hosted) links.push({ href: 'https://x.com/pengpeng1366', dataset: { chronaXHandle: 'pengpeng1366' } });
+    for (const a of links) {
+      const event = click({ target: { closest: () => a } });
+      f.listeners.click(event);
+      assert.equal(event.prevented, 1);
+      assert.equal(f.links.at(-1), a.href);
+    }
+    assert.equal(f.opened.length, links.length);
+    assert.equal(f.messages.length, 0);
+  }
 });
