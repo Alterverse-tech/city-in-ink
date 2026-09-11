@@ -159,27 +159,46 @@ function installFleetDistance(TW, city) {
 // The roster comes from the multiplayer layer (multiplayer.js publishes it on
 // window.__sfNet). Standalone and single-file builds have no roster, so the
 // card simply never appears.
+function neighbourXHandle(player) {
+  // The legacy roster may carry its X name in `name`; a coordinate in `x`
+  // is not a handle, and a display name containing spaces is not an X name.
+  const raw = [player.handle, player.x, player.name].find((value) => typeof value === 'string' && value.trim());
+  const handle = raw ? raw.trim().replace(/^@/, '') : '';
+  return /^[A-Za-z0-9_]{1,15}$/.test(handle) ? handle : '';
+}
+
+function openHostedXProfile(event, handle) {
+  if (typeof handle !== 'string' || !/^[A-Za-z0-9_]{1,15}$/.test(handle) ||
+      event.type !== 'click' || !event.isTrusted ||
+      !window.__SF_HOST_CLIENT__ || window.parent === window) return false;
+  // Hosted worlds cannot open new tabs themselves. The trusted parent accepts
+  // only this narrow profile action and owns the popup or fallback link.
+  event.preventDefault();
+  window.parent.postMessage({ type: 'chrona:open-x-profile', handle }, 'https://chrona.world');
+  return true;
+}
+
 function installNeighbourCard(TW, city) {
   let card = null, current = null;
 
   const remove = () => { if (card) { card.remove(); card = null; } current = null; };
-  const handleOf = (player) => {
-    const raw = (player.handle || player.x || player.name || '').trim();
-    if (!raw) return '';
-    return raw.replace(/^@+/, '').split(/\s+/)[0];
-  };
 
   const show = (player) => {
-    const handle = handleOf(player);
-    if (!handle) return;
+    const handle = neighbourXHandle(player);
     remove();
+    if (!handle) return;
     current = player.id;
     card = document.createElement('div');
     card.id = 'tw-neighbour';
-    card.innerHTML = `<i style="background:${player.color || '#c6583c'}"></i>
-      <span><b>@${handle}</b><small>flying beside you</small></span>
-      <a class="tw-follow" href="https://x.com/${encodeURIComponent(handle)}" target="_blank" rel="noopener">${X_LOGO} Follow</a>
+    card.innerHTML = `<i></i>
+      <span><b></b><small>flying beside you</small></span>
+      <a class="tw-follow" target="_blank" rel="noopener noreferrer">${X_LOGO} Follow</a>
       <button type="button" class="tw-dismiss" aria-label="Dismiss">×</button>`;
+    card.querySelector('i').style.backgroundColor = player.color || '#c6583c';
+    card.querySelector('b').textContent = `@${handle}`;
+    const follow = card.querySelector('.tw-follow');
+    follow.href = `https://x.com/${handle}`;
+    follow.addEventListener('click', (event) => openHostedXProfile(event, handle));
     card.querySelector('.tw-dismiss').addEventListener('click', remove);
     document.body.appendChild(card);
   };
