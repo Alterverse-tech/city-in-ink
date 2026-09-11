@@ -6,3 +6,8 @@ dist-artifact/
 .DS_Store
 .env*
 .local/
+# Trailer renders are build output; this media branch keeps only the finished cut, its poster and stills.
+dist-trailer/*
+!dist-trailer/sf-tech-week-city-720p.mp4
+!dist-trailer/poster.jpg
+!dist-trailer/stills/
