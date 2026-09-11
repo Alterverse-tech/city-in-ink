@@ -38,22 +38,25 @@ const ONLY = typeof args.shots === 'string' ? args.shots.split(',') : null;
 // `inputs` are the flight keys held during the shot; `show` names the game UI
 // that stays visible (card, nav chip, neighbour card).
 export const SHOTS = [
-  { id: 'title', seconds: 3.2, setup: 'vantage', inputs: { backward: true }, overlay: { h1: 'SF TECH WEEK CITY', k: 'Fly the week · Oct 5–11 · San Francisco' } },
+  { id: 'title', seconds: 3.2, setup: 'vantage', inputs: { backward: true },
+    overlay: { h1: 'SF TECH WEEK CITY', k: 'Fly the week · Oct 5–11 · San Francisco', s: '1,500 events. One city. One map you can fly.' } },
   { id: 'city', seconds: 6, setup: null, inputs: { backward: true },
-    caption: { k: '01 · The city', t: 'Every Tech Week event, in the city where it happens.', s: 'A bird’s-eye San Francisco. Open it in your browser — nothing to install.' } },
+    caption: { k: '01 · The city', t: 'Every building is the real venue.', s: 'Real San Francisco, real footprints. Fly to the door before you have ever been there.' } },
   { id: 'airship', seconds: 7, setup: 'flyToFeatured', inputs: {},
-    caption: { k: '02 · Airships', t: 'Airships fly over the busiest events.', s: 'Pick one and your bird flies there.' } },
+    caption: { k: '02 · Airships', t: 'Every event, right where it happens.', s: 'Airships rise over the busiest ones. Pick one and your bird flies there.' } },
   { id: 'card', seconds: 6, setup: null, inputs: {}, show: ['card'], captionSide: 'right',
-    caption: { k: '03 · One click', t: 'RSVP in one click.', s: 'Venue not public yet? The Discord knows — and someone there gets you in.' } },
+    caption: { k: '03 · The card', t: 'The card is the calendar.', s: 'Time, host, speakers, RSVPs left. One click to RSVP; the Discord knows the door.' } },
+  { id: 'board', seconds: 6, setup: null, inputs: {}, show: ['panel'], action: 'leaderboard',
+    caption: { k: '04 · Live', t: 'Live rankings, live sky, live city.', s: 'Events ranked by RSVPs, buildings by what is on inside. Refreshed all week.' } },
   { id: 'posters', seconds: 6, setup: 'posterWall', inputs: { backward: true },
-    caption: { k: '04 · Posters', t: 'Every event gets its poster in the city.', s: 'On the building where it happens. Fly a block and read what’s on.' } },
+    caption: { k: '05 · Posters', t: 'The wall you will walk past tonight.', s: 'Every event gets its poster in the city, on the venue itself.' } },
   { id: 'friends', seconds: 6, setup: 'friends', inputs: { backward: true }, show: ['neighbour'], companion: true,
-    caption: { k: '05 · Who’s flying', t: 'See who is flying beside you.', s: 'Follow them on X, or fly beside them for a chat.' } },
+    caption: { k: '06 · Real people', t: 'Every bird is a real person on X.', s: 'Sign in with X, fly as yourself. Follow anyone in one tap.' } },
   { id: 'beak', seconds: 6, setup: 'canyon', inputs: { forward: true }, view: 'fpv',
-    caption: { k: '06 · Beak cam', t: 'Chase cam or beak cam. Buildings are solid.', s: 'Pick your line through downtown.' } },
-  { id: 'cruise', seconds: 6, setup: 'cruise', inputs: {}, show: ['nav'], view: 'chase',
-    caption: { k: '07 · Auto-cruise', t: 'Press T and your bird tours the hottest events for you.', s: 'Sit back; take over with any key.' } },
-  { id: 'end', seconds: 5, setup: null, inputs: {}, show: ['nav'],
+    caption: { k: '07 · Beak cam', t: 'Chase cam or beak cam. Buildings are solid.', s: 'Learn the streets before the week starts.' } },
+  { id: 'cruise', seconds: 6, setup: 'cruise', inputs: {}, show: ['nav'], view: 'chase', companion: true,
+    caption: { k: '08 · Together', t: 'Find your event buddy in the sky.', s: 'See who is heading where, fly beside them, land at the same party.' } },
+  { id: 'end', seconds: 5, setup: null, inputs: {}, show: ['nav'], companion: true,
     overlay: { h1: 'SF TECH WEEK CITY', k: 'Oct 5–11 · San Francisco', u: 'chrona.world', s: 'In your browser, no download · Discord: discord.gg/GPPgjHE7GF' } },
 ];
 
@@ -86,7 +89,7 @@ function installTrailer(cfg) {
 
   const style = document.createElement('style');
   style.textContent = `
-html.trailer .tw-panel, html.trailer .address-search, html.trailer .tw-flight-shortcuts, html.trailer .flight-hint, html.trailer #tw-toast,
+html.trailer:not(.trailer-panel) .tw-panel, html.trailer .address-search, html.trailer .tw-flight-shortcuts, html.trailer .flight-hint, html.trailer #tw-toast,
 html.trailer #tw-guide, html.trailer #tw-linkbox, html.trailer .tw-masthead, html.trailer .gull-telemetry, html.trailer #tw-digest, html.trailer .corner-tools { display: none !important; }
 html.trailer:not(.trailer-card) #tw-card { display: none !important; }
 html.trailer:not(.trailer-nav) .tw-nav { display: none !important; }
@@ -256,6 +259,16 @@ html.trailer #tw-neighbour { bottom: 150px; }
     },
   };
 
+  // One-off actions at a shot's first frame: things a player would click.
+  let lastAction = '';
+  const actions = {
+    leaderboard() {
+      const tab = [...document.querySelectorAll('.tw-tabs button')].find(b => /leaderboard/i.test(b.textContent));
+      tab?.click();
+      const board = [...document.querySelectorAll('[data-board]')].find(b => b.dataset.board === 'events');
+      board?.click();
+    },
+  };
   const setText = (el, sel, text) => { const n = el.querySelector(sel); n.textContent = text || ''; n.style.display = text ? '' : 'none'; };
   window.__trailer = {
     setup(name) { setups[name]?.(); },
@@ -264,6 +277,8 @@ html.trailer #tw-neighbour { bottom: 150px; }
       html.classList.toggle('trailer-card', !!f.show?.includes('card'));
       html.classList.toggle('trailer-nav', !!f.show?.includes('nav'));
       html.classList.toggle('trailer-neighbour', !!f.show?.includes('neighbour'));
+      html.classList.toggle('trailer-panel', !!f.show?.includes('panel'));
+      if (f.action && lastAction !== `${f.id}:${f.action}`) { lastAction = `${f.id}:${f.action}`; actions[f.action]?.(); }
       if (f.view && TW.state.view !== f.view) TW.setView(f.view);
       if (f.companion) companionOn(); else companionOff();
       c.clearFlightInput(); for (const k of Object.keys(f.inputs || {})) c.setFlightInput(k, !!f.inputs[k]);
