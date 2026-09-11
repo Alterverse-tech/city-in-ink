@@ -108,7 +108,7 @@ test('the real selection closure keeps a card on close and restores replaced fee
   const env = { performance: { now: () => 0 }, setInterval: () => 1, clearInterval() {} };
   const TW = { state, renderCard: ev => rendered.push(ev) };
   const context = { TW, state, document: { documentElement: { classList: { toggle() {} } } },
-    refreshChip() {}, renderList() {}, renderCard: TW.renderCard, c: { freeFlightEnabled: true } };
+    eventListRows: new Map(), refreshChip() {}, renderList() {}, renderCard: TW.renderCard, c: { freeFlightEnabled: true } };
   runInNewContext(body('  function select(ev, opts)', '  function lookAt(') + '\nglobalThis.select = select;', context);
   TW.select = context.select;
   TW.eventCards = installEventCards(TW, {}, env);

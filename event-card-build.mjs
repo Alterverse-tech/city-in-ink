@@ -1,5 +1,7 @@
 // Integrate at the original closure so clicks, Escape, feed refreshes and
 // asynchronous poster/RSVP callbacks all agree about the displayed event.
+import { wireEventCardPerformance } from './event-card-performance-build.mjs';
+
 export function wirePersistentEventCards(html) {
   const once = (from, to) => {
     if (html.split(from).length !== 2) throw new Error('Event card patch target changed: ' + from.slice(0, 90));
@@ -30,5 +32,5 @@ export function wirePersistentEventCards(html) {
 .tw-featured-card .tw-x { display: none; }
 .city-shell.ui-hidden #tw-card { visibility: visible !important; pointer-events: auto !important; }
 </style>\n</head>`);
-  return html;
+  return wireEventCardPerformance(html);
 }
