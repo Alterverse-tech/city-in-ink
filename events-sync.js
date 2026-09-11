@@ -397,10 +397,9 @@ const HOST_EVENT_DETAIL = {
     // The host's own event was retitled on Partiful after the crawl read it;
     // the crawl catches up on its next pass, and these agree with it when it does.
     title: 'Meshy \u00d7 Chrona: Build Multiplayer 3D Worlds With AI',
-    description: 'What comes after AI-generated video? Meshy turns text and images into 3D models; Chrona turns them into AI-native persistent multiplayer worlds you co-build with Claude Code and Codex, where nothing resets. Live demos, hands-on co-building and fireside chats \u2014 Bruce (co-founder of Chrona), the Meshy core team and Yiqi Zhao (Product Design Lead, Meta) \u2014 plus a creator live demo show, with $10,000+ in 3D model credits for everyone on site. Sponsored by Seedance. Bring a laptop.',
+    description: 'What comes after AI-generated video? Meshy turns text and images into 3D models; Chrona turns them into AI-native persistent multiplayer worlds you co-build with Claude Code and Codex, where nothing resets. Live demos, hands-on co-building and fireside chats with the Meshy core team and Yiqi Zhao (Product Design Lead, Meta) \u2014 plus a creator live demo show, with $10,000+ in 3D model credits for everyone on site. Sponsored by Seedance. Bring a laptop.',
     cohosts: ['meshy.ai'],
     speakers: [
-      { name: 'Bruce', role: 'Co-founder of Chrona \u00b7 3\u00d7 founder building consumer products globally' },
       { name: 'Meshy core team', role: 'the frontier of AI 3D generation' },
       { name: 'Yiqi Zhao', role: 'Product Design Lead, Meta \u00b7 spatial intelligence and AI at the edge' },
     ],
