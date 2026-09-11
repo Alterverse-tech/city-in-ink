@@ -294,9 +294,12 @@ function installNeighbourCard(TW, city) {
 
   setInterval(() => {
     const net = window.__sfNet;
-    if (!net || !city.freeFlightEnabled) { if (card) remove(); return; }
+    if (!net || net.state !== 'room' || !city.freeFlightEnabled) { if (card) remove(); return; }
     const me = city.flightCharacter && city.flightCharacter.position;
     const others = (net.players || []).filter((p) => !p.self && p.connected && p.position);
+    // Departure invalidates the existing card before distance hysteresis can
+    // retain it because a different player is still somewhere nearby.
+    if (card && !others.some((player) => player.id === current)) remove();
     if (!me || !others.length) { if (card) remove(); return; }
 
     let closest = null, best = Infinity;

@@ -188,6 +188,8 @@ export interface PresenceState {
   count: number
   ping: number
   gameId: string
+  /** Last authority snapshot timestamp; null before a snapshot, absent on older hosts. */
+  serverTimeMs?: number | null
 }
 
 export interface RemoteSample {
