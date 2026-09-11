@@ -76,9 +76,9 @@ export function wireEventFeed(html) {
     'ev.coverUrl ? esc(ev.coverUrl) : !window.__SF_HOST_READY__ && ev.image ? esc(ev.image) : posterUrl');
   const navNeedle = /ev\.claimed \? `<a class=[^`]*<\/a>` : '<button[^']*Claim address<\/button>'/;
   const navReplacement = `(() => {
-    const hasLocation = Boolean(ev.address || ev.venue || ev.locationText || ev.neighborhood || (typeof ev.lat === 'number' && Number.isFinite(ev.lat) && typeof ev.lng === 'number' && Number.isFinite(ev.lng)));
+    const hasLocation = Boolean((ev.address && ev.claimed) || (typeof ev.lat === 'number' && Number.isFinite(ev.lat) && typeof ev.lng === 'number' && Number.isFinite(ev.lng)));
     const navBtn = '<button type="button" data-act="navigate" class="tw-btn" title="' + (hasLocation ? 'Open Google Maps' : 'No address found. Opening map search.') + '">Navigate ↗</button>';
-    const claimBtn = ev.claimed ? '' : '<button type="button" data-act="claim">Claim address</button>';
+    const claimBtn = ev.claimed && !ev.doorWithheld ? '' : '<button type="button" data-act="claim">Claim address</button>';
     return navBtn + claimBtn;
   })()`;
   const navMatch = html.match(navNeedle);
@@ -87,11 +87,16 @@ export function wireEventFeed(html) {
   }
   html = html.replace(navMatch[0], navReplacement);
 
+  // A listing with no registration link sends people to the Discord instead of
+  // a dead RSVP button: the venue supplements carry no public sign-up page.
+  once("<button type=\"button\" data-act=\"rsvp\" class=\"${going ? 'done' : 'primary'}\" ${st.open || going ? '' : 'disabled'}>${going ? 'Going ✓' : st.open ? `RSVP${via ? ' on ' + via : ''} ↗` : st.label}</button>",
+    "${ev.url || ev.sourceUrl ? `<button type=\"button\" data-act=\"rsvp\" class=\"${going ? 'done' : 'primary'}\" ${st.open || going ? '' : 'disabled'}>${going ? 'Going ✓' : st.open ? `RSVP${via ? ' on ' + via : ''} ↗` : st.label}</button>` : `<a class=\"tw-btn\" href=\"https://discord.gg/GPPgjHE7GF\" target=\"_blank\" rel=\"noopener\" title=\"No public registration link — ask in the Discord\">Details in the Discord ↗</a>`}");
+
   const onClickRsvp = `    if (b.dataset.act === 'rsvp') { doRsvp(ev); return; }
     if (b.dataset.act === 'claim') { openClaim(ev); return; }`;
   const onClickNavigate = `    if (b.dataset.act === 'rsvp') { doRsvp(ev); return; }
     if (b.dataset.act === 'navigate') {
-      const hasLocation = Boolean(ev.address || ev.venue || ev.locationText || ev.neighborhood || (typeof ev.lat === 'number' && Number.isFinite(ev.lat) && typeof ev.lng === 'number' && Number.isFinite(ev.lng)));
+      const hasLocation = Boolean((ev.address && ev.claimed) || (typeof ev.lat === 'number' && Number.isFinite(ev.lat) && typeof ev.lng === 'number' && Number.isFinite(ev.lng)));
       const fallbackQuery = [ev.title, ev.name, ev.venue, 'San Francisco Tech Week'].filter(Boolean).join(' ').trim();
       const navUrl = hasLocation
         ? mapsUrl(ev)

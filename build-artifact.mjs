@@ -156,7 +156,7 @@ for (const [key, encoded] of Object.entries(assets)) {
   before += encoded.length; after += size;
   console.log(`${key.padEnd(44)} ${String(encoded.length).padStart(10)} → ${String(size).padStart(10)}${spec ? '  (' + spec[0] + ' dzv)' : ''}`);
 }
-for (const file of ['tech-week-enriched.json', 'tech-week-first.json']) {
+for (const file of ['tech-week-enriched.json', 'tech-week-first.json', 'venue-overrides.json']) {
   // The enriched snapshot ships as ordered parts; the artifact embeds one document.
   let bytes = file === 'tech-week-enriched.json'
     ? Buffer.from((await readFeedText(url('./data/'), 'tech-week-enriched')).text)
