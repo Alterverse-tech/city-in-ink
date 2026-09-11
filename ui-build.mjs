@@ -42,14 +42,8 @@ export function wireGameUi(html) {
     '',
   );
 
-  replaceOnce(
-    '<button type="button" class="tw-view" id="tw-view">Beak cam · V</button>',
-    `<div class="tw-flight-shortcuts" role="group" aria-label="Flight shortcuts">
-        <span class="tw-boost-hint"><kbd>Shift</kbd><span>Boost</span></span>
-        <button type="button" class="tw-view" id="tw-view" title="Switch camera view (V)">Beak cam · V</button>
-      </div>`,
-  );
-  // Shift is now beside the camera shortcut; keep the other movement instructions.
+  // Keep the camera button in the DOM for the imported game's bindings; its
+  // visible shortcut is removed below. Shift and V still work from the keyboard.
   replaceOnce('Space/C Up/Down · Shift Boost · U Hide UI', 'Space/C Up/Down · U Hide UI');
   replaceOnce('Space / C Up/Down \\xB7 Shift Boost \\xB7 Drag to look around', 'Space / C Up/Down \\xB7 Drag to look around');
 
@@ -66,10 +60,15 @@ export function wireGameUi(html) {
   replaceOnce('</head>', `<style id="tw-game-ui">
 html .scene-host canvas:focus-visible { outline: none; }
 .tw-masthead, #tw-pause, #tw-who, #tw-who-list, #tw-discord,
-.tw-sortrow, #tw-cruise, .gull-telemetry, .mode-dock, .view-dock, .landmark-card { display: none !important; }
+.tw-sortrow, #tw-view, #tw-cruise, .gull-telemetry, .mode-dock, .view-dock, .landmark-card { display: none !important; }
 
+.city-shell {
+  --tw-hud-inset: 24px;
+  --tw-panel-height: max(min(360px, calc(100dvh - 124px)), calc(100dvh - 244px));
+  --tw-panel-width: min(322px, calc(100vw - 48px));
+}
 .city-shell .tw-card {
-  left: 24px; bottom: 24px; width: min(352px, calc(100vw - 48px));
+  left: var(--tw-hud-inset); bottom: var(--tw-hud-inset); width: min(352px, calc(100vw - 48px));
   max-height: calc(100dvh - 48px); overflow-y: auto;
 }
 .tw-card-heading { display: grid; grid-template-columns: minmax(0, 1fr) 36px; align-items: stretch; position: sticky; top: 0; z-index: 1; }
@@ -80,31 +79,32 @@ html .scene-host canvas:focus-visible { outline: none; }
 .tw-card-heading .tw-x:hover { background: #0002; }
 .tw-card-heading .tw-x:focus-visible { outline: 2px solid currentColor; outline-offset: -4px; }
 
-.tw-flight-shortcuts {
-  display: none; position: absolute; top: 22px; right: 28px; z-index: 9;
-  align-items: stretch; gap: 8px;
+/* Both event surfaces share one bottom inset. The address search stays above
+   the right panel without moving React-owned nodes or measuring every frame. */
+.city-shell .tw-panel {
+  top: auto !important; right: var(--tw-hud-inset); bottom: var(--tw-hud-inset);
+  width: var(--tw-panel-width); height: var(--tw-panel-height);
+  max-height: var(--tw-panel-height) !important; box-sizing: border-box;
 }
-.city-shell.is-flying .tw-flight-shortcuts { display: flex; }
-.tw-flight-shortcuts .tw-view {
-  position: static; margin: 0; min-height: 32px;
+.city-shell .address-search {
+  top: auto; right: var(--tw-hud-inset);
+  bottom: calc(var(--tw-hud-inset) + var(--tw-panel-height) + 10px);
+  width: var(--tw-panel-width); box-sizing: border-box;
 }
-.tw-boost-hint {
-  display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px;
-  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
-  backdrop-filter: blur(12px); font: 700 10px/1 ui-monospace, monospace;
-  letter-spacing: .08em; text-transform: uppercase;
+.city-shell .tw-panel .tw-tabs { flex-shrink: 0; }
+.city-shell .tw-panel .tw-pane.active { flex: 1; }
+.city-shell .corner-tools {
+  top: var(--tw-hud-inset); right: var(--tw-hud-inset); bottom: auto;
+  grid-auto-flow: column;
 }
-.tw-boost-hint kbd { font: inherit; }
-.tw-boost-hint > span { opacity: .7; }
-.city-shell .tw-panel { top: 124px !important; max-height: calc(100vh - 244px) !important; }
 @media (max-width: 760px) {
-  .city-shell .tw-card { left: 14px; bottom: 14px; width: calc(100vw - 28px); max-height: calc(100dvh - 28px); }
-  .tw-flight-shortcuts { top: auto; right: 14px; bottom: 220px; }
-  .city-shell .tw-panel { top: 120px !important; max-height: calc(100dvh - 340px) !important; }
-}
-@media (pointer: coarse) {
-  .tw-boost-hint { display: none; }
-  .tw-flight-shortcuts .tw-view { min-height: 44px; }
+  .city-shell { --tw-hud-inset: 14px; --tw-panel-width: min(322px, calc(100vw - 28px)); }
+  .city-shell .tw-card { width: calc(100vw - 28px); max-height: calc(100dvh - 28px); }
+  .city-shell .tw-panel.open, .city-shell:has(.tw-panel.open) .address-search { z-index: 10; }
+  .city-shell .corner-tools { right: 110px; }
+  .city-shell.is-flying .corner-tools { opacity: 1; pointer-events: auto; }
+  /* On phones the existing Events toggle reveals the bottom-aligned panel. */
+  .city-shell:not(:has(.tw-panel.open)) .address-search { top: 66px; bottom: auto; }
 }
 </style>
 </head>`);
