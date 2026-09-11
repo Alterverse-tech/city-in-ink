@@ -232,7 +232,7 @@ const GUIDE_STEPS = [
     keys: /^( |c)$/, input: i => i.up || i.down },
   { text: '<kbd>V</kbd> switches the camera: chase cam or beak cam.',
     keys: /^v$/, view: true },
-  { text: 'Fly a little, then let go of every key — the bird hovers. That is your pause. <kbd>Esc</kbd> ends the flight; <kbd>T</kbd> takes off again.',
+  { text: 'Fly a little, then let go of every key — the bird hovers. That is your pause. <kbd>Esc</kbd> stops a guided flight, <kbd>T</kbd> starts the cruise.',
     keys: /^escape$/, hover: true },
 ];
 const GUIDE_DONE = 'That is the city. <kbd>Shift</kbd> boosts, <kbd>U</kbd> hides the interface, and any event card flies you there.';
