@@ -1,4 +1,5 @@
 // Narrow patches to the original single-file game; the supplied file stays intact.
+import { DISCORD_INVITE } from './tuning-build.mjs';
 export function wireEventFeed(html) {
   function once(from, to) {
     if (html.split(from).length !== 2) throw new Error('Event feed patch target changed: ' + from.slice(0, 70));
@@ -90,7 +91,7 @@ export function wireEventFeed(html) {
   // A listing with no registration link sends people to the Discord instead of
   // a dead RSVP button: the venue supplements carry no public sign-up page.
   once("<button type=\"button\" data-act=\"rsvp\" class=\"${going ? 'done' : 'primary'}\" ${st.open || going ? '' : 'disabled'}>${going ? 'Going ✓' : st.open ? `RSVP${via ? ' on ' + via : ''} ↗` : st.label}</button>",
-    "${ev.url || ev.sourceUrl ? `<button type=\"button\" data-act=\"rsvp\" class=\"${going ? 'done' : 'primary'}\" ${st.open || going ? '' : 'disabled'}>${going ? 'Going ✓' : st.open ? `RSVP${via ? ' on ' + via : ''} ↗` : st.label}</button>` : `<a class=\"tw-btn\" href=\"https://discord.gg/TDGbD8ENAG\" target=\"_blank\" rel=\"noopener\" title=\"No public registration link — ask in the Discord\">Details in the Discord ↗</a>`}");
+    "${ev.url || ev.sourceUrl ? `<button type=\"button\" data-act=\"rsvp\" class=\"${going ? 'done' : 'primary'}\" ${st.open || going ? '' : 'disabled'}>${going ? 'Going ✓' : st.open ? `RSVP${via ? ' on ' + via : ''} ↗` : st.label}</button>` : `<a class=\"tw-btn\" href=\"" + DISCORD_INVITE + "\" target=\"_blank\" rel=\"noopener\" title=\"No public registration link — ask in the Discord\">Details in the Discord ↗</a>`}");
 
   const onClickRsvp = `    if (b.dataset.act === 'rsvp') { doRsvp(ev); return; }
     if (b.dataset.act === 'claim') { openClaim(ev); return; }`;

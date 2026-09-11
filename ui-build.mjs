@@ -1,5 +1,6 @@
 // Keep the imported game's event bindings intact while simplifying its HUD.
 // These styles ship in the document head so removed controls never flash on load.
+import { DISCORD_INVITE } from './tuning-build.mjs';
 export function wireGameUi(html) {
   const replaceOnce = (from, to) => {
     if (html.split(from).length !== 2) throw new Error('Game UI patch target changed: ' + from.slice(0, 80));
@@ -30,7 +31,7 @@ export function wireGameUi(html) {
 
   replaceOnce(": ev.wantsVehicle ? 'Fly to the ship' : 'Fly there'", ": 'Fly there'");
   // Keep a single in-game navigation action and a direct venue-help link.
-  replaceOnce("(() => {\n    const hasLocation = Boolean(ev.address || ev.venue || ev.locationText || ev.neighborhood || (typeof ev.lat === 'number' && Number.isFinite(ev.lat) && typeof ev.lng === 'number' && Number.isFinite(ev.lng)));\n    const navBtn = '<button type=\"button\" data-act=\"navigate\" class=\"tw-btn\" title=\"' + (hasLocation ? 'Open Google Maps' : 'No address found. Opening map search.') + '\">Navigate ↗</button>';\n    const claimBtn = ev.claimed ? '' : `<a class=\"tw-btn\" href=\"${\"https://discord.gg/GPPgjHE7GF\"}\" target=\"_blank\" rel=\"noopener\" title=\"Ask in the Discord — someone there usually knows the venue\">Find the venue ↗</a>`;\n    return navBtn + claimBtn;\n  })()", "ev.claimed && !ev.doorWithheld ? '' : `<a class=\"tw-btn\" href=\"https://discord.gg/TDGbD8ENAG\" target=\"_blank\" rel=\"noopener\" title=\"Ask in the Discord — someone there usually knows the venue\">Find the venue ↗</a>`");
+  replaceOnce("(() => {\n    const hasLocation = Boolean(ev.address || ev.venue || ev.locationText || ev.neighborhood || (typeof ev.lat === 'number' && Number.isFinite(ev.lat) && typeof ev.lng === 'number' && Number.isFinite(ev.lng)));\n    const navBtn = '<button type=\"button\" data-act=\"navigate\" class=\"tw-btn\" title=\"' + (hasLocation ? 'Open Google Maps' : 'No address found. Opening map search.') + '\">Navigate ↗</button>';\n    const claimBtn = ev.claimed ? '' : `<a class=\"tw-btn\" href=\"${" + JSON.stringify(DISCORD_INVITE) + "}\" target=\"_blank\" rel=\"noopener\" title=\"Ask in the Discord — someone there usually knows the venue\">Find the venue ↗</a>`;\n    return navBtn + claimBtn;\n  })()", "ev.claimed && !ev.doorWithheld ? '' : `<a class=\"tw-btn\" href=\"" + DISCORD_INVITE + "\" target=\"_blank\" rel=\"noopener\" title=\"Ask in the Discord — someone there usually knows the venue\">Find the venue ↗</a>`");
   replaceOnce("        <a class=\"tw-btn\" href=\"${esc(gcalUrl(ev))}\" target=\"_blank\" rel=\"noopener\" title=\"Google Calendar\">Calendar ↗</a>\n", '');
 
   replaceOnce('</head>', `<style id="tw-game-ui">
