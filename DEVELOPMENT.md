@@ -226,6 +226,22 @@ against the guild at startup. Approving publishes the **building**, never the
 door: house numbers and any floor/suite are stripped from `/addresses.json`, so
 the exact door stays in Discord where a person can ask for it.
 
+**Venue overrides.** `data/venue-overrides.json` is the hand-curated counterpart
+for venues the crawl does not carry. Its `addresses` use the same shape as
+`/addresses.json` and go through the same code (`applyApprovedAddresses`), with a
+moderator-approved entry outranking a supplement for the same event, field by
+field; its `events` are listings the public crawl has not reached yet, appended
+at runtime. Give a supplement its registration `url`: that is how it is
+recognised and dropped once the crawl carries the same event — without one it
+would be listed twice. `street` never holds a
+house number. Coordinates come from `node scripts/geocode-venue-overrides.mjs`,
+which reads full addresses only from the gitignored `.local/venue-doors.json`
+(see `.local/venue-doors.json.example`), tries DataSF then Nominatim, refuses
+road- or district-level matches, and writes back lat/lng. A card with the door
+withheld keeps its **Find the venue ↗** Discord link even once its sign hangs on
+the right building, and a listing with no registration page links to the
+Discord instead of showing an RSVP button.
+
 The bot needs the **Message Content** privileged intent, and `addresses.json`
 must be routed like the calendar feed (`/integrations/city-in-ink/addresses.json`
 → `127.0.0.1:8139`). Add no origins to `delivery.json` for this — it is served

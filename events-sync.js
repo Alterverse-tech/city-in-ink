@@ -301,6 +301,49 @@ function readApprovedAddresses() {
   })().finally(() => { addressRequest = null; });
   return addressRequest;
 }
+
+// Venue supplements the project owner curates by hand (data/venue-overrides.json):
+// building-level addresses with the door withheld, and listings the public
+// crawl has not reached yet. Read like the approved addresses — in the
+// background, never holding up readiness — and applied on every read().
+const OVERRIDES_URL = new URL('./data/venue-overrides.json', import.meta.url);
+let overrideCache = { at: 0, data: { addresses: [], events: [] } }, overrideRequest = null;
+function readVenueOverrides() {
+  if (Date.now() - overrideCache.at < 60000) return Promise.resolve(overrideCache.data);
+  if (overrideRequest) return overrideRequest;
+  overrideRequest = (async () => {
+    try {
+      const raw = await readJson(OVERRIDES_URL);
+      const data = { addresses: Array.isArray(raw?.addresses) ? raw.addresses : [], events: Array.isArray(raw?.events) ? raw.events : [] };
+      const changed = JSON.stringify(data) !== JSON.stringify(overrideCache.data);
+      overrideCache = { at: Date.now(), data };
+      if (changed) refreshWhenReady();
+    } catch { overrideCache = { at: Date.now(), data: overrideCache.data }; }
+    return overrideCache.data;
+  })().finally(() => { overrideRequest = null; });
+  return overrideRequest;
+}
+
+// A moderator-approved entry outranks the owner's supplement for the same
+// event, field by field; the supplement fills whatever the approval left blank.
+function mergeAddressEntries(supplements, approved) {
+  const out = supplements.map(entry => ({ ...entry }));
+  for (const entry of approved) {
+    const patch = Object.fromEntries(Object.entries(entry).filter(([, value]) => value != null && value !== ''));
+    const hit = out.find(item => (entry.eventId && item.eventId === entry.eventId) || (entry.eventUrl && item.eventUrl === entry.eventUrl));
+    if (hit) Object.assign(hit, patch); else out.push(patch);
+  }
+  return out;
+}
+
+// Listings the crawl has not reached yet: appended once, never duplicated, and
+// superseded the moment the public snapshot carries the same event.
+function appendSupplementalEvents(events, extra) {
+  if (!extra.length) return events;
+  const seen = new Set(events.flatMap(event => [eventKey(event), event.id].filter(Boolean)));
+  const added = extra.filter(event => event && event.id && !seen.has(event.id) && !seen.has(eventKey(event))).map(event => ({ ...event, supplemental: true }));
+  return added.length ? [...events, ...added] : events;
+}
 function applyApprovedAddresses(events, addresses) {
   if (!addresses.length) return events;
   const byId = new Map(), byUrl = new Map();
@@ -314,14 +357,19 @@ function applyApprovedAddresses(events, addresses) {
     // The queue publishes the building, never the door: `street` has the house
     // number and any floor/suite stripped out, and that is all the world shows.
     // Whoever wants the exact door asks in the Discord.
-    const patched = { ...event, addressSource: 'community-approved', approvedAddressAt: entry.approvedAt };
+    const patched = { ...event, addressSource: entry.source || 'community-approved', approvedAddressAt: entry.approvedAt || entry.enteredAt };
     const street = entry.street || entry.address;
     if (street) patched.address = street;
     if (entry.venue) patched.venue = entry.venue;
+    if (entry.neighborhood) patched.neighborhood = entry.neighborhood;
     if (Number.isFinite(entry.lat) && Number.isFinite(entry.lng)) {
       // A reviewed address is exact: drop the neighbourhood approximation.
       patched.lat = entry.lat; patched.lng = entry.lng; patched.approxLocation = false;
     }
+    // The building is public, the door is not: the card keeps its Discord
+    // link and carries no map link to the exact address.
+    patched.doorWithheld = entry.doorWithheld !== false;
+    if (patched.doorWithheld) delete patched.mapUrl;
     return patched;
   });
 }
@@ -373,15 +421,17 @@ window.__sfEventFeed = {
     // Live updates and optional community enrichment must not hold up readiness.
     readLiveInBackground();
     void readApprovedAddresses();
+    void readVenueOverrides();
     const saved = fullSaved || await Promise.race([full.then(data => data || readBaseline()), readBaseline()]);
     const cache = liveCache || { status: 'unavailable' };
     const approvedAddresses = addressCache.list;
+    const overrides = overrideCache.data;
     // Late/failed refreshes must never replace a newer complete programme with
     // the startup baseline. Keep the unmodified public feed separate from the
     // optional address and host-detail presentation patches.
     const data = mergePublicFeeds(lastGood, mergePublicFeeds(fullSaved || saved, cache));
     if (data) lastGood = data;
-    const live = lastGood && { ...lastGood, events: applyHostDetail(applyApprovedAddresses(lastGood.events, approvedAddresses)) };
+    const live = lastGood && { ...lastGood, events: applyHostDetail(applyApprovedAddresses(appendSupplementalEvents(lastGood.events, overrides.events), mergeAddressEntries(overrides.addresses, approvedAddresses))) };
     showStatus(live ? {...live,error:cache.error} : cache, !!live);
     initialReadDelivered = true;
     if (live) return { list: enrichWithFallbackCoordinates(live.events), citizens: [], official: true,

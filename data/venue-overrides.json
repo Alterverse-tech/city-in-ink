@@ -1,0 +1,118 @@
+{
+  "note": "Game-layer venue supplements entered by the project owner from public event pages. Only the building is published: `street` never carries a house number or unit, `lat`/`lng` are filled by scripts/geocode-venue-overrides.mjs (run where the network allows; the full address lives only in the gitignored .local/venue-doors.json), and the exact door stays in the Discord. `events` are listings the public crawl has not picked up yet: appended at runtime. Give a supplement its registration `url` — that is how it is recognised and dropped once the crawl carries the same event; without one it would be listed twice. A moderator-approved entry from /addresses.json takes precedence over an entry here for the same event.",
+  "updatedAt": "2026-09-11T00:00:00.000Z",
+  "addresses": [
+    {
+      "eventId": "partiful-IDX1j40sjTDhK6Pp5ewl",
+      "eventUrl": "https://partiful.com/e/IDX1j40sjTDhK6Pp5ewl",
+      "venue": "DNA Lounge",
+      "street": "11th St",
+      "neighborhood": "SOMA",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "enteredAt": "2026-09-11T00:00:00.000Z"
+    },
+    {
+      "eventId": "partiful-JV9G2AMsKHNErDDvzpdz",
+      "eventUrl": "https://partiful.com/e/JV9G2AMsKHNErDDvzpdz",
+      "venue": null,
+      "street": "Polk St",
+      "neighborhood": "Civic Center",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "note": "The organisers name no venue, only a historic building on Polk St.",
+      "enteredAt": "2026-09-11T00:00:00.000Z"
+    },
+    {
+      "eventId": "techweek-45105230-5cdf-43bd-89e7-808df7246f04",
+      "venue": null,
+      "street": "Harrison St",
+      "neighborhood": "SOMA",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "note": "Coordinates already in the public snapshot are kept; this entry only withholds the door.",
+      "enteredAt": "2026-09-11T00:00:00.000Z"
+    },
+    {
+      "eventId": "techweek-7f6a896c-2f6b-49fe-bc6a-7e9485e1c13c",
+      "eventUrl": "https://partiful.com/e/Etlt8qCla36k1iyi3W24",
+      "venue": "Jettison Creative",
+      "street": "Jeff Adachi Way",
+      "neighborhood": "SOMA",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "enteredAt": "2026-09-11T00:00:00.000Z"
+    },
+    {
+      "eventId": "techweek-369e208d-4e87-4e24-9198-6e79bd54aba8",
+      "venue": "Dolores Park (meet here, then a nearby bar)",
+      "street": "Dolores St",
+      "neighborhood": "Mission",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "enteredAt": "2026-09-11T00:00:00.000Z"
+    },
+    {
+      "eventId": "partiful-nyGt4FsJuWBM4xLlPiNZ",
+      "eventUrl": "https://partiful.com/e/nyGt4FsJuWBM4xLlPiNZ",
+      "venue": "Lee Neighborhood Theater",
+      "street": null,
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "note": "No street is published; the venue name alone is shown and the door is in the Discord.",
+      "enteredAt": "2026-09-11T00:00:00.000Z"
+    },
+    {
+      "eventId": "techweek-4f9ffe8b-d0e4-445a-a03d-e18c56b5736e",
+      "eventUrl": "https://partiful.com/e/bTsHhauFjYfOnW3WI8eT",
+      "venue": "Private residence",
+      "street": null,
+      "neighborhood": "Hillsborough",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "note": "A home outside San Francisco: never placed in the city and no street is published. Ask in the Discord.",
+      "enteredAt": "2026-09-11T00:00:00.000Z"
+    },
+    {
+      "eventId": "partiful-D0pS4YPveEhJXzzFjWed",
+      "venue": "AGI House SF",
+      "street": "St Germain Ave",
+      "neighborhood": "Twin Peaks",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "enteredAt": "2026-09-11T00:00:00.000Z",
+      "eventUrl": "https://partiful.com/e/D0pS4YPveEhJXzzFjWed",
+      "note": "The public crawl now carries this listing; this entry only withholds the door and fixes the neighbourhood."
+    },
+    {
+      "eventId": "partiful-ki3B28FwMa8i9BleQA9U",
+      "venue": "Mission Rock Resort",
+      "street": "Terry Francois Blvd",
+      "neighborhood": "Mission Bay",
+      "lat": null,
+      "lng": null,
+      "doorWithheld": true,
+      "source": "public event page, entered by the project owner",
+      "enteredAt": "2026-09-11T00:00:00.000Z",
+      "eventUrl": "https://partiful.com/e/ki3B28FwMa8i9BleQA9U",
+      "note": "The public crawl now carries this listing; this entry only withholds the door and fixes the neighbourhood."
+    }
+  ],
+  "events": []
+}

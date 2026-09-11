@@ -5,3 +5,4 @@ dist-artifact/
 .chrona/
 .DS_Store
 .env*
+.local/

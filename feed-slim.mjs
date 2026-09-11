@@ -3,17 +3,44 @@
 // it, and the rest is dead weight on every player's first load — provenance
 // alone is half the file. Builds serve this slimmed copy; data/ stays complete.
 import { readFile, writeFile, rm } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 const DROP = ['fieldSources', 'imageUsage', 'calendarUrl', 'calendarId', 'locationVisibility', 'source', 'sourceLabel', 'acquisition'];
 
-export function slimFeed(feed) {
+// Same door test as scripts/merge-approved-addresses.mjs: a leading house
+// number (not an ordinal street like 11th St) and any floor, suite or unit.
+const DOOR = /^\s*(?:no\.?\s*)?\d+[a-z]?(?:\s*[-–/]\s*\d+[a-z]?)?\s+/i;
+const UNIT = /[,(]?\s*(?:\b(?:suite|ste|apt|apartment|unit|floor|fl|room|rm)\b|#)\s*[\w-]+\)?/gi;
+export const streetOnly = (address) => String(address || '').replace(UNIT, '').replace(DOOR, '').replace(/\s{2,}/g, ' ').replace(/^[,\s]+|[,\s]+$/g, '');
+
+// Venues whose door is withheld (data/venue-overrides.json). The runtime hides
+// the door on the card; this makes the served feed itself carry the building
+// only, whatever the crawl recorded, so a downloaded feed reveals no more.
+let shippedDoorWithheld = null;
+function doorWithheldEntries() {
+  if (shippedDoorWithheld) return shippedDoorWithheld;
+  try {
+    const raw = JSON.parse(readFileSync(new URL('./data/venue-overrides.json', import.meta.url), 'utf8'));
+    shippedDoorWithheld = (raw.addresses || []).filter(entry => entry.doorWithheld !== false);
+  } catch { shippedDoorWithheld = []; }
+  return shippedDoorWithheld;
+}
+
+export function slimFeed(feed, { doorWithheld = doorWithheldEntries() } = {}) {
+  const byId = new Map(), byUrl = new Map();
+  for (const entry of doorWithheld) { if (entry.eventId) byId.set(entry.eventId, entry); if (entry.eventUrl) byUrl.set(entry.eventUrl, entry); }
   const events = feed.events.map(event => {
     const out = {};
     for (const [key, value] of Object.entries(event)) {
       if (DROP.includes(key)) continue;
       if (value == null || value === '' || (Array.isArray(value) && !value.length)) continue;
       out[key] = value;
+    }
+    const entry = byId.get(event.id) || byUrl.get(event.url) || byUrl.get(event.sourceUrl);
+    if (entry) {
+      delete out.mapUrl;
+      if (out.address) out.address = entry.street || streetOnly(out.address);
     }
     return out;
   });
