@@ -2,6 +2,7 @@
 // public TW API instead of patching the original file.
 //
 //   · Discord entry in the top-right corner
+//   · links still work where a new tab cannot open (Chrona's sandboxed frame)
 //   · camera clearance, nearby-player cards and venue signage
 //   · fly close to another player and a small card offers to follow them on X
 //
@@ -74,6 +75,20 @@ html.tw-fpv #tw-discord { opacity: .35; }
 #tw-who-list .tw-fly-beside { margin-left: 8px; padding: 4px 8px; border: 1px solid #34262f; background: #34262f; color: #f6ecd8;
   font: 700 10px/1 ui-monospace, Menlo, monospace; letter-spacing: .04em; cursor: pointer; }
 #tw-who-list .tw-fly-beside:hover { background: #12060c; }
+
+/* Shown when a link cannot open a new tab (Chrona's game frame refuses pop-ups). */
+#tw-linkbox { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 90; width: min(480px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 16px 18px 14px; border: 1px solid #34262f55; border-radius: 2px; background: #f6ecd8f8; color: #34262f;
+  font: 500 13px/1.4 "Avenir Next", "PingFang SC", sans-serif; box-shadow: 0 10px 30px #34262f33; }
+#tw-linkbox h4 { margin: 0 0 6px; font: 700 13px/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .04em; text-transform: uppercase; }
+#tw-linkbox p { margin: 0 0 10px; opacity: .82; }
+#tw-linkbox .tw-linkrow { display: flex; gap: 8px; }
+#tw-linkbox code { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #34262f55; background: #fff; color: #34262f; font: 600 13px/1.2 ui-monospace, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere; user-select: all; cursor: text; }
+#tw-linkbox button { padding: 8px 12px; border: 1px solid #34262f; background: #34262f; color: #f6ecd8; font: 700 12px/1 ui-monospace, Menlo, Consolas, monospace; cursor: pointer; }
+#tw-linkbox button:hover { background: #12060c; }
+#tw-linkbox button.tw-linkclose { background: none; color: #34262f; border-color: #34262f55; }
+#tw-linkbox button.tw-linkclose:hover { background: #fff; }
 `;
 
 const X_LOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-7 8 8.2 12h-6.4l-5-7.3L6 22H2.9l7.5-8.6L2.5 2H9l4.5 6.7L18.9 2Zm-1.1 18h1.7L7.3 3.8H5.5L17.8 20Z"/></svg>';
@@ -84,6 +99,73 @@ function injectStyles() {
   el.id = 'tw-extras-css';
   el.textContent = styles;
   document.head.appendChild(el);
+}
+
+/* ----------------------------------------------------------- external links */
+// Chrona hosts the game in an iframe sandboxed to scripts and pointer lock. In
+// that frame target="_blank" and window.open() are refused without a word, so
+// every link out of the city — Find the venue, RSVP, the calendar, Discord, X —
+// did nothing when clicked. When a new tab cannot open, show the address and
+// copy it instead: the classic execCommand copy still works in that sandbox,
+// the asynchronous Clipboard API is blocked by permissions policy.
+function showLink(url) {
+  document.getElementById('tw-linkbox')?.remove();
+  const box = document.createElement('div');
+  box.id = 'tw-linkbox';
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-label', 'Open this link in a new tab');
+  box.innerHTML = `<h4>Open in a new tab</h4><p></p>
+    <div class="tw-linkrow"><code class="tw-linkurl"></code><button type="button" class="tw-linkcopy">Copy</button><button type="button" class="tw-linkclose" aria-label="Close">✕</button></div>`;
+  const code = box.querySelector('code'), note = box.querySelector('p');
+  code.textContent = url;
+  // A Range selection copies without moving focus; focusing a field inside a
+  // cross-origin frame is what browsers refuse and log.
+  const selectUrl = () => {
+    const range = document.createRange(); range.selectNodeContents(code);
+    const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+  };
+  const copy = () => {
+    selectUrl();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch {}
+    if (ok) { note.textContent = 'This window cannot open new tabs. The link is copied — paste it into a new tab.'; return; }
+    note.textContent = 'This window cannot open new tabs. Copy the link and paste it into a new tab.';
+    navigator.clipboard?.writeText(url).then(() => { note.textContent = 'This window cannot open new tabs. The link is copied — paste it into a new tab.'; }, () => {});
+  };
+  box.querySelector('.tw-linkcopy').addEventListener('click', copy);
+  box.querySelector('.tw-linkclose').addEventListener('click', () => box.remove());
+  code.addEventListener('click', selectUrl);
+  document.body.appendChild(box);
+  copy();
+}
+
+function installLinkFallback() {
+  const nativeOpen = window.open.bind(window);
+  // Open without 'noopener': with it, open() returns null even when a tab did
+  // appear, so success could not be told from a refusal. The opener is severed
+  // by hand instead.
+  const openTab = url => {
+    let tab = null;
+    try { tab = nativeOpen(url, '_blank'); } catch { tab = null; }
+    if (tab) { try { tab.opener = null; } catch {} }
+    return tab;
+  };
+  window.open = function (url, target, features) {
+    if (!url || (target && target !== '_blank')) return nativeOpen(url, target, features);
+    const tab = openTab(String(url));
+    if (!tab) showLink(String(url));
+    return tab;
+  };
+  document.addEventListener('click', event => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const a = event.target.closest?.('a[href][target="_blank"]');
+    if (!a || !/^https?:/i.test(a.href)) return;
+    event.preventDefault();
+    if (!openTab(a.href)) showLink(a.href);
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') document.getElementById('tw-linkbox')?.remove();
+  });
 }
 
 /* ------------------------------------------------------------------ Discord */
@@ -1020,6 +1102,7 @@ function installSignPicking(TW, city, roots) {
   if (TW && TW.state && TW.state.ready && city) {
     try {
       injectStyles();
+      installLinkFallback();
       setTimeout(() => document.querySelector('.flight-hint')?.classList.add('tw-hint-fade'), 14000);
       mountDiscord();
       hideNetPanel();
