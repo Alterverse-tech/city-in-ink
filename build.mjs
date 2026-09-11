@@ -5,6 +5,7 @@ import { wireGameUi } from './ui-build.mjs';
 import { wireHoverFlight } from './flight-build.mjs';
 import { wirePersistentEventCards } from './event-card-build.mjs';
 import { wirePlayerStart } from './player-start-build.mjs';
+import { wireVenueLabels } from './venue-label-build.mjs';
 import { pathToFileURL } from 'node:url';
 
 // Product name. The original file still says "City in Ink"; every build renames
@@ -16,12 +17,9 @@ export function renderGame(source) {
 const marker = '<script>(()=>{var G1=Object.create;';
 if (source.split(marker).length !== 2) throw new Error('Expected the original game startup exactly once.');
 if (source.split('window.__sfCity=c,window.render_game_to_text').length !== 2) throw new Error('Expected the city time installation point exactly once.');
-return wirePlayerStart(wirePersistentEventCards(wireHoverFlight(wireGameUi(wireBootProgress(wireTuning(wireEventFeed(wireDialogs(wireBrand(wireTuningConfig(source))))))))))
+return wireVenueLabels(wirePlayerStart(wirePersistentEventCards(wireHoverFlight(wireGameUi(wireBootProgress(wireTuning(wireEventFeed(wireDialogs(wireBrand(wireTuningConfig(source)))))))))))
   .replace(marker, '<script type="module">\nimport "./city-time.mjs";\nimport "./event-card.mjs";\nimport "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./city-extras.mjs";\n(()=>{var G1=Object.create;')
   .replace('window.__sfCity=c,window.render_game_to_text', 'window.__sfCity=c,window.__sfInstallCityTime?.(c),window.render_game_to_text')
-  // The city's capture-phase shortcuts must also ignore the account shadow DOM.
-  .replace("if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select')) return; const k = e.key.toLowerCase();",
-    "if (e.composedPath().some(n => n instanceof HTMLElement && (n.matches('input,textarea,select') || n.id === 'sfnet'))) return; const k = e.key.toLowerCase();")
   .replace('</head>', '  <link rel="stylesheet" href="./multiplayer.css">\n  <link rel="stylesheet" href="./events-sync.css">\n</head>');
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

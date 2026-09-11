@@ -1,11 +1,40 @@
 // Keep the imported game's event bindings intact while simplifying its HUD.
 // These styles ship in the document head so removed controls never flash on load.
 import { DISCORD_INVITE } from './tuning-build.mjs';
+
+// Shared by the base controls and the capture-phase event-navigation shortcuts.
+// A camera/card button may retain focus after a click; typing movement keys
+// there should return to the bird, while editing and native activation stay UI.
+function flightKeyBlocked(event) {
+  const key = event.key.toLowerCase();
+  if (event.defaultPrevented || event.isComposing || event.metaKey || event.altKey ||
+    (event.ctrlKey && key !== 'control')) return true;
+  if (document.querySelector('dialog[open], #tw-modal:not([hidden]), [aria-modal="true"]:not([hidden])')) return true;
+  const path = event.composedPath ? event.composedPath() : [event.target];
+  if (path.some(node => node instanceof HTMLElement && (node.isContentEditable ||
+    node.closest('input,textarea,select,[role="dialog"],[role="menu"],[role="tablist"],#sfnet')))) return true;
+  return (key === ' ' || key === 'spacebar' || key === 'enter') && path.some(node =>
+    node instanceof HTMLElement && node.closest('button,a,[role="button"]'));
+}
+
 export function wireGameUi(html) {
   const replaceOnce = (from, to) => {
     if (html.split(from).length !== 2) throw new Error('Game UI patch target changed: ' + from.slice(0, 80));
     html = html.replace(from, to);
   };
+
+  replaceOnce('this.onKeyDown=e=>{if(e.key.toLowerCase()===',
+    `this.flightKeyBlocked=${flightKeyBlocked.toString()};this.onKeyDown=e=>{if(this.flightKeyBlocked(e))return;if(e.key.toLowerCase()===`);
+  replaceOnce('let a=e.key.toLowerCase(),n=e.target;if(n instanceof HTMLElement&&n.closest("button, a, input, textarea, select"))return;if(this.freeFlightEnabled)',
+    'let a=e.key.toLowerCase();if(this.freeFlightEnabled)');
+  replaceOnce('e.preventDefault(),this.flightInput[o]=!0;return',
+    'e.preventDefault(),this.focusScene(),this.flightInput[o]=!0;return');
+  replaceOnce("if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select')) return; const k = e.key.toLowerCase();",
+    "if (c?.flightKeyBlocked?.(e)) return; const k = e.key.toLowerCase();");
+  // Flight is now the only game mode. Escape may dismiss UI or stop a route,
+  // but must not enter the old explore mode whose launch control is hidden.
+  replaceOnce('J.key==="Escape"&&(m||v?(h(!1),y(!1)):d?p(!1):c&&f(!1))',
+    'J.key==="Escape"&&(m||v?(h(!1),y(!1)):(window.TW?.nav?.stop(true),t.current?.clearFlightInput(),c&&f(!1)))');
 
   // Public-address status should never stamp over the event artwork.
   replaceOnce(
