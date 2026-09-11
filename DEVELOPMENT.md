@@ -277,7 +277,7 @@ The script is the `SHOTS` table at the top of the file: one entry per shot with 
 | 1 | city (6 s) | same flight, the skyline and the airships | Every Tech Week event, in the city where it happens. |
 | 2 | airship (7 s) | `flyTo` the featured airship, arrive, circle | Airships fly over the busiest events. Pick one and your bird flies there. |
 | 3 | card (6 s) | circling with the event card open | RSVP in one click. Venue not public yet? The Discord knows. |
-| 4 | posters (6 s) | glide towards a facade wearing posters | Posters on the real facades. |
+| 4 | posters (6 s) | glide towards a facade wearing posters (offline: the host's hoarding) | Every event gets its poster in the city. |
 | 5 | friends (6 s) | a second bird beside yours, the neighbour card | See who is flying beside you. Follow them on X, or fly beside them. |
 | 6 | beak (6 s) | beak cam through a downtown street canyon | Chase cam or beak cam. Buildings are solid. |
 | 7 | cruise (6 s) | T: the auto-cruise towards the hottest event, nav chip on | Press T and your bird tours the hottest events for you. |

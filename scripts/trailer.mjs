@@ -46,7 +46,7 @@ export const SHOTS = [
   { id: 'card', seconds: 6, setup: null, inputs: {}, show: ['card'], captionSide: 'right',
     caption: { k: '03 · One click', t: 'RSVP in one click.', s: 'Venue not public yet? The Discord knows — and someone there gets you in.' } },
   { id: 'posters', seconds: 6, setup: 'posterWall', inputs: { backward: true },
-    caption: { k: '04 · Posters', t: 'Posters on the real facades.', s: 'Fly a block and read what’s on, building by building.' } },
+    caption: { k: '04 · Posters', t: 'Every event gets its poster in the city.', s: 'On the building where it happens. Fly a block and read what’s on.' } },
   { id: 'friends', seconds: 6, setup: 'friends', inputs: { backward: true }, show: ['neighbour'], companion: true,
     caption: { k: '05 · Who’s flying', t: 'See who is flying beside you.', s: 'Follow them on X, or fly beside them for a chat.' } },
   { id: 'beak', seconds: 6, setup: 'canyon', inputs: { forward: true }, view: 'fpv',
@@ -144,7 +144,8 @@ html.trailer #tw-neighbour { bottom: 150px; }
   const companionFollow = (t) => {
     if (!companion) return;
     const h = c.flightCharacter.rotation.y, P = c.flightCharacter.position;
-    const side = 9 + Math.sin(t * 0.9) * 0.8, ahead = -3 + Math.sin(t * 0.6) * 1.5, up = 1.2 + Math.sin(t * 1.3) * 0.5;
+    // A little ahead and to the right, where the chase camera can see it.
+    const side = 6 + Math.sin(t * 0.9) * 0.6, ahead = 8 + Math.sin(t * 0.6) * 1.5, up = 0.6 + Math.sin(t * 1.3) * 0.5;
     companion.root.position.set(P.x + Math.cos(h) * side + Math.sin(h) * ahead, P.y + up, P.z - Math.sin(h) * side + Math.cos(h) * ahead);
     companion.root.rotation.set(0, h, 0);
     companion.body.rotation.copy(c.flightPose.rotation);
@@ -200,17 +201,28 @@ html.trailer #tw-neighbour { bottom: 150px; }
     posterWall() {
       const signs = window.__twSigns; let pick = null;
       for (const ev of TW.state.events) {
-        if (!signs?.has(ev)) continue;
+        if (!signs?.anchorPoint?.(ev)) continue;              // a poster that is actually up (covers only load online)
         const vp = signs.visitPoint(ev); if (!vp) continue;
-        const score = (ev.rsvp || 0) + (ev.coverImg ? 50 : 0);
+        const score = ev.rsvp || 0;
         if (!pick || score > pick.score) pick = { ev, vp, score };
       }
-      if (!pick) { setups.vantage(); return; }
-      const { vp } = pick, back = 52;
-      const x = vp.x - Math.sin(vp.face) * back, z = vp.z - Math.cos(vp.face) * back;
-      const under = roofAt(x, z);
-      place(x, Math.max(vp.y + 4, Number.isFinite(under) ? under + 10 : 0), z, vp.face);
-      TW.select(pick.ev, { look: false });
+      if (pick) {
+        const { vp } = pick, back = 52;
+        const x = vp.x - Math.sin(vp.face) * back, z = vp.z - Math.cos(vp.face) * back;
+        const under = roofAt(x, z);
+        place(x, Math.max(vp.y + 4, Number.isFinite(under) ? under + 10 : 0), z, vp.face);
+        TW.select(pick.ev, { look: false });
+        return;
+      }
+      // Offline no cover arrives and no facade panel goes up: glide at the
+      // host's hoarding instead, the big poster on its plinth near the event.
+      const board = c.scene.getObjectByName('Host hoarding');
+      if (!board || !board.children.length) { setups.vantage(); return; }
+      const face = board.rotation.y, dist = 150;
+      const x = board.position.x + Math.sin(face) * dist, z = board.position.z + Math.cos(face) * dist;
+      const under = roofAt(x, z), boardY = board.children[0].position.y || 31;
+      place(x, Math.max(boardY + 2, Number.isFinite(under) ? under + 12 : 0), z, face + Math.PI);
+      TW.select(featured(), { look: false });
     },
     friends() {
       const ev = featured(); const A = ev.ship?.position || ev.world;
@@ -334,14 +346,24 @@ async function main() {
   const worker = async (bucket, w) => {
     const browser = await launch();   // its own process: two workers in one browser queue on the same renderer
     const context = await browser.newContext({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
-    await context.addInitScript(() => { try { localStorage.setItem('sf-ink-guide', '1'); localStorage.setItem('sf-ink-bird', JSON.stringify({ bird: 'parrot', name: 'you' })); } catch {} });
+    await context.addInitScript(() => {
+      try { localStorage.setItem('sf-ink-guide', '1'); localStorage.setItem('sf-ink-bird', JSON.stringify({ bird: 'parrot', name: 'you' })); } catch {}
+      // The streamed geometry says when the last tile is in; the wall index and the signage follow it.
+      window.addEventListener('sf-city-geometry-updated', e => { window.__trailerGeometryComplete = !!e.detail?.complete; });
+    });
     const page = await context.newPage();
     page.on('pageerror', e => console.error(`[w${w}] page error:`, e.message));
     await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.TW?.state?.ready && window.__twWalls && window.__sfCity?.freeFlightEnabled, null, { timeout: 240000 });
-    // The full programme and the signage arrive after the city is ready.
+    // The full programme, the last geometry tile, the wall index built from it
+    // and the signage planned on it all arrive after the city is ready.
     await page.waitForFunction(() => window.TW.state.events.length > 60, null, { timeout: 120000 }).catch(() => {});
-    let last = -1; for (let i = 0; i < 40; i++) { const n = await page.evaluate(() => window.__twSigns?.count() || 0); if (n > 0 && n === last) break; last = n; await page.waitForTimeout(1500); }
+    await page.waitForFunction(() => window.__trailerGeometryComplete === true, null, { timeout: 180000 }).catch(() => console.warn(`[w${w}] geometry streaming did not report completion; continuing`));
+    let last = ''; for (let i = 0; i < 120; i++) {
+      const now = await page.evaluate(() => `${window.__twWalls?.count || 0}/${window.__twSigns?.count() || 0}`);
+      if (!now.startsWith('0/') && !now.endsWith('/0') && now === last) break;
+      last = now; await page.waitForTimeout(1000);
+    }
     const info = await page.evaluate(installTrailer, { bird: 'parrot' });
     console.log(`[w${w}] city ready: ${info.events} events, ${info.signs} signed venues, ${info.walls} walls`);
     for (const s of bucket.sequences) {
