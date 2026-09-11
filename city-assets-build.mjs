@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { gunzipSync, gzipSync } from 'node:zlib';
+import { injectCityDecoder } from './city-decode.mjs';
 
 const ASSET_OPEN = '<script id="sf-city-assets" type="application/json">';
 const INLINE_FETCH = `(() => {
@@ -84,6 +85,43 @@ export function installCityAssetFetch(decodeIndices = decodeCityIndices) {
   const assets = JSON.parse(node.textContent);
   node.remove();
   const nativeFetch = window.fetch.bind(window), requests = new Map();
+  let cdnAvailable = true;
+  window.__sfFetchCityAsset = async (file, init) => {
+    const origin = new URL(file, document.baseURI);
+    const preferred = new URL(file, window.__CHRONA_ASSET_BASE__ || document.baseURI);
+    if (cdnAvailable && preferred.href !== origin.href) {
+      const controller = new AbortController();
+      const abort = () => controller.abort();
+      if (init?.signal?.aborted) throw new Error('City asset request aborted');
+      init?.signal?.addEventListener('abort', abort, { once: true });
+      const timer = setTimeout(abort, 12000);
+      try {
+        const response = await nativeFetch(preferred, { ...init, signal: controller.signal });
+        if (response.ok) {
+          // Keep the timeout active through body delivery, not just headers.
+          const bytes = await response.arrayBuffer();
+          return new Response(bytes, { status: response.status, headers: response.headers });
+        }
+        cdnAvailable = false;
+      } catch (error) {
+        if (init?.signal?.aborted) throw error;
+        cdnAvailable = false;
+      } finally { clearTimeout(timer); init?.signal?.removeEventListener('abort', abort); }
+    }
+    // Bound origin fallback through body delivery too. A stalled optional
+    // north-shore file cannot leave the background stream pending forever.
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    if (init?.signal?.aborted) throw new Error('City asset request aborted');
+    init?.signal?.addEventListener('abort', abort, { once: true });
+    const timer = setTimeout(abort, 30000);
+    try {
+      const response = await nativeFetch(origin, { ...init, signal: controller.signal });
+      if (!response.ok) return response;
+      const bytes = await response.arrayBuffer();
+      return new Response(bytes, { status: response.status, headers: response.headers });
+    } finally { clearTimeout(timer); init?.signal?.removeEventListener('abort', abort); }
+  };
   window.fetch = (input, init) => {
     const href = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     let pathname = href;
@@ -95,15 +133,16 @@ export function installCityAssetFetch(decodeIndices = decodeCityIndices) {
     // Reuse compressed bytes without sharing a consumed Response body. Failed
     // requests are evicted so the game's existing retry can fetch them again.
     if (!requests.has(pathname)) {
-      const pending = nativeFetch(new URL(file, document.baseURI)).then(async response => {
+      const pending = window.__sfFetchCityAsset(file).then(async response => {
         if (!response.ok) throw new Error(`City asset ${response.status}: ${pathname}`);
         return new Uint8Array(await response.arrayBuffer());
       }).catch(error => { requests.delete(pathname); throw error; });
       requests.set(pathname, pending);
     }
-    return requests.get(pathname).then(compressed => {
-      const inflated = window.__sfGunzip(compressed);
-      const bytes = typeof entry === 'string' ? inflated : decodeIndices(inflated, entry);
+    return requests.get(pathname).then(async compressed => {
+      const bytes = window.__sfDecodeCityAsset
+        ? await window.__sfDecodeCityAsset(compressed, typeof entry === 'string' ? undefined : entry)
+        : (typeof entry === 'string' ? window.__sfGunzip(compressed) : decodeIndices(window.__sfGunzip(compressed), entry));
       const type = pathname.endsWith('.json') ? 'application/json' : 'application/octet-stream';
       return new Response(bytes, { status: 200, headers: { 'Content-Type': type } });
     });
@@ -132,7 +171,7 @@ export function splitCityAssets(source) {
   }
   const html = (source.slice(0, contentStart) + JSON.stringify(paths) + source.slice(end))
     .replace(INLINE_FETCH, `(${installCityAssetFetch.toString()})(${decodeCityIndices.toString()});`);
-  return { html, files, assetCount: Object.keys(paths).length };
+  return { html: injectCityDecoder(html, decodeCityIndices), files, assetCount: Object.keys(paths).length };
 }
 
 export async function writeCityAssets(files, directory) {
