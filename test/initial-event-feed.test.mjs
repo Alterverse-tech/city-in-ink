@@ -20,8 +20,17 @@ test('the genuine Saturday host event is in the 49-entry startup feed with exact
   assert.equal(initial.events.length, 49);
   assert.equal(initial.events[0].id, INITIAL_FEATURED_EVENT_ID);
   assert.deepEqual(initial.events[0], slimFeed({ events: [source] }).events[0]);
-  assert.equal(initial.events[0].rsvp, 0);
-  for (const field of ['lat', 'lng', 'address', 'venue', 'capacity']) assert.equal(field in initial.events[0], false, `${field} must not be invented`);
+  // The organiser can publish or withhold the guest count at any time, and this
+  // event now withholds it. Tie the assertion to what the source published, so
+  // the guard still catches an invented number without pinning one snapshot's
+  // value: a withheld count stays absent and never becomes a zero.
+  assert.equal(initial.events[0].rsvp ?? null, source.rsvp ?? null);
+  // Location is still withheld for this event, so those fields must stay absent.
+  // Capacity is now published on the page, so the guard compares against the
+  // source: the entry may carry a sourced number, never one we made up.
+  const slimSource = slimFeed({ events: [source] }).events[0];
+  for (const field of ['lat', 'lng', 'address', 'venue']) assert.equal(field in initial.events[0], false, `${field} must not be invented`);
+  assert.equal(initial.events[0].capacity ?? null, slimSource.capacity ?? null, 'capacity must not be invented');
   assert.equal(initial.coverage.complete, false);
   assert.equal(initial.coverage.events, 49);
   assert.equal(initial.coverage.lastStart, source.start);
