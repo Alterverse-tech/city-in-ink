@@ -4,6 +4,7 @@
 //   · Discord entry in the top-right corner
 //   · links still work where a new tab cannot open (Chrona's sandboxed frame)
 //   · flight school: the first minute, one move at a time, ticked off as it is done
+//   · solid buildings, and a chase camera that settles behind the bird once it flies
 //   · camera clearance, nearby-player cards and venue signage
 //   · fly close to another player and a small card offers to follow them on X
 //
@@ -397,6 +398,81 @@ function installNeighbourCard(TW, city) {
     if (closest && best < NEAR_PLAYER && closest.id !== current) show(closest);
     else if (card && (best > LEAVE_PLAYER || !closest)) remove();
   }, 700);
+}
+
+/* ------------------------------------------------------ solid, steady flight */
+// Two things the engine leaves out. Buildings are solid: after each flight
+// step the wall index (the one the signage and the chase camera already read)
+// pushes the bird back out of any facade it crossed, and a roof it comes down
+// on carries it. And the chase camera follows: a dragged orbit offset is kept
+// while the bird hovers, so the city can be looked at from any side, but as
+// soon as the player flies the camera eases back behind the bird — forward
+// must never mean "towards the viewer". A guided flight circling its event
+// keeps the camera on the event, as before.
+const BIRD_RADIUS = 1.6;   // metres from a facade the body stops at
+const ROOF_REST = 1.2;     // metres above a roof the bird settles
+const WALL_EDGE = 5;       // metres: this close to an indexed wall, the wall decides, not the coarse roof grid
+const CAMERA_FOLLOW = 3;   // per second: how fast the orbit eases back behind the bird
+
+const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
+const anyFlightInput = i => !!(i && (i.forward || i.backward || i.left || i.right || i.up || i.down));
+
+function settleAgainstWalls(city, walls, before) {
+  const p = city.flightCharacter.position, v = city.flightVelocity;
+  let nearestWall = Infinity;
+  for (let pass = 0; pass < 2; pass += 1) {
+    let pushed = false;
+    for (const seg of walls.near(p.x, p.z, BIRD_RADIUS + WALL_EDGE)) {
+      if (p.y < seg.y0 - 0.5 || p.y > seg.y1 + 0.5) continue;
+      const { d, t } = segmentDistance(p.x, p.z, seg);
+      if (d < nearestWall) nearestWall = d;
+      if (d >= BIRD_RADIUS) continue;
+      const cx = seg.ax + (seg.bx - seg.ax) * t, cz = seg.az + (seg.bz - seg.az) * t;
+      let nx = p.x - cx, nz = p.z - cz;
+      const nl = Math.hypot(nx, nz);
+      // On the wall, or already through it: out along the facade's own normal.
+      if (nl < 1e-6 || nx * seg.nx + nz * seg.nz < 0) { nx = seg.nx; nz = seg.nz; }
+      else { nx /= nl; nz /= nl; }
+      p.x = cx + nx * BIRD_RADIUS; p.z = cz + nz * BIRD_RADIUS;
+      const into = v.x * nx + v.z * nz;
+      if (into < 0) { v.x -= nx * into; v.z -= nz * into; }   // slide along the glass
+      pushed = true;
+    }
+    if (!pushed) break;
+  }
+  // The roof grid catches what the walls miss: low or short facades that were
+  // never indexed, party walls, and a facade crossed in one fast step.
+  const roof = walls.roofAt(p.x, p.z);
+  if (!Number.isFinite(roof) || p.y >= roof + ROOF_REST) return;
+  if (nearestWall < WALL_EDGE) return;                        // at a facade the grid is coarse; the wall above has spoken
+  const roofBefore = walls.roofAt(before.x, before.z);
+  if (before.y >= roof + ROOF_REST - 0.05) {                  // came down onto the roof: rest on it
+    p.y = roof + ROOF_REST; if (v.y < 0) v.y = 0; return;
+  }
+  if (!Number.isFinite(roofBefore) || before.y >= roofBefore + ROOF_REST - 0.05) {   // flew into the building: stop at its wall
+    p.x = before.x; p.z = before.z; v.x = 0; v.z = 0; city.gullSpeed = 0; return;
+  }
+  p.y = roof + ROOF_REST; if (v.y < 0) v.y = 0;               // already inside (placed there): out onto the roof
+}
+
+function installSolidFlight(TW, city) {
+  if (typeof city.updateGullFlight !== 'function' || !city.flightCharacter || !city.flightVelocity) return;
+  const previous = city.updateGullFlight.bind(city);
+  city.updateGullFlight = function (delta) {
+    if (!city.freeFlightEnabled) return previous(delta);
+    const p = city.flightCharacter.position;
+    const before = { x: p.x, y: p.y, z: p.z };
+    const moving = anyFlightInput(city.flightInput);
+    previous(delta);
+    const walls = window.__twWalls;
+    if (walls && typeof walls.near === 'function' && typeof walls.roofAt === 'function') settleAgainstWalls(city, walls, before);
+    if (!moving || city.drag || TW.nav?.phase === 'circle') return;
+    const dt = Math.min(Math.max(delta, 0), 0.05);
+    const off = wrapAngle(city.flightCharacter.rotation.y + Math.PI - city.yaw);
+    if (Math.abs(off) < 0.002) return;
+    city.yaw += off * (1 - Math.exp(-CAMERA_FOLLOW * dt));
+    city.applyOrbit();
+  };
 }
 
 /* ------------------------------------- Tokyo-style signage on busy buildings */
@@ -1207,6 +1283,7 @@ function installSignPicking(TW, city, roots) {
       installModalEscape();
       installFlightGuide(TW, city);
       installCameraClearance(TW, city);
+      installSolidFlight(TW, city);
       installFleetDistance(TW, city);
       installNeighbourCard(TW, city);
       const signage = buildBillboards(TW, city);
