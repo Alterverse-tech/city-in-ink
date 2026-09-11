@@ -3,6 +3,8 @@
 //
 //   · Discord entry in the top-right corner
 //   · links still work where a new tab cannot open (Chrona's sandboxed frame)
+//   · flight school: the first minute, one move at a time, ticked off as it is done
+//   · solid buildings, and a chase camera that settles behind the bird once it flies
 //   · camera clearance, nearby-player cards and venue signage
 //   · fly close to another player and a small card offers to follow them on X
 //
@@ -76,6 +78,24 @@ html.tw-fpv #tw-discord { opacity: .35; }
   font: 700 10px/1 ui-monospace, Menlo, monospace; letter-spacing: .04em; cursor: pointer; }
 #tw-who-list .tw-fly-beside:hover { background: #12060c; }
 
+/* Flight school: one move at a time, above the toast, below nothing else. */
+#tw-guide { position: fixed; left: 50%; bottom: 152px; transform: translateX(-50%); z-index: 66; width: min(440px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 10px 14px 12px; border: 1px solid #34262f55; border-radius: 2px; background: #f6ecd8f2; color: #34262f;
+  font: 500 14px/1.45 "Avenir Next", "PingFang SC", sans-serif; box-shadow: 0 8px 24px #34262f26;
+  animation: tw-neighbour-in .18s ease-out; transition: border-color .2s, opacity .5s; }
+#tw-guide .tw-guide-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px;
+  font: 700 10px/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+#tw-guide .tw-guide-dots { letter-spacing: .2em; font-size: 9px; }
+#tw-guide .tw-guide-skip { margin-left: auto; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; opacity: .7; cursor: pointer; padding: 2px 0; text-decoration: underline; }
+#tw-guide .tw-guide-skip:hover { opacity: 1; }
+#tw-guide p { margin: 0; }
+#tw-guide kbd { display: inline-block; min-width: 1.3em; padding: 0 6px; border: 1px solid #34262f; border-bottom-width: 2px; border-radius: 3px; background: #fff;
+  font: 700 12px/1.55 ui-monospace, Menlo, Consolas, monospace; text-align: center; }
+#tw-guide.tw-guide-tick { border-color: #4e8a5a; }
+#tw-guide.tw-guide-tick p::before { content: '✓  '; color: #4e8a5a; font-weight: 700; }
+#tw-guide.tw-guide-finished { opacity: 0; transition: opacity .6s 5.5s; }
+html.tw-fpv #tw-guide { opacity: .92; }
+
 /* Shown when a link cannot open a new tab (Chrona's game frame refuses pop-ups). */
 #tw-linkbox { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 90; width: min(480px, calc(100vw - 32px)); box-sizing: border-box;
   padding: 16px 18px 14px; border: 1px solid #34262f55; border-radius: 2px; background: #f6ecd8f8; color: #34262f;
@@ -108,15 +128,37 @@ function injectStyles() {
 // did nothing when clicked. When a new tab cannot open, show the address and
 // copy it instead: the classic execCommand copy still works in that sandbox,
 // the asynchronous Clipboard API is blocked by permissions policy.
+// What the box says depends on where the link goes: the Discord invite is
+// where the exact address and a way in are found, so say that; any other
+// link is named by its site.
+function linkCopy(url) {
+  if (url.startsWith(DISCORD_INVITE)) {
+    return {
+      title: 'The venue is in the Discord',
+      copied: 'The exact address, and someone to get you in, are in the Discord. The invite link is copied — paste it into a new tab to join.',
+      manual: 'The exact address, and someone to get you in, are in the Discord. Copy the invite link and paste it into a new tab to join.',
+    };
+  }
+  let host = '';
+  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+  return {
+    title: host ? `Open ${host} in a new tab` : 'Open in a new tab',
+    copied: 'This window cannot open new tabs. The link is copied — paste it into a new tab.',
+    manual: 'This window cannot open new tabs. Copy the link and paste it into a new tab.',
+  };
+}
+
 function showLink(url) {
   document.getElementById('tw-linkbox')?.remove();
+  const text = linkCopy(url);
   const box = document.createElement('div');
   box.id = 'tw-linkbox';
   box.setAttribute('role', 'dialog');
-  box.setAttribute('aria-label', 'Open this link in a new tab');
-  box.innerHTML = `<h4>Open in a new tab</h4><p></p>
+  box.setAttribute('aria-label', text.title);
+  box.innerHTML = `<h4></h4><p></p>
     <div class="tw-linkrow"><code class="tw-linkurl"></code><button type="button" class="tw-linkcopy">Copy</button><button type="button" class="tw-linkclose" aria-label="Close">✕</button></div>`;
   const code = box.querySelector('code'), note = box.querySelector('p');
+  box.querySelector('h4').textContent = text.title;
   code.textContent = url;
   // A Range selection copies without moving focus; focusing a field inside a
   // cross-origin frame is what browsers refuse and log.
@@ -128,9 +170,9 @@ function showLink(url) {
     selectUrl();
     let ok = false;
     try { ok = document.execCommand('copy'); } catch {}
-    if (ok) { note.textContent = 'This window cannot open new tabs. The link is copied — paste it into a new tab.'; return; }
-    note.textContent = 'This window cannot open new tabs. Copy the link and paste it into a new tab.';
-    navigator.clipboard?.writeText(url).then(() => { note.textContent = 'This window cannot open new tabs. The link is copied — paste it into a new tab.'; }, () => {});
+    if (ok) { note.textContent = text.copied; return; }
+    note.textContent = text.manual;
+    navigator.clipboard?.writeText(url).then(() => { note.textContent = text.copied; }, () => {});
   };
   box.querySelector('.tw-linkcopy').addEventListener('click', copy);
   box.querySelector('.tw-linkclose').addEventListener('click', () => box.remove());
@@ -172,6 +214,103 @@ function installLinkFallback() {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') document.getElementById('tw-linkbox')?.remove();
   });
+}
+
+/* ------------------------------------------------------------ flight school */
+// The first minute in the city, one move at a time. A step waits until the
+// player has actually done the thing — read from the flight input and the
+// camera state, with the keys themselves as the fallback — ticks it off, and
+// hands over to the next. Shown once per browser; Skip ends it for good.
+// Keyboard only, so touch devices never see it.
+const GUIDE_KEY = 'sf-ink-guide';
+const GUIDE_STEPS = [
+  { text: 'Hold <kbd>W</kbd> to fly forward, <kbd>S</kbd> to slow down and glide.',
+    keys: /^(w|s|arrowup|arrowdown)$/, input: i => i.forward || i.backward },
+  { text: '<kbd>A</kbd> and <kbd>D</kbd> turn. The arrow keys work too.',
+    keys: /^(a|d|arrowleft|arrowright)$/, input: i => i.left || i.right },
+  { text: '<kbd>Space</kbd> climbs, <kbd>C</kbd> dives.',
+    keys: /^( |c)$/, input: i => i.up || i.down },
+  { text: '<kbd>V</kbd> switches the camera: chase cam or beak cam.',
+    keys: /^v$/, view: true },
+  { text: 'Fly a little, then let go of every key — the bird hovers. That is your pause. <kbd>Esc</kbd> stops a guided flight, <kbd>T</kbd> starts the cruise.',
+    keys: /^escape$/, hover: true },
+];
+const GUIDE_DONE = 'That is the city. <kbd>Shift</kbd> boosts, <kbd>U</kbd> hides the interface, and any event card flies you there.';
+const GUIDE_START_DELAY = 3000;  // ms after the world is ready; the welcome toast goes first
+const GUIDE_HOVER_MS = 1200;     // no input this long counts as a deliberate hover
+const GUIDE_TICK_MS = 750;       // the check mark stays this long before the next step
+
+function installFlightGuide(TW, city) {
+  if (!city || !TW?.state) return;
+  try { if (localStorage.getItem(GUIDE_KEY)) return; } catch {}
+  if (window.matchMedia?.('(pointer: coarse)').matches) return;
+  const bootAt = performance.now();
+  let el = null, step = -1, ctx = null, timer = 0;
+  const remember = () => { try { localStorage.setItem(GUIDE_KEY, String(Date.now())); } catch {} };
+  const anyInput = i => !!(i.forward || i.backward || i.left || i.right || i.up || i.down);
+  const ticking = () => !!el?.classList.contains('tw-guide-tick');
+
+  function render(text) {
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'tw-guide'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+      el.innerHTML = '<div class="tw-guide-head"><span class="tw-guide-label"></span><span class="tw-guide-dots" aria-hidden="true"></span><button type="button" class="tw-guide-skip">Skip</button></div><p></p>';
+      el.querySelector('.tw-guide-skip').addEventListener('click', () => finish(true));
+      document.body.appendChild(el);
+    }
+    const n = GUIDE_STEPS.length;
+    el.querySelector('.tw-guide-label').textContent = step < n ? `Flight school · ${step + 1}/${n}` : 'Flight school';
+    el.querySelector('.tw-guide-dots').textContent = GUIDE_STEPS.map((_, i) => i < step ? '●' : i === step ? '◉' : '○').join('');
+    el.querySelector('p').innerHTML = text;
+  }
+  function show(i) {
+    step = i;
+    ctx = { view: TW.state.view, moved: false, lastInput: 0, key: false };
+    render(GUIDE_STEPS[i].text);
+  }
+  function stop() {
+    clearInterval(timer); timer = 0;
+    window.removeEventListener('keydown', onKey, true);
+  }
+  function finish(skipped) {
+    remember(); stop();
+    if (skipped || !el) { el?.remove(); el = null; return; }
+    step = GUIDE_STEPS.length;
+    render(GUIDE_DONE);
+    el.querySelector('.tw-guide-skip').hidden = true;
+    el.classList.add('tw-guide-finished');
+    setTimeout(() => { el?.remove(); el = null; }, 6500);
+  }
+  function advance() {
+    el.classList.add('tw-guide-tick');
+    setTimeout(() => {
+      if (!el) return;
+      el.classList.remove('tw-guide-tick');
+      if (step + 1 < GUIDE_STEPS.length) show(step + 1); else finish(false);
+    }, GUIDE_TICK_MS);
+  }
+  function onKey(event) {
+    if (step < 0 || ticking() || !ctx) return;
+    if (event.target instanceof HTMLElement && event.target.closest('input,textarea,select')) return;
+    if (GUIDE_STEPS[step].keys.test(event.key.toLowerCase())) ctx.key = true;
+  }
+  function tick() {
+    if (step < 0) {
+      if (city.freeFlightEnabled && performance.now() - bootAt >= GUIDE_START_DELAY) show(0);
+      return;
+    }
+    if (!el) return;
+    el.hidden = !!document.querySelector('.city-shell.ui-hidden');
+    if (ticking() || !ctx) return;
+    const current = GUIDE_STEPS[step], input = city.flightInput || {}, now = performance.now();
+    if (anyInput(input)) { ctx.moved = true; ctx.lastInput = now; }
+    let done = ctx.key || !!(current.input && current.input(input));
+    if (current.view && TW.state.view !== ctx.view) done = true;
+    if (current.hover && (!city.freeFlightEnabled || (ctx.moved && now - ctx.lastInput >= GUIDE_HOVER_MS))) done = true;
+    if (done) advance();
+  }
+  window.addEventListener('keydown', onKey, true);
+  timer = setInterval(tick, 80);
 }
 
 /* ------------------------------------------------------------------ Discord */
@@ -307,6 +446,81 @@ function installNeighbourCard(TW, city) {
     if (closest && best < NEAR_PLAYER && closest.id !== current) show(closest);
     else if (card && (best > LEAVE_PLAYER || !closest)) remove();
   }, 700);
+}
+
+/* ------------------------------------------------------ solid, steady flight */
+// Two things the engine leaves out. Buildings are solid: after each flight
+// step the wall index (the one the signage and the chase camera already read)
+// pushes the bird back out of any facade it crossed, and a roof it comes down
+// on carries it. And the chase camera follows: a dragged orbit offset is kept
+// while the bird hovers, so the city can be looked at from any side, but as
+// soon as the player flies the camera eases back behind the bird — forward
+// must never mean "towards the viewer". A guided flight circling its event
+// keeps the camera on the event, as before.
+const BIRD_RADIUS = 1.6;   // metres from a facade the body stops at
+const ROOF_REST = 1.2;     // metres above a roof the bird settles
+const WALL_EDGE = 5;       // metres: this close to an indexed wall, the wall decides, not the coarse roof grid
+const CAMERA_FOLLOW = 3;   // per second: how fast the orbit eases back behind the bird
+
+const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
+const anyFlightInput = i => !!(i && (i.forward || i.backward || i.left || i.right || i.up || i.down));
+
+function settleAgainstWalls(city, walls, before) {
+  const p = city.flightCharacter.position, v = city.flightVelocity;
+  let nearestWall = Infinity;
+  for (let pass = 0; pass < 2; pass += 1) {
+    let pushed = false;
+    for (const seg of walls.near(p.x, p.z, BIRD_RADIUS + WALL_EDGE)) {
+      if (p.y < seg.y0 - 0.5 || p.y > seg.y1 + 0.5) continue;
+      const { d, t } = segmentDistance(p.x, p.z, seg);
+      if (d < nearestWall) nearestWall = d;
+      if (d >= BIRD_RADIUS) continue;
+      const cx = seg.ax + (seg.bx - seg.ax) * t, cz = seg.az + (seg.bz - seg.az) * t;
+      let nx = p.x - cx, nz = p.z - cz;
+      const nl = Math.hypot(nx, nz);
+      // On the wall, or already through it: out along the facade's own normal.
+      if (nl < 1e-6 || nx * seg.nx + nz * seg.nz < 0) { nx = seg.nx; nz = seg.nz; }
+      else { nx /= nl; nz /= nl; }
+      p.x = cx + nx * BIRD_RADIUS; p.z = cz + nz * BIRD_RADIUS;
+      const into = v.x * nx + v.z * nz;
+      if (into < 0) { v.x -= nx * into; v.z -= nz * into; }   // slide along the glass
+      pushed = true;
+    }
+    if (!pushed) break;
+  }
+  // The roof grid catches what the walls miss: low or short facades that were
+  // never indexed, party walls, and a facade crossed in one fast step.
+  const roof = walls.roofAt(p.x, p.z);
+  if (!Number.isFinite(roof) || p.y >= roof + ROOF_REST) return;
+  if (nearestWall < WALL_EDGE) return;                        // at a facade the grid is coarse; the wall above has spoken
+  const roofBefore = walls.roofAt(before.x, before.z);
+  if (before.y >= roof + ROOF_REST - 0.05) {                  // came down onto the roof: rest on it
+    p.y = roof + ROOF_REST; if (v.y < 0) v.y = 0; return;
+  }
+  if (!Number.isFinite(roofBefore) || before.y >= roofBefore + ROOF_REST - 0.05) {   // flew into the building: stop at its wall
+    p.x = before.x; p.z = before.z; v.x = 0; v.z = 0; city.gullSpeed = 0; return;
+  }
+  p.y = roof + ROOF_REST; if (v.y < 0) v.y = 0;               // already inside (placed there): out onto the roof
+}
+
+function installSolidFlight(TW, city) {
+  if (typeof city.updateGullFlight !== 'function' || !city.flightCharacter || !city.flightVelocity) return;
+  const previous = city.updateGullFlight.bind(city);
+  city.updateGullFlight = function (delta) {
+    if (!city.freeFlightEnabled) return previous(delta);
+    const p = city.flightCharacter.position;
+    const before = { x: p.x, y: p.y, z: p.z };
+    const moving = anyFlightInput(city.flightInput);
+    previous(delta);
+    const walls = window.__twWalls;
+    if (walls && typeof walls.near === 'function' && typeof walls.roofAt === 'function') settleAgainstWalls(city, walls, before);
+    if (!moving || city.drag || TW.nav?.phase === 'circle') return;
+    const dt = Math.min(Math.max(delta, 0), 0.05);
+    const off = wrapAngle(city.flightCharacter.rotation.y + Math.PI - city.yaw);
+    if (Math.abs(off) < 0.002) return;
+    city.yaw += off * (1 - Math.exp(-CAMERA_FOLLOW * dt));
+    city.applyOrbit();
+  };
 }
 
 /* ------------------------------------- Tokyo-style signage on busy buildings */
@@ -1115,7 +1329,9 @@ function installSignPicking(TW, city, roots) {
       hideNetPanel();
       mountWhoIsHere();
       installModalEscape();
+      installFlightGuide(TW, city);
       installCameraClearance(TW, city);
+      installSolidFlight(TW, city);
       installFleetDistance(TW, city);
       installNeighbourCard(TW, city);
       const signage = buildBillboards(TW, city);
