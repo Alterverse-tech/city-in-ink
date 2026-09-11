@@ -109,7 +109,7 @@ test('Profile bridge rejects arbitrary destinations and non-string handles', () 
 
 test('The actual proximity card uses textContent and wires its Follow click to the bridge', () => {
   const f = fixture();
-  f.window.__sfNet = { players: [{ id: 'peer', name: 'pengpeng1366', connected: true, position: { x: 10, y: 0, z: 0 }, color: '#fff' }] };
+  f.window.__sfNet = { state: 'room', players: [{ id: 'peer', name: 'pengpeng1366', connected: true, position: { x: 10, y: 0, z: 0 }, color: '#fff' }] };
   f.installNeighbourCard({}, { freeFlightEnabled: true, flightCharacter: { position: { x: 0, y: 0, z: 0 } } });
   f.ticks[0]();
   assert.equal(f.nodes.length, 1);
@@ -128,7 +128,7 @@ test('The actual proximity card uses textContent and wires its Follow click to t
 
 test('A nearer player with no valid profile cannot leave a stale Follow card behind', () => {
   const f = fixture();
-  f.window.__sfNet = { players: [{ id: 'peer', name: 'valid_name', connected: true, position: { x: 10, y: 0, z: 0 } }] };
+  f.window.__sfNet = { state: 'room', players: [{ id: 'peer', name: 'valid_name', connected: true, position: { x: 10, y: 0, z: 0 } }] };
   f.installNeighbourCard({}, { freeFlightEnabled: true, flightCharacter: { position: { x: 0, y: 0, z: 0 } } });
   f.ticks[0]();
   assert.equal(f.nodes.length, 1);
@@ -137,10 +137,49 @@ test('A nearer player with no valid profile cannot leave a stale Follow card beh
   assert.equal(f.nodes.length, 0);
 });
 
+test('Leaving the room removes a Follow card even if the old player list is retained', () => {
+  for (const state of ['offline', 'connecting', 'reconnecting']) {
+    const f = fixture();
+    f.window.__sfNet = { state: 'room', players: [{ id: 'peer', name: 'valid_name', connected: true, position: { x: 10, y: 0, z: 0 } }] };
+    f.installNeighbourCard({}, { freeFlightEnabled: true, flightCharacter: { position: { x: 0, y: 0, z: 0 } } });
+    f.ticks[0](); assert.equal(f.nodes.length, 1);
+    f.window.__sfNet.state = state;
+    f.ticks[0](); assert.equal(f.nodes.length, 0, state);
+  }
+});
+
+test('A departed player cannot keep their card through a different player in the hysteresis band', () => {
+  for (const departure of ['removed', 'disconnected', 'unpositioned']) {
+    const f = fixture();
+    const peer = { id: 'peer', name: 'valid_name', connected: true, position: { x: 10, y: 0, z: 0 } };
+    const other = { id: 'other', name: 'other_name', connected: true, position: { x: 100, y: 0, z: 0 } };
+    f.window.__sfNet = { state: 'room', players: [peer, other] };
+    f.installNeighbourCard({}, { freeFlightEnabled: true, flightCharacter: { position: { x: 0, y: 0, z: 0 } } });
+    f.ticks[0](); assert.equal(f.nodes.length, 1);
+    if (departure === 'removed') f.window.__sfNet.players = [other];
+    else if (departure === 'disconnected') peer.connected = false;
+    else peer.position = null;
+    f.ticks[0](); assert.equal(f.nodes.length, 0, departure);
+    other.position.x = 20;
+    f.ticks[0](); assert.equal(f.nodes.length, 1);
+    assert.equal(f.nodes[0].querySelector('b').textContent, '@other_name');
+  }
+});
+
+test('A still-connected current player retains the existing distance hysteresis', () => {
+  const f = fixture();
+  const peer = { id: 'peer', name: 'valid_name', connected: true, position: { x: 10, y: 0, z: 0 } };
+  f.window.__sfNet = { state: 'room', players: [peer] };
+  f.installNeighbourCard({}, { freeFlightEnabled: true, flightCharacter: { position: { x: 0, y: 0, z: 0 } } });
+  f.ticks[0](); const card = f.nodes[0];
+  peer.position.x = 100; f.ticks[0](); assert.equal(f.nodes[0], card);
+  peer.position.x = 160; f.ticks[0](); assert.equal(f.nodes.length, 0);
+});
+
 test('Generic capture handling yields to the hosted X card before its target handler runs', () => {
   const f = fixture();
   f.installLinkFallback();
-  f.window.__sfNet = { players: [{ id: 'peer', name: 'pengpeng1366', connected: true, position: { x: 10, y: 0, z: 0 } }] };
+  f.window.__sfNet = { state: 'room', players: [{ id: 'peer', name: 'pengpeng1366', connected: true, position: { x: 10, y: 0, z: 0 } }] };
   f.installNeighbourCard({}, { freeFlightEnabled: true, flightCharacter: { position: { x: 0, y: 0, z: 0 } } });
   f.ticks[0]();
   const follow = f.nodes[0].querySelector('.tw-follow');

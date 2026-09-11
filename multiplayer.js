@@ -21,6 +21,9 @@ let c, T, tw, presence, connecting = false, disposed = false, errorText = '', au
 let attemptedUserId = '';
 let room = { state: 'offline', roomCode: null, players: [], count: 0, ping: 0 };
 let lastSnapshot = 0, lastRoster = '', lastName = '', accumulator = 0, stale = false;
+const REMOTE_STALE_MS = 8000;
+const connectionActivity = new Map(), representativeIds = new Map();
+let lastAuthorityMarker = null;
 const remotes = new Map();
 const colors = ['#c6583c', '#3f7f8c', '#6b5b95', '#4e8a5a', '#b58026', '#c46a8a'];
 const colorFor = id => colors[[...String(id)].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 0) % colors.length];
@@ -65,9 +68,10 @@ function renderUI() {
   const online = room.state === 'room';
   const busy = connecting || room.state === 'connecting';
   panel.dataset.online = String(online && !stale);
-  $('summary').textContent = online ? `Public World · ${distinctPlayers(room.players.filter(p => p.connected)).length || room.count} flying${stale ? ' · reconnecting' : ''}` : busy ? 'Entering the public World…' : 'Public World · Fly together';
+  const visiblePlayers = connectedPlayers();
+  $('summary').textContent = online ? `Public World · ${visiblePlayers.length} flying${stale ? ' · reconnecting' : ''}` : busy ? 'Entering the public World…' : 'Public World · Fly together';
   $('status').textContent = busy ? 'Joining everyone in the public World…' : stale ? 'Connection interrupted. Waiting for the server; you can also reconnect below.'
-    : online ? `${room.count} players in this shard · ${room.ping || '—'} ms · World has no total player cap.`
+    : online ? `${visiblePlayers.length} players in this shard · ${room.ping || '—'} ms · World has no total player cap.`
     : authState?.userId ? 'Enter the public World to fly with everyone.' : 'Sign in to automatically join the public World. Solo flight is always available.';
   $('lobby').hidden = online;
   $('connected').hidden = !online;
@@ -77,7 +81,6 @@ function renderUI() {
   $('retry').disabled = busy;
   $('error').hidden = !errorText;
   $('error').textContent = errorText;
-  const visiblePlayers = distinctPlayers(room.players.filter(player => player.connected));
   const roster = JSON.stringify(visiblePlayers.map(p => [p.id, p.name, p.self]));
   if (roster !== lastRoster) {
     lastRoster = roster;
@@ -147,12 +150,8 @@ async function connect() {
     if (!presence) {
       presence = await chrona.presence({ gameId: world.gameId, worldId: world.id,
         livemode: world.livemode ?? PUBLIC_WORLD.livemode, snapDistance: 2, interpolationDelayMs: 250 });
-      presence.subscribe(next => {
-        room = next;
-        if (next.state !== 'room') { clearRemotes(); accumulator = 0; }
-        renderUI();
-      });
-      presence.on('snapshot', () => { lastSnapshot = performance.now(); stale = false; });
+      presence.subscribe(receiveRoom);
+      presence.on('snapshot', noteSnapshot);
       presence.on('error', event => setError(event.message || 'The connection failed. Try joining again.'));
       presence.on('session-replaced', () => { panel.open = true; setError('This account joined elsewhere. Use a different account for the second player.'); });
     }
@@ -176,7 +175,7 @@ $('invite').addEventListener('click', async () => {
   catch { $('invite-label').hidden = false; $('link').focus(); $('link').select(); }
 });
 async function flyBeside(playerId) {
-  const candidates = room.players.filter(p => !p.self && p.connected && p.lastProcessedInput > 0 && decodePose(presence.sample(p.id)));
+  const candidates = connectedPlayers().filter(p => !p.self && p.lastProcessedInput > 0 && decodePose(presence?.sample(p.id)));
   const target = (playerId && candidates.find(p => p.id === playerId)) || candidates[0];
   const pose = target && decodePose(presence.sample(target.id));
   if (!pose) return setError('Waiting for another player’s first position.');
@@ -198,13 +197,13 @@ const unsubscribeAuth = chrona.auth.subscribe(next => {
   // A World lease is tied to its account. Reinitialize on logout/account switch
   // so a new account can never reuse the previous account's seat.
   if (next.initialized && previousUserId && changed) {
-    disposed = true; clearRemotes(); chrona.destroy(); location.reload(); return;
+    disposed = true; clearRemotes(); publishRoster(); chrona.destroy(); location.reload(); return;
   }
   authState = next; applyAccountName(); renderUI();
   if (next.initialized && next.userId && next.userId !== attemptedUserId && !connecting) {
     queueMicrotask(() => { if (!disposed && chrona.auth.userId && chrona.auth.userId !== attemptedUserId && !connecting) void connect(); });
   }
-  if (changed && !next.userId && next.initialized) { lastName = ''; clearRemotes(); }
+  if (changed && !next.userId && next.initialized) { lastName = ''; clearRemotes(); publishRoster(); }
 });
 
 let labels, originalSimulation, originalRender, simulationWrapper, renderWrapper;
@@ -235,10 +234,69 @@ function removeRemote(id) {
 }
 function clearRemotes() { for (const id of remotes.keys()) removeRemote(id); }
 
+function recordConnectionActivity(players) {
+  const active = new Set(), now = performance.now();
+  for (const player of players || []) {
+    if (!player || player.connected !== true) continue;
+    active.add(player.id);
+    const previous = connectionActivity.get(player.id);
+    const sequence = Number.isFinite(player.lastProcessedInput) ? player.lastProcessedInput : null;
+    if (!previous || (sequence !== null && sequence !== previous.sequence)) {
+      connectionActivity.set(player.id, { sequence, advancedAt: now, firstSeenAt: previous?.firstSeenAt ?? now });
+    }
+  }
+  for (const id of connectionActivity.keys()) if (!active.has(id)) connectionActivity.delete(id);
+}
+
+function connectedPlayers() {
+  if (disposed || stale || room.state !== 'room') return [];
+  const now = performance.now();
+  return distinctPlayers((room.players || []).filter(player => {
+    if (!player || player.connected !== true) return false;
+    const activity = connectionActivity.get(player.id);
+    // Flight sends inputs while hovering too. A frozen input sequence is a
+    // stalled connection; an unmoving position alone is never an offline signal.
+    return player.self || !activity || activity.sequence === null || now - activity.advancedAt <= REMOTE_STALE_MS;
+  }));
+}
+
+function pruneRemotes() {
+  const active = new Set(connectedPlayers().filter(player => !player.self).map(player => player.id));
+  for (const id of remotes.keys()) if (!active.has(id)) removeRemote(id);
+}
+
+function receiveRoom(next) {
+  room = next;
+  if (next.state !== 'room') {
+    stale = false; accumulator = 0; lastAuthorityMarker = null;
+    connectionActivity.clear(); representativeIds.clear(); clearRemotes();
+  } else {
+    recordConnectionActivity(next.players);
+    pruneRemotes();
+  }
+  // A hidden tab can stop rendering. Departures must remove both 3D objects and
+  // the add-on's cached positions as soon as the presence notification arrives.
+  publishRoster(); renderUI();
+}
+
+function noteSnapshot(event) {
+  const next = presence?.snapshot?.() || { ...room, ...event };
+  if (next.state !== 'room') { receiveRoom(next); return; }
+  const stamp = next.serverTimeMs !== undefined ? next.serverTimeMs : event?.serverTimeMs;
+  // Older hosts lack the authority stamp. Input sequence changes are a safe
+  // fallback heartbeat; replaying the same cached frame must not refresh it.
+  const marker = Number.isFinite(stamp) ? `server:${stamp}` : stamp === null ? null
+    : JSON.stringify((next.players || []).map(player => [player.id, player.connected, player.lastProcessedInput]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
+  if (marker !== null && marker !== lastAuthorityMarker) {
+    lastAuthorityMarker = marker; lastSnapshot = performance.now(); stale = false;
+  }
+  receiveRoom(next);
+}
+
 function updateRemotes(dt, time) {
   const active = new Set();
-  for (const player of room.players) {
-    if (player.self || !player.connected) continue;
+  for (const player of connectedPlayers()) {
+    if (player.self) continue;
     active.add(player.id);
     const pose = player.lastProcessedInput > 0 && decodePose(presence.sample(player.id));
     let remote = remotes.get(player.id);
@@ -271,15 +329,25 @@ function updateRemotes(dt, time) {
 function distinctPlayers(list) {
   const byAccount = new Map();
   for (const player of list) {
-    const key = player.userId || player.accountId || player.name || player.id;
+    const account = String(player.userId || player.accountId || '').trim();
+    const name = String(player.handle || player.name || '').normalize('NFC').trim();
+    const key = account ? `account:${account}` : name ? `name:${name}` : player.id ? `connection:${player.id}` : player;
     const held = byAccount.get(key);
-    if (!held || (!held.self && player.self) || (!held.connected && player.connected)) byAccount.set(key, player);
+    // A newly observed session may replace an older one, but alternating input
+    // acknowledgements from two live tabs must not recreate the visible bird.
+    const time = connectionActivity.get(player.id)?.firstSeenAt ?? 0;
+    const heldTime = connectionActivity.get(held?.id)?.firstSeenAt ?? 0;
+    if (!held || (player.self && !held.self) || (!held.self && !player.self &&
+      (time > heldTime || (time === heldTime && representativeIds.get(key) === player.id)))) byAccount.set(key, player);
   }
+  for (const key of representativeIds.keys()) if (!byAccount.has(key)) representativeIds.delete(key);
+  for (const [key, player] of byAccount) representativeIds.set(key, player.id);
   return [...byAccount.values()];
 }
 function publishRoster() {
+  const players = connectedPlayers();
   window.__sfNet = {
-    players: distinctPlayers(room.players).map(player => {
+    players: players.map(player => {
       const remote = remotes.get(player.id);
       return {
         id: player.id, name: player.name || '', handle: player.handle || player.name || '',
@@ -288,7 +356,7 @@ function publishRoster() {
         metres: (!player.self && remote && remote.root.visible && c?.flightCharacter) ? Math.round(remote.position.distanceTo(c.flightCharacter.position)) : null,
       };
     }),
-    count: room.count, state: room.state,
+    count: players.length, state: stale ? 'reconnecting' : room.state,
     flyBeside,
   };
 }
@@ -327,14 +395,14 @@ function attachScene() {
   c.render = renderWrapper;
 }
 const statusTimer = setInterval(() => {
-  stale = room.state === 'room' && performance.now() - lastSnapshot > 8000;
-  renderUI();
+  stale = room.state === 'room' && performance.now() - lastSnapshot > REMOTE_STALE_MS;
+  pruneRemotes(); publishRoster(); renderUI();
 }, 1000);
 window.addEventListener('pagehide', event => {
   if (event.persisted) return;
-  disposed = true; clearInterval(statusTimer); unsubscribeAuth(); clearRemotes(); labels?.remove();
+  disposed = true; clearInterval(statusTimer); unsubscribeAuth(); clearRemotes(); publishRoster(); labels?.remove();
   if (c?.updateSimulation === simulationWrapper) c.updateSimulation = originalSimulation;
   if (c?.render === renderWrapper) c.render = originalRender;
   if (tw) save(localStorage, 'sf-ink-bird', { bird: tw.state.user.bird, name: tw.state.user.name });
-  accountUI.destroy(); chrona.destroy();
+  accountUI.destroy?.(); chrona.destroy();
 });

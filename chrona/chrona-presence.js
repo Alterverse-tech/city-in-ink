@@ -144,6 +144,9 @@ export function createPresence(config, {
       count: players.filter(player => player.connected).length,
       ping: Math.round(rttMs),
       gameId,
+      // Authority freshness, not host-frame delivery time. Replayed frames
+      // retain this stamp until a real server snapshot arrives.
+      serverTimeMs: Number.isFinite(snapshot?.serverTimeMs) ? snapshot.serverTimeMs : null,
     })
   }
 
@@ -215,7 +218,7 @@ export function createPresence(config, {
       rosterKey = nextRosterKey
       emit('roster', { players })
     }
-    emit('snapshot', { players, selfId })
+    emit('snapshot', { players, selfId, serverTimeMs: Number.isFinite(next.serverTimeMs) ? next.serverTimeMs : null })
     publish()
     interpolator.push(next.serverTimeMs, next.players.filter(player => player.id !== selfId && player.connected))
   }
