@@ -20,7 +20,7 @@
 //   5. Harbor holding pattern spreads much wider so unplaced events read as a
 //      fleet rather than one blob.
 //   6. No in-world claim form: the address question goes to Discord.
-export const FEATURED_EVENT = 'hgyN4UiBL4s3vA0ATTbr';   // Seedance × Chrona, the host's own event
+export const FEATURED_EVENT = 'hgyN4UiBL4s3vA0ATTbr';   // Meshy × Chrona, the host's own event
 export const RSVP_MIN = 50;                              // below this an event has no airship of its own — it lives on a wall instead
 // The week has an opening act and a host event; a handful of ships fly larger
 // so the eye finds them from anywhere. Five is the cap — past that nothing is
@@ -249,6 +249,12 @@ export function wireTuning(html) {
   // Honest wording for the three location tiers.
   once("`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} <em>Map location unverified.</em> Harbor placement is a game placeholder.`",
     "`${esc([ev.venue, ev.address, ev.neighborhood].filter(Boolean).join(' · '))} ${ev.featured ? '<em>Venue announced closer to the day.</em> Seats are limited — RSVP early.' : ev.approxLocation ? (ev.wantsVehicle ? '<em>District only — the exact address is not public yet.</em> Its ship flies over the neighbourhood; the door is in the Discord.' : ev.onMap ? '<em>District only — the exact address is not public yet.</em> Its poster hangs on a building somewhere in the neighbourhood; the door is in the Discord.' : '<em>District only — the exact address is not public yet.</em> Ask in the Discord — someone there usually knows the venue.') : '<em>No public address yet.</em> Ask in the Discord — someone there usually knows the venue.'}`");
+
+  // ---- 9. who a speaker is, right in the list ------------------------------
+  // The card spells out each speaker's role; the list row only gave the name.
+  // Show the identity there too, trimmed to what precedes the tagline.
+  once("<span class=\"tw-sub tw-spk\">${sp.length ? esc(sp.map((x) => x.name).join(', ')) : 'Speakers TBA'}</span>",
+    "<span class=\"tw-sub tw-spk\">${sp.length ? esc(sp.map((x) => x.role ? `${x.name} · ${String(x.role).split(' · ')[0]}` : x.name).join(', ')) : 'Speakers TBA'}</span>");
 
   // ---- 7. the address question goes to Discord -----------------------------
   // Asking a stranger in a form was the wrong shape: the people who know a

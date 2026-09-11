@@ -394,8 +394,16 @@ async function submitClaim(claim) {
 // regenerated from public sources and would drop it.
 const HOST_EVENT_DETAIL = {
   'hgyN4UiBL4s3vA0ATTbr': {
+    // The host's own event was retitled on Partiful after the crawl read it;
+    // the crawl catches up on its next pass, and these agree with it when it does.
+    title: 'Meshy \u00d7 Chrona: Build Multiplayer 3D Worlds With AI',
+    description: 'What comes after AI-generated video? Meshy turns text and images into 3D models; Chrona turns them into AI-native persistent multiplayer worlds you co-build with Claude Code and Codex, where nothing resets. Live demos, hands-on co-building and fireside chats \u2014 Bruce (co-founder of Chrona), the Meshy core team and Yiqi Zhao (Product Design Lead, Meta) \u2014 plus a creator live demo show, with $10,000+ in 3D model credits for everyone on site. Sponsored by Seedance. Bring a laptop.',
     cohosts: ['meshy.ai'],
-    speakers: [{ name: 'Yiqi Zhao', role: 'Product Design Lead, Meta \u00b7 spatial intelligence and AI at the edge' }],
+    speakers: [
+      { name: 'Bruce', role: 'Co-founder of Chrona \u00b7 3\u00d7 founder building consumer products globally' },
+      { name: 'Meshy core team', role: 'the frontier of AI 3D generation' },
+      { name: 'Yiqi Zhao', role: 'Product Design Lead, Meta \u00b7 spatial intelligence and AI at the edge' },
+    ],
     speakerBio: [
       'Speaker \u2014 Yiqi Zhao, Product Design Lead at Meta, driving spatial intelligence and AI at the edge: AI that understands you and the world, not just words.',
       'Her team has delivered human-centric innovations for all modality AI experiences across wearable devices, personal agents, and generative platforms \u2014 shipping AI-native OS systems, runtime engine, world models, coding agent, and agentic media creation to 4B+ users from Meta AI mobile, web, desktop, Meta Quest and Meta AI Glasses.',
@@ -409,7 +417,7 @@ function applyHostDetail(events) {
     if (!key) return event;
     const detail = HOST_EVENT_DETAIL[key];
     const speakers = (event.speakers && event.speakers.length) ? event.speakers : detail.speakers;
-    return { ...event, cohosts: detail.cohosts, speakers };
+    return { ...event, cohosts: detail.cohosts, speakers, title: detail.title || event.title, description: detail.description || event.description };
   });
 }
 
