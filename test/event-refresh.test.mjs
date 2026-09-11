@@ -7,6 +7,7 @@ import { FEATURED_EVENT, SPOTLIGHT, RSVP_MIN } from '../tuning-build.mjs';
 
 const root = new URL('../', import.meta.url);
 const manifest = JSON.parse(await readFile(new URL('source/manifest.json', root), 'utf8'));
+const feedManifest = JSON.parse(await readFile(new URL('data/tech-week-enriched.parts.json', root), 'utf8'));  // the saved programme's own count
 const source = (await Promise.all(manifest.parts.map(name => readFile(new URL(`source/${name}`, root), 'utf8')))).join('');
 const html = renderGame(source);
 const between = (start, end) => {
@@ -84,14 +85,14 @@ test('new mapped and addressless events are placed before spatial metadata, with
   assert.deepEqual(h.calls, { place: 1, metadata: 1, build: 1, posters: 0, lists: 1, lifecycle: 1 });
 });
 
-test('a real 48-event baseline upgrades to all 1546 saved events without null-position metadata', async () => {
+test('a real 48-event baseline upgrades to all saved events without null-position metadata', async () => {
   const baseline = JSON.parse(await readFile(new URL('data/tech-week-first.json', root), 'utf8'));
   const dataManifest = JSON.parse(await readFile(new URL('data/tech-week-enriched.parts.json', root), 'utf8'));
   const full = JSON.parse((await Promise.all(dataManifest.parts.map(name => readFile(new URL(`data/${name}`, root), 'utf8')))).join(''));
   const h = harness(baseline.events);
   await h.refresh(full.events);
-  assert.equal(h.state.events.length, 1546);
-  assert.equal(new Set(h.state.events.map(item => item.id)).size, 1546);
+  assert.equal(h.state.events.length, feedManifest.events);
+  assert.equal(new Set(h.state.events.map(item => item.id)).size, feedManifest.events);
   assert.ok(h.state.events.filter(item => item.onMap).every(item => item.world));
   assertSpatialMetadata(h.state);
   assert.equal(h.calls.place, 1);

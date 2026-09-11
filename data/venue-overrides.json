@@ -1,5 +1,5 @@
 {
-  "note": "Game-layer venue supplements entered by the project owner from public event pages. Only the building is published: `street` never carries a house number or unit, `lat`/`lng` are filled by scripts/geocode-venue-overrides.mjs (run where the network allows; the full address lives only in the gitignored .local/venue-doors.json), and the exact door stays in the Discord. `events` are listings the public crawl has not picked up yet: appended at runtime, superseded field-by-field once the crawl carries them. A moderator-approved entry from /addresses.json takes precedence over an entry here for the same event.",
+  "note": "Game-layer venue supplements entered by the project owner from public event pages. Only the building is published: `street` never carries a house number or unit, `lat`/`lng` are filled by scripts/geocode-venue-overrides.mjs (run where the network allows; the full address lives only in the gitignored .local/venue-doors.json), and the exact door stays in the Discord. `events` are listings the public crawl has not picked up yet: appended at runtime. Give a supplement its registration `url` — that is how it is recognised and dropped once the crawl carries the same event; without one it would be listed twice. A moderator-approved entry from /addresses.json takes precedence over an entry here for the same event.",
   "updatedAt": "2026-09-11T00:00:00.000Z",
   "addresses": [
     {
@@ -88,7 +88,7 @@
       "enteredAt": "2026-09-11T00:00:00.000Z"
     },
     {
-      "eventId": "supplement-agi-house-consumer-startups-in-public",
+      "eventId": "partiful-D0pS4YPveEhJXzzFjWed",
       "venue": "AGI House SF",
       "street": "St Germain Ave",
       "neighborhood": "Twin Peaks",
@@ -96,10 +96,12 @@
       "lng": null,
       "doorWithheld": true,
       "source": "public event page, entered by the project owner",
-      "enteredAt": "2026-09-11T00:00:00.000Z"
+      "enteredAt": "2026-09-11T00:00:00.000Z",
+      "eventUrl": "https://partiful.com/e/D0pS4YPveEhJXzzFjWed",
+      "note": "The public crawl now carries this listing; this entry only withholds the door and fixes the neighbourhood."
     },
     {
-      "eventId": "supplement-sonilo-future-of-creative-ai",
+      "eventId": "partiful-ki3B28FwMa8i9BleQA9U",
       "venue": "Mission Rock Resort",
       "street": "Terry Francois Blvd",
       "neighborhood": "Mission Bay",
@@ -107,78 +109,10 @@
       "lng": null,
       "doorWithheld": true,
       "source": "public event page, entered by the project owner",
-      "enteredAt": "2026-09-11T00:00:00.000Z"
+      "enteredAt": "2026-09-11T00:00:00.000Z",
+      "eventUrl": "https://partiful.com/e/ki3B28FwMa8i9BleQA9U",
+      "note": "The public crawl now carries this listing; this entry only withholds the door and fixes the neighbourhood."
     }
   ],
-  "events": [
-    {
-      "id": "supplement-agi-house-consumer-startups-in-public",
-      "title": "Building Consumer Startups in Public",
-      "host": "AGI House",
-      "cohosts": [
-        "Chimeboard"
-      ],
-      "speakers": [],
-      "start": "2026-10-07T22:00:00.000Z",
-      "end": null,
-      "neighborhood": "Twin Peaks",
-      "venue": "AGI House SF",
-      "address": "St Germain Ave",
-      "doorWithheld": true,
-      "rsvp": null,
-      "capacity": null,
-      "remainingCapacity": null,
-      "status": "unknown",
-      "url": null,
-      "sourceUrl": null,
-      "source": "owner-supplied",
-      "tags": [],
-      "description": "AGI House × Chimeboard, hosted by Avivi W. Starts 3:00 PM; no end time was published. The venue is on St Germain Ave — the door is in the Discord.",
-      "descriptionKind": "owner-summary",
-      "image": null,
-      "fieldSources": {
-        "title": {
-          "method": "public event listing, entered by the project owner",
-          "fetchedAt": "2026-09-11T00:00:00.000Z"
-        }
-      },
-      "featured": false
-    },
-    {
-      "id": "supplement-sonilo-future-of-creative-ai",
-      "title": "Building the Future of Creative AI",
-      "host": "Sonilo AI",
-      "cohosts": [
-        "Tapnow",
-        "OceanToken"
-      ],
-      "speakers": [],
-      "start": "2026-10-08T01:00:00.000Z",
-      "end": "2026-10-08T04:30:00.000Z",
-      "neighborhood": "Mission Bay",
-      "venue": "Mission Rock Resort",
-      "address": "Terry Francois Blvd",
-      "doorWithheld": true,
-      "rsvp": null,
-      "capacity": null,
-      "remainingCapacity": null,
-      "status": "unknown",
-      "url": null,
-      "sourceUrl": null,
-      "source": "owner-supplied",
-      "tags": [
-        "Consumer & Creative AI"
-      ],
-      "description": "Sonilo AI, with sponsors Tapnow and OceanToken. Doors 5:45 PM, programme 6:00–9:30 PM at Mission Rock Resort on the Mission Bay waterfront (ground floor). The door is in the Discord.",
-      "descriptionKind": "owner-summary",
-      "image": null,
-      "fieldSources": {
-        "title": {
-          "method": "public event listing, entered by the project owner",
-          "fetchedAt": "2026-09-11T00:00:00.000Z"
-        }
-      },
-      "featured": false
-    }
-  ]
+  "events": []
 }

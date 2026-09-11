@@ -231,7 +231,9 @@ for venues the crawl does not carry. Its `addresses` use the same shape as
 `/addresses.json` and go through the same code (`applyApprovedAddresses`), with a
 moderator-approved entry outranking a supplement for the same event, field by
 field; its `events` are listings the public crawl has not reached yet, appended
-at runtime and superseded once the crawl carries them. `street` never holds a
+at runtime. Give a supplement its registration `url`: that is how it is
+recognised and dropped once the crawl carries the same event — without one it
+would be listed twice. `street` never holds a
 house number. Coordinates come from `node scripts/geocode-venue-overrides.mjs`,
 which reads full addresses only from the gitignored `.local/venue-doors.json`
 (see `.local/venue-doors.json.example`), tries DataSF then Nominatim, refuses

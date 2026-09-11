@@ -97,10 +97,10 @@ test('the saved baseline permits startup while a 45-second full snapshot loads, 
   h.ready();
   await h.advance(250);
   assert.equal(h.refreshes.length, 1);
-  assert.equal(h.refreshes[0].list.length, 1546);
+  assert.equal(h.refreshes[0].list.length, full.events.length);
   assert.deepEqual(Array.from(h.refreshes[0].list, item => item.id), full.events.map(item => item.id));
   const again = await h.read();
-  assert.equal(again.list.length, 1546);
+  assert.equal(again.list.length, full.events.length);
   for (const name of partNames) assert.equal(h.count(name), 1, 'completed versioned parts are reused');
   assert.ok(h.calls.filter(call => call.name.startsWith('tech-week')).every(call => call.init.cache === 'default'));
 });
@@ -113,7 +113,7 @@ test('a failed part retries without restarting another still-downloading part', 
   h.ready();
   assert.equal((await h.read()).list.length, 48);
   await h.advance(1500);
-  assert.equal(h.refreshes.at(-1).list.length, 1546);
+  assert.equal(h.refreshes.at(-1).list.length, full.events.length);
   assert.equal(h.count(partNames[0]), 2);
   assert.equal(h.count(partNames[1]), 1);
   assert.ok(h.warnings.some(args => String(args[1]).includes(`${partNames[0]}: Error: HTTP 503`)));
@@ -136,7 +136,7 @@ test('hanging parts have a bounded 90-second attempt, three attempts, and a late
   await h.advance(60000);
   await h.read();
   await h.advance(0);
-  assert.equal((await h.read()).list.length, 1546);
+  assert.equal((await h.read()).list.length, full.events.length);
   assert.equal(h.count(partNames[0]), 4);
 });
 
@@ -149,7 +149,7 @@ test('a corrupt or incomplete 200 response is discarded as a whole and can be fe
   h.ready();
   assert.equal((await h.read()).list.length, 48);
   await h.advance(400);
-  assert.equal(h.refreshes.at(-1).list.length, 1546);
+  assert.equal(h.refreshes.at(-1).list.length, full.events.length);
   for (const name of partNames) assert.equal(h.count(name), 2);
   assert.ok(h.warnings.some(args => String(args[1]).includes('Snapshot parts are incomplete')));
 });
@@ -162,7 +162,7 @@ test('the older complete single-file snapshot remains a valid fallback', async (
   h.ready();
   await h.read();
   await h.advance(0);
-  assert.equal((await h.read()).list.length, 1546);
+  assert.equal((await h.read()).list.length, full.events.length);
   assert.equal(h.count('tech-week-enriched.json'), 1);
   assert.equal(h.count(partNames[0]), 0);
 });
@@ -224,11 +224,11 @@ test('a complete live feed survives later updater failures while static parts ar
   h.ready();
   assert.equal((await h.read()).list.length, 48);
   await h.advance(1000);
-  assert.equal(h.refreshes.at(-1).list.length, 1546);
+  assert.equal(h.refreshes.at(-1).list.length, full.events.length);
   await h.advance(60000);
-  assert.equal((await h.read()).list.length, 1546);
+  assert.equal((await h.read()).list.length, full.events.length);
   await h.advance(0);
-  assert.equal(h.refreshes.at(-1).list.length, 1546);
+  assert.equal(h.refreshes.at(-1).list.length, full.events.length);
   assert.equal(h.count('events.json'), 2);
   assert.equal(h.count(partNames[0]), 1);
 });
@@ -242,17 +242,17 @@ test('a newer partial live update and then an older response preserve the newest
     if (name === 'events.json') return { data: number === 1 ? full : number === 2 ? partial : baseline };
   });
   h.ready();
-  assert.equal((await h.read()).list.length, 1546);
+  assert.equal((await h.read()).list.length, full.events.length);
   await h.advance(60000);
   await h.read();
   await h.advance(0);
-  assert.equal(h.refreshes.at(-1).list.length, 1546);
+  assert.equal(h.refreshes.at(-1).list.length, full.events.length);
   assert.equal(h.refreshes.at(-1).list.find(event => event.id === id).title, 'Updated public title');
   await h.advance(60000);
   await h.read();
   await h.advance(0);
   const final = await h.read();
-  assert.equal(final.list.length, 1546);
+  assert.equal(final.list.length, full.events.length);
   assert.equal(final.list.find(event => event.id === id).title, 'Updated public title');
 });
 
