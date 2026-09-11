@@ -3,6 +3,7 @@
 //
 //   · Discord entry in the top-right corner
 //   · links still work where a new tab cannot open (Chrona's sandboxed frame)
+//   · flight school: the first minute, one move at a time, ticked off as it is done
 //   · camera clearance, nearby-player cards and venue signage
 //   · fly close to another player and a small card offers to follow them on X
 //
@@ -75,6 +76,24 @@ html.tw-fpv #tw-discord { opacity: .35; }
 #tw-who-list .tw-fly-beside { margin-left: 8px; padding: 4px 8px; border: 1px solid #34262f; background: #34262f; color: #f6ecd8;
   font: 700 10px/1 ui-monospace, Menlo, monospace; letter-spacing: .04em; cursor: pointer; }
 #tw-who-list .tw-fly-beside:hover { background: #12060c; }
+
+/* Flight school: one move at a time, above the toast, below nothing else. */
+#tw-guide { position: fixed; left: 50%; bottom: 152px; transform: translateX(-50%); z-index: 66; width: min(440px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 10px 14px 12px; border: 1px solid #34262f55; border-radius: 2px; background: #f6ecd8f2; color: #34262f;
+  font: 500 14px/1.45 "Avenir Next", "PingFang SC", sans-serif; box-shadow: 0 8px 24px #34262f26;
+  animation: tw-neighbour-in .18s ease-out; transition: border-color .2s, opacity .5s; }
+#tw-guide .tw-guide-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px;
+  font: 700 10px/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+#tw-guide .tw-guide-dots { letter-spacing: .2em; font-size: 9px; }
+#tw-guide .tw-guide-skip { margin-left: auto; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; opacity: .7; cursor: pointer; padding: 2px 0; text-decoration: underline; }
+#tw-guide .tw-guide-skip:hover { opacity: 1; }
+#tw-guide p { margin: 0; }
+#tw-guide kbd { display: inline-block; min-width: 1.3em; padding: 0 6px; border: 1px solid #34262f; border-bottom-width: 2px; border-radius: 3px; background: #fff;
+  font: 700 12px/1.55 ui-monospace, Menlo, Consolas, monospace; text-align: center; }
+#tw-guide.tw-guide-tick { border-color: #4e8a5a; }
+#tw-guide.tw-guide-tick p::before { content: '✓  '; color: #4e8a5a; font-weight: 700; }
+#tw-guide.tw-guide-finished { opacity: 0; transition: opacity .6s 5.5s; }
+html.tw-fpv #tw-guide { opacity: .92; }
 
 /* Shown when a link cannot open a new tab (Chrona's game frame refuses pop-ups). */
 #tw-linkbox { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 90; width: min(480px, calc(100vw - 32px)); box-sizing: border-box;
@@ -166,6 +185,103 @@ function installLinkFallback() {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') document.getElementById('tw-linkbox')?.remove();
   });
+}
+
+/* ------------------------------------------------------------ flight school */
+// The first minute in the city, one move at a time. A step waits until the
+// player has actually done the thing — read from the flight input and the
+// camera state, with the keys themselves as the fallback — ticks it off, and
+// hands over to the next. Shown once per browser; Skip ends it for good.
+// Keyboard only, so touch devices never see it.
+const GUIDE_KEY = 'sf-ink-guide';
+const GUIDE_STEPS = [
+  { text: 'Hold <kbd>W</kbd> to fly forward, <kbd>S</kbd> to slow down and glide.',
+    keys: /^(w|s|arrowup|arrowdown)$/, input: i => i.forward || i.backward },
+  { text: '<kbd>A</kbd> and <kbd>D</kbd> turn. The arrow keys work too.',
+    keys: /^(a|d|arrowleft|arrowright)$/, input: i => i.left || i.right },
+  { text: '<kbd>Space</kbd> climbs, <kbd>C</kbd> dives.',
+    keys: /^( |c)$/, input: i => i.up || i.down },
+  { text: '<kbd>V</kbd> switches the camera: chase cam or beak cam.',
+    keys: /^v$/, view: true },
+  { text: 'Fly a little, then let go of every key — the bird hovers. That is your pause. <kbd>Esc</kbd> ends the flight; <kbd>T</kbd> takes off again.',
+    keys: /^escape$/, hover: true },
+];
+const GUIDE_DONE = 'That is the city. <kbd>Shift</kbd> boosts, <kbd>U</kbd> hides the interface, and any event card flies you there.';
+const GUIDE_START_DELAY = 3000;  // ms after the world is ready; the welcome toast goes first
+const GUIDE_HOVER_MS = 1200;     // no input this long counts as a deliberate hover
+const GUIDE_TICK_MS = 750;       // the check mark stays this long before the next step
+
+function installFlightGuide(TW, city) {
+  if (!city || !TW?.state) return;
+  try { if (localStorage.getItem(GUIDE_KEY)) return; } catch {}
+  if (window.matchMedia?.('(pointer: coarse)').matches) return;
+  const bootAt = performance.now();
+  let el = null, step = -1, ctx = null, timer = 0;
+  const remember = () => { try { localStorage.setItem(GUIDE_KEY, String(Date.now())); } catch {} };
+  const anyInput = i => !!(i.forward || i.backward || i.left || i.right || i.up || i.down);
+  const ticking = () => !!el?.classList.contains('tw-guide-tick');
+
+  function render(text) {
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'tw-guide'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+      el.innerHTML = '<div class="tw-guide-head"><span class="tw-guide-label"></span><span class="tw-guide-dots" aria-hidden="true"></span><button type="button" class="tw-guide-skip">Skip</button></div><p></p>';
+      el.querySelector('.tw-guide-skip').addEventListener('click', () => finish(true));
+      document.body.appendChild(el);
+    }
+    const n = GUIDE_STEPS.length;
+    el.querySelector('.tw-guide-label').textContent = step < n ? `Flight school · ${step + 1}/${n}` : 'Flight school';
+    el.querySelector('.tw-guide-dots').textContent = GUIDE_STEPS.map((_, i) => i < step ? '●' : i === step ? '◉' : '○').join('');
+    el.querySelector('p').innerHTML = text;
+  }
+  function show(i) {
+    step = i;
+    ctx = { view: TW.state.view, moved: false, lastInput: 0, key: false };
+    render(GUIDE_STEPS[i].text);
+  }
+  function stop() {
+    clearInterval(timer); timer = 0;
+    window.removeEventListener('keydown', onKey, true);
+  }
+  function finish(skipped) {
+    remember(); stop();
+    if (skipped || !el) { el?.remove(); el = null; return; }
+    step = GUIDE_STEPS.length;
+    render(GUIDE_DONE);
+    el.querySelector('.tw-guide-skip').hidden = true;
+    el.classList.add('tw-guide-finished');
+    setTimeout(() => { el?.remove(); el = null; }, 6500);
+  }
+  function advance() {
+    el.classList.add('tw-guide-tick');
+    setTimeout(() => {
+      if (!el) return;
+      el.classList.remove('tw-guide-tick');
+      if (step + 1 < GUIDE_STEPS.length) show(step + 1); else finish(false);
+    }, GUIDE_TICK_MS);
+  }
+  function onKey(event) {
+    if (step < 0 || ticking() || !ctx) return;
+    if (event.target instanceof HTMLElement && event.target.closest('input,textarea,select')) return;
+    if (GUIDE_STEPS[step].keys.test(event.key.toLowerCase())) ctx.key = true;
+  }
+  function tick() {
+    if (step < 0) {
+      if (city.freeFlightEnabled && performance.now() - bootAt >= GUIDE_START_DELAY) show(0);
+      return;
+    }
+    if (!el) return;
+    el.hidden = !!document.querySelector('.city-shell.ui-hidden');
+    if (ticking() || !ctx) return;
+    const current = GUIDE_STEPS[step], input = city.flightInput || {}, now = performance.now();
+    if (anyInput(input)) { ctx.moved = true; ctx.lastInput = now; }
+    let done = ctx.key || !!(current.input && current.input(input));
+    if (current.view && TW.state.view !== ctx.view) done = true;
+    if (current.hover && (!city.freeFlightEnabled || (ctx.moved && now - ctx.lastInput >= GUIDE_HOVER_MS))) done = true;
+    if (done) advance();
+  }
+  window.addEventListener('keydown', onKey, true);
+  timer = setInterval(tick, 80);
 }
 
 /* ------------------------------------------------------------------ Discord */
@@ -1089,6 +1205,7 @@ function installSignPicking(TW, city, roots) {
       hideNetPanel();
       mountWhoIsHere();
       installModalEscape();
+      installFlightGuide(TW, city);
       installCameraClearance(TW, city);
       installFleetDistance(TW, city);
       installNeighbourCard(TW, city);
