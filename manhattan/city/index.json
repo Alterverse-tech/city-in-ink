@@ -1,0 +1,77 @@
+{
+  "generatedAt": "2026-09-12T07:54:38.257Z",
+  "files": {
+    "/data/city-manifest.json": {
+      "file": "city-manifest.json.gz",
+      "bytes": 2336,
+      "compressed": 1180,
+      "sha256": "fd2b83ce9f22709f6ef1f686cc9cbff8f03d4d9744a4ef3000e3b4f9e9c923bd"
+    },
+    "/data/terrain-heights.i16": {
+      "file": "terrain-heights.i16.gz",
+      "bytes": 196732,
+      "compressed": 57825,
+      "sha256": "65532bc292c1df212f9e7483a4f7b06f944d832f66469a6de74f912ceab370c4"
+    },
+    "/data/terrain-land.u8": {
+      "file": "terrain-land.u8.gz",
+      "bytes": 98366,
+      "compressed": 1538,
+      "sha256": "0d5cbf05c38140b5a4d7f4d70721666f6f5228c371c40f45f04c3ba2d1e8c80b"
+    },
+    "/data/roads-position.i16": {
+      "file": "roads-position.i16.gz",
+      "bytes": 257736,
+      "compressed": 170677,
+      "sha256": "49fd02e4b2586aea8390081671d8b204ee99d893063035fac66bb41eccb813c3"
+    },
+    "/data/roads-normal.i8": {
+      "file": "roads-normal.i8.gz",
+      "bytes": 128868,
+      "compressed": 162,
+      "sha256": "67730ce4d0ccc8c6017bc76c92caf0b7ef06dd1a255fc9db780564fbff0661ae"
+    },
+    "/data/roads-tone.u8": {
+      "file": "roads-tone.u8.gz",
+      "bytes": 42956,
+      "compressed": 254,
+      "sha256": "97d544ccc79bcc8175495b79a0a9ed2b914e191aea941a3b24c9a495cae202f5"
+    },
+    "/data/roads-index.u32": {
+      "file": "roads-index.u32.gz",
+      "bytes": 257736,
+      "compressed": 118392,
+      "sha256": "865e000e5000b6603d6ab5573442e25ba070f8ee69ad0b016139d17fff280910"
+    },
+    "/data/buildings-refined-position.f32": {
+      "file": "buildings-refined-position.f32.gz",
+      "bytes": 9256500,
+      "compressed": 2319235,
+      "sha256": "d3cc3f671001154fbd081b6d9c1e3355b8032b2e790222b43de1761fb3da9288"
+    },
+    "/data/buildings-refined-normal.i8": {
+      "file": "buildings-refined-normal.i8.gz",
+      "bytes": 2314125,
+      "compressed": 139195,
+      "sha256": "2f76ab6a075c29e62d8088a11a7123c7ff5631b32a2df9abf69fb5fba6a5fe24"
+    },
+    "/data/buildings-refined-tone.u8": {
+      "file": "buildings-refined-tone.u8.gz",
+      "bytes": 771375,
+      "compressed": 47208,
+      "sha256": "103a70b7fcbf0b38a5cf5daf43a4473e86a94c74118a4292c4c68a07a61b6889"
+    },
+    "/data/buildings-refined-index.u32": {
+      "file": "buildings-refined-index.u32.gz",
+      "bytes": 5070828,
+      "compressed": 2341528,
+      "sha256": "3102c95f0aa92dd0f868328cb21b5464e3d7d0e0a1792c14999460045b895f36"
+    },
+    "/data/buildings-refined-facade.u16": {
+      "file": "buildings-refined-facade.u16.gz",
+      "bytes": 6171000,
+      "compressed": 993275,
+      "sha256": "2605c592211c74fc34807a147dfb62adbec1a5bf147239395dd17b6a7ff0c948"
+    }
+  }
+}

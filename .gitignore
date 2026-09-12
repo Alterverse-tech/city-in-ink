@@ -6,3 +6,7 @@ dist-artifact/
 .DS_Store
 .env*
 .local/
+
+# Manhattan world: raw downloads and its build output
+manhattan/.cache/
+dist-manhattan/

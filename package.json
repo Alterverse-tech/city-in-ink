@@ -6,6 +6,7 @@
     "test": "node --test test/*.test.mjs",
     "build": "node build-hosted.mjs",
     "build:local": "node build-local.mjs",
-    "build:artifact": "node build-artifact.mjs"
+    "build:artifact": "node build-artifact.mjs",
+    "build:manhattan": "node manhattan/build.mjs"
   }
 }

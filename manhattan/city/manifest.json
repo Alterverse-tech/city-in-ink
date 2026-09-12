@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-09-12T07:54:38.257Z",
+  "world": "Manhattan Midtown",
+  "origin": {
+    "lon": -73.9855,
+    "lat": 40.755
+  },
+  "projection": {
+    "metersLat": 111320,
+    "metersLon": 84325.79250420416,
+    "convention": "x=east, y=up, z=south"
+  },
+  "terrain": {
+    "bounds": {
+      "minX": -3752.4977664370276,
+      "maxX": 3415.194596420997,
+      "minZ": -3005.6399999993228,
+      "maxZ": 2449.0400000006202
+    },
+    "nx": 359,
+    "nz": 274,
+    "heightScale": 0.1,
+    "heights": "/data/terrain-heights.i16",
+    "landMask": "/data/terrain-land.u8"
+  },
+  "buildings": {
+    "sourceFeatures": 19922,
+    "renderedBuildings": 19921,
+    "vertices": 771375,
+    "indices": 1267707,
+    "position": "/data/buildings-refined-position.f32",
+    "positionScale": 1,
+    "normal": "/data/buildings-refined-normal.i8",
+    "tone": "/data/buildings-refined-tone.u8",
+    "index": "/data/buildings-refined-index.u32",
+    "facade": "/data/buildings-refined-facade.u16",
+    "positionType": "Float32",
+    "facadeUnits": "decimetres; family integer",
+    "familyCounts": {
+      "stone": 8197,
+      "concrete": 1881,
+      "brick": 6369,
+      "glass": 1236,
+      "granite": 2238
+    },
+    "courtyards": 157,
+    "tallestMetres": 472,
+    "materialAssignment": "Illustrative families inferred from construction year and building height with a stable seed; not surveyed facade colors",
+    "setbacks": "Towers above 90 m are stepped back on a seeded rule; the named landmarks follow their published massing. Footprints and roof heights stay surveyed."
+  },
+  "roads": {
+    "sourceFeatures": 4549,
+    "vertices": 42956,
+    "indices": 64434,
+    "position": "/data/roads-position.i16",
+    "positionScale": 0.3,
+    "normal": "/data/roads-normal.i8",
+    "tone": "/data/roads-tone.u8",
+    "index": "/data/roads-index.u32"
+  },
+  "sources": [
+    {
+      "name": "NYC Open Data · Building Footprints",
+      "id": "5zhs-2jue",
+      "url": "https://data.cityofnewyork.us/d/5zhs-2jue",
+      "fields": "the_geom, height_roof (ft), ground_elevation, construction_year"
+    },
+    {
+      "name": "NYC Open Data · Centerline (CSCL)",
+      "id": "inkn-q76z",
+      "url": "https://data.cityofnewyork.us/d/inkn-q76z",
+      "fields": "the_geom, rw_type, streetwidth (ft)"
+    },
+    {
+      "name": "NYC Open Data · Borough Boundaries",
+      "id": "gthc-hcne",
+      "url": "https://data.cityofnewyork.us/d/gthc-hcne",
+      "use": "land mask on the New York side"
+    },
+    {
+      "name": "USGS 3DEP bare-earth elevation (metres)",
+      "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+      "use": "terrain grid 359×274 at 20 m; land west of the state line where the bare-earth height is above 0.6 m"
+    }
+  ],
+  "box": {
+    "south": 40.733,
+    "north": 40.782,
+    "west": -74.03,
+    "east": -73.945
+  }
+}

@@ -70,7 +70,9 @@ export function partitionBuildings(buffers, { tileMetres = TILE_METRES, maxTrian
   return chunks;
 }
 
-export function splitStreamingCityAssets(source) {
+// `centre` is the point tiles are prioritised around at startup (downtown by
+// default); a world generated elsewhere passes its own core.
+export function splitStreamingCityAssets(source, { centre: focus = { lon: -122.4005, lat: 37.7915 } } = {}) {
   const originalAssets = JSON.parse(source.match(MAP)[1]);
   const originalManifest = JSON.parse(gunzipSync(Buffer.from(originalAssets['/data/city-manifest.json'], 'base64')));
   const buffers = Object.fromEntries(BUILDING_PATHS.map(path => [path.split('refined-')[1].split('.')[0], gunzipSync(Buffer.from(originalAssets[path], 'base64'))]));
@@ -79,8 +81,8 @@ export function splitStreamingCityAssets(source) {
   for (const path of [...BUILDING_PATHS, '/data/city-manifest.json']) {
     const entry = paths[path]; result.files.delete((typeof entry === 'string' ? entry : entry.file).slice(2)); delete paths[path];
   }
-  const centre = { x: (-122.4005 - originalManifest.origin.lon) * originalManifest.projection.metersLon,
-    z: (originalManifest.origin.lat - 37.7915) * originalManifest.projection.metersLat };
+  const centre = { x: (focus.lon - originalManifest.origin.lon) * originalManifest.projection.metersLon,
+    z: (originalManifest.origin.lat - focus.lat) * originalManifest.projection.metersLat };
   const tiles = chunks.map(chunk => {
     const file = `city-assets/${hash(chunk.compressed)}.bin`; result.files.set(file, chunk.compressed);
     const { minX,maxX,minZ,maxZ } = chunk.bounds;
