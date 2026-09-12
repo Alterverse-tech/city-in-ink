@@ -250,11 +250,12 @@ export async function generateWorld(cityDir) {
   // Landmark lookup: the footprint that contains the landmark's coordinate.
   const landmarkTargets = Object.entries(LANDMARKS).filter(([, l]) => !l.place).map(([id, l]) => ({ id, ...l, point: project(l.longitude, l.latitude) }));
   const landmarkHits = new Map();
-  // A tagged height wins; then the curated landmark table (a storey count says
+  // A tagged height wins (unless the landmark entry says the tag is wrong:
+  // `overrideHeight`); then the curated landmark table (a storey count says
   // nothing about a clock tower); then storeys; then a low block by kind —
   // never a guess at a tower.
   const heightOf = (b, landmark) => {
-    let height = b.height > 0 ? b.height : landmark?.heightMeters > 0 ? landmark.heightMeters : b.levels > 0 ? b.levels * HEIGHTS.levelMetres : 0;
+    let height = b.height > 0 && !landmark?.overrideHeight ? b.height : landmark?.heightMeters > 0 ? landmark.heightMeters : b.levels > 0 ? b.levels * HEIGHTS.levelMetres : 0;
     if (!(height >= 2.5)) height = HEIGHTS.byKind[b.kind] ?? HEIGHTS.default;
     return Math.min(height, HEIGHTS.max);
   };

@@ -1,0 +1,102 @@
+{
+  "generatedAt": "2026-09-12T13:17:36.779Z",
+  "world": "Shibuya, Tokyo",
+  "origin": {
+    "lon": 139.7005,
+    "lat": 35.6595
+  },
+  "projection": {
+    "metersLat": 111320,
+    "metersLon": 90447.0330076258,
+    "convention": "x=east, y=up, z=south"
+  },
+  "terrain": {
+    "bounds": {
+      "minX": -2306.3993416939024,
+      "maxX": 2215.952308685845,
+      "minZ": -2282.059999999823,
+      "maxZ": 2393.3800000003544
+    },
+    "nx": 227,
+    "nz": 235,
+    "heightScale": 0.1,
+    "heights": "/data/terrain-heights.i16",
+    "landMask": "/data/terrain-land.u8"
+  },
+  "buildings": {
+    "sourceFeatures": 48271,
+    "renderedBuildings": 48212,
+    "vertices": 1323510,
+    "indices": 2093382,
+    "position": "/data/buildings-refined-position.f32",
+    "positionScale": 1,
+    "normal": "/data/buildings-refined-normal.i8",
+    "tone": "/data/buildings-refined-tone.u8",
+    "index": "/data/buildings-refined-index.u32",
+    "facade": "/data/buildings-refined-facade.u16",
+    "positionType": "Float32",
+    "facadeUnits": "decimetres; family integer",
+    "familyCounts": {
+      "stone": 21740,
+      "concrete": 7162,
+      "brick": 19269,
+      "glass": 30,
+      "granite": 11
+    },
+    "courtyards": 72,
+    "tallestMetres": 230,
+    "materialAssignment": "Illustrative families inferred from construction year and building height with a stable seed; not surveyed facade colors",
+    "setbacks": "Towers above 90 m are stepped back on a seeded rule; the named landmarks follow their published massing. Footprints and roof heights stay as surveyed."
+  },
+  "roads": {
+    "sourceFeatures": 5814,
+    "vertices": 113692,
+    "indices": 170538,
+    "position": "/data/roads-position.i16",
+    "positionScale": 0.3,
+    "normal": "/data/roads-normal.i8",
+    "tone": "/data/roads-tone.u8",
+    "index": "/data/roads-index.u32"
+  },
+  "sources": [
+    {
+      "name": "OpenStreetMap contributors · buildings, streets, water",
+      "url": "https://www.openstreetmap.org/copyright",
+      "licence": "ODbL 1.0",
+      "api": "https://overpass.openstreetmap.fr/api/interpreter",
+      "fallbacks": [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter"
+      ]
+    },
+    {
+      "name": "国土地理院 地理院タイル · 標高タイル (DEM10B, 10 m mesh)",
+      "url": "https://maps.gsi.go.jp/development/ichiran.html#dem",
+      "tiles": "https://cyberjapandata.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt",
+      "zoom": 14,
+      "licence": "国土地理院コンテンツ利用規約 (Government of Japan Standard Terms of Use v2.0, compatible with CC BY 4.0) — attribution \"出典：国土地理院\"; reproducing the survey result in a published map may additionally need approval under the Survey Act (測量法 第29・30条)",
+      "attribution": "出典：国土地理院 地理院タイル（標高タイル）— 基盤地図情報 数値標高モデル"
+    },
+    {
+      "name": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/copyright",
+      "licence": "ODbL 1.0",
+      "via": "https://overpass.openstreetmap.fr/api/interpreter",
+      "covers": "buildings, streets, water"
+    },
+    {
+      "name": "国土地理院 地理院タイル · 標高タイル (DEM10B, 10 m mesh)",
+      "url": "https://maps.gsi.go.jp/development/ichiran.html#dem",
+      "licence": "国土地理院コンテンツ利用規約 (Government of Japan Standard Terms of Use v2.0, compatible with CC BY 4.0) — attribution \"出典：国土地理院\"; reproducing the survey result in a published map may additionally need approval under the Survey Act (測量法 第29・30条)",
+      "attribution": "出典：国土地理院 地理院タイル（標高タイル）— 基盤地図情報 数値標高モデル",
+      "via": "https://cyberjapandata.gsi.go.jp/xyz/dem/14/{x}/{y}.txt",
+      "covers": "terrain"
+    }
+  ],
+  "box": {
+    "south": 35.638,
+    "north": 35.68,
+    "west": 139.675,
+    "east": 139.725
+  }
+}

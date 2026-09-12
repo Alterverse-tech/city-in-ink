@@ -51,8 +51,9 @@ build; the worlds reuse its pipeline through exact-match patches that throw
 }
 ```
 
-Heights: the kit uses `height`, else `levels × config.HEIGHTS.levelMetres`, else
-`config.HEIGHTS.byKind[kind]`, else `config.HEIGHTS.default`. Never invent a
+Heights: the kit uses `height` (unless the landmark entry says `overrideHeight`),
+else the landmark table's `heightMeters`, else `levels × config.HEIGHTS.levelMetres`,
+else `config.HEIGHTS.byKind[kind]`, else `config.HEIGHTS.default`. Never invent a
 tower: an unknown height is a low block.
 
 ## `<city>/config.mjs`
@@ -65,7 +66,7 @@ Copy `manhattan/config.mjs` and keep every export; the kit reads:
 | `CITY` | `{ word: 'SHIBUYA', label: 'Shibuya', loading: 'Loading Shibuya', region: 'Tokyo, Japan', utcOffset: '+09:00', gcalCity: 'Tokyo, Japan', hostFallback: 'Someone in Tokyo' }` |
 | `BOX`, `ORIGIN`, `METERS_LAT`, `METERS_LON`, `project`, `GRID_METRES`, `TERRAIN_BOUNDS` | as in Manhattan |
 | `SOURCES` | `{ key: { name, url, … } }`; every entry is linked from the in-game data panel |
-| `LANDMARKS` | `{ id: { label, latitude, longitude, heightMeters, tiers?, spireMeters?, place? } }` — `tiers` = `[[fraction of height, footprint scale], …]` for published massing; `place` = label only |
+| `LANDMARKS` | `{ id: { label, latitude, longitude, heightMeters, tiers?, spireMeters?, place? } }` — `tiers` = `[[fraction of height, footprint scale], …]` for published massing; `place` = label only; `overrideHeight: true` when the source's tagged height is known to be wrong |
 | `WORLD` | `{ timeZone, harbor, mast, flagship: {lat,lng,y}, spawn: {lat,lng,heading}, featured: {lat,lng,y}, core: {lat,lng,radius}, downtownView: {lat,lng,y}, neighborhoods: [[name, lat, lng], …], flagshipVenue: { venue, address } }` |
 | `VIEWS` | `[{ id, short, name, fact }]` — `overview`, `downtown`, then landmark ids |
 | `LABELS` | landmark ids that get a floating label |
