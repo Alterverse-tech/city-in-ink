@@ -420,6 +420,13 @@ function applyHostDetail(events) {
   });
 }
 
+// The layer asks for the programme only once the city is ready; at that point
+// the saved baseline would be one more round trip on the way to the player
+// entering the city. Ask for it now, while the geometry is still loading, so
+// the first read() finds it already here. The full snapshot keeps waiting for
+// that first read(): it must not compete with the downtown tiles.
+void readBaseline();
+
 window.__sfEventFeed = {
   coverUrl,
   submitClaim,

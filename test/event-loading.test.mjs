@@ -193,6 +193,10 @@ test('unavailable saved files keep the existing seed fallback and a live public 
   assert.equal(sample.official, false);
   assert.equal(sample.list[0].id, 'sample');
   const live = harness(name => name === 'events.json' ? { data: baseline } : unavailable(name));
+  // The live updater is read in the background and never holds up the first
+  // read; the next read carries whatever it delivered.
+  await live.read();
+  await live.advance(0);
   const result = await live.read();
   assert.equal(result.official, true);
   assert.equal(result.list.length, 48);

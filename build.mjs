@@ -6,19 +6,24 @@ import { wireHoverFlight } from './flight-build.mjs';
 import { wirePersistentEventCards } from './event-card-build.mjs';
 import { wirePlayerStart } from './player-start-build.mjs';
 import { wireVenueLabels } from './venue-label-build.mjs';
+import { wireLayerPerformance } from './layer-performance-build.mjs';
 import { pathToFileURL } from 'node:url';
 
 // Product name. The original file still says "City in Ink"; every build renames
 // the user-visible strings through wireBrand() so the source parts stay intact.
 export const GAME_NAME = 'SF TECH WEEK CITY';
 
+// The add-on modules, imported in this order before the original startup.
+// preload-build.mjs announces the same list (and their static imports) in <head>.
+export const ADDON_MODULES = ['./city-time.mjs', './event-card.mjs', './events-sync.js', './multiplayer.js', './gull-cluster-route.mjs', './city-extras.mjs'];
+
 // The supplied single-file game stays intact; only its startup gets a module import.
 export function renderGame(source) {
 const marker = '<script>(()=>{var G1=Object.create;';
 if (source.split(marker).length !== 2) throw new Error('Expected the original game startup exactly once.');
 if (source.split('window.__sfCity=c,window.render_game_to_text').length !== 2) throw new Error('Expected the city time installation point exactly once.');
-return wireVenueLabels(wirePlayerStart(wirePersistentEventCards(wireHoverFlight(wireGameUi(wireBootProgress(wireTuning(wireEventFeed(wireDialogs(wireBrand(wireTuningConfig(source)))))))))))
-  .replace(marker, '<script type="module">\nimport "./city-time.mjs";\nimport "./event-card.mjs";\nimport "./events-sync.js";\nimport "./multiplayer.js";\nimport "./gull-cluster-route.mjs";\nimport "./city-extras.mjs";\n(()=>{var G1=Object.create;')
+return wireLayerPerformance(wireVenueLabels(wirePlayerStart(wirePersistentEventCards(wireHoverFlight(wireGameUi(wireBootProgress(wireTuning(wireEventFeed(wireDialogs(wireBrand(wireTuningConfig(source))))))))))))
+  .replace(marker, '<script type="module">\n' + ADDON_MODULES.map(name => `import "${name}";\n`).join('') + '(()=>{var G1=Object.create;')
   .replace('window.__sfCity=c,window.render_game_to_text', 'window.__sfCity=c,window.__sfInstallCityTime?.(c),window.render_game_to_text')
   .replace('</head>', '  <link rel="stylesheet" href="./multiplayer.css">\n  <link rel="stylesheet" href="./events-sync.css">\n</head>');
 }

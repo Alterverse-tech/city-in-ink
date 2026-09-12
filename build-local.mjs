@@ -1,11 +1,12 @@
 import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { renderGame } from './build.mjs';
+import { renderGame, ADDON_MODULES } from './build.mjs';
 import { readInitialEventFeed, writeInitialEventFeed, wireInitialEventSeed } from './initial-event-feed.mjs';
 import { wireStartup } from './startup-build.mjs';
 import { slimFeedParts } from './feed-slim.mjs';
 import { writeCityAssets } from './city-assets-build.mjs';
 import { splitStreamingCityAssets, wireCityStreaming, writeCityPreload } from './city-streaming-build.mjs';
+import { wirePreloads, collectStaticImports, criticalCityAssets } from './preload-build.mjs';
 // Standalone build for local development: same reassembly and add-on wiring as
 // build-hosted.mjs, without the Chrona host-frame handshake. The add-on modules
 // already branch on window.__SF_HOST_READY__, so leaving it undefined selects
@@ -18,7 +19,9 @@ const cityAssets = splitStreamingCityAssets(original);
 const initialFeed = await readInitialEventFeed(url('./data/'));
 await rm(url('./dist-local/'), {recursive:true, force:true});
 await mkdir(url('./dist-local/'), {recursive:true});
-await writeFile(url('./dist-local/index.html'), wireStartup(wireCityStreaming(wireInitialEventSeed(renderGame(cityAssets.html), initialFeed))));
+const preloadModules = await collectStaticImports(url('./'), ['./city-streaming.js', ...ADDON_MODULES]);
+await writeFile(url('./dist-local/index.html'), wirePreloads(wireStartup(wireCityStreaming(wireInitialEventSeed(renderGame(cityAssets.html), initialFeed))),
+  { modules: preloadModules, assets: [...criticalCityAssets(cityAssets), './data/tech-week-first.json'] }));
 await writeCityAssets(cityAssets.files, url('./dist-local/'));
 for (const name of ['city-time.mjs','event-card.mjs','city-streaming.js','chrona','data','multiplayer.js','multiplayer.css','network-pose.js','public-world.js','events-sync.js','events-sync.css','gull-cluster-route.mjs','city-extras.mjs']) {
   await cp(url('./'+name), url('./dist-local/'+name), {recursive:true});

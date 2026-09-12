@@ -1,11 +1,12 @@
 import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { renderGame } from './build.mjs';
+import { renderGame, ADDON_MODULES } from './build.mjs';
 import { readInitialEventFeed, writeInitialEventFeed, wireInitialEventSeed } from './initial-event-feed.mjs';
 import { wireStartup } from './startup-build.mjs';
 import { slimFeedParts } from './feed-slim.mjs';
 import { writeCityAssets } from './city-assets-build.mjs';
 import { splitStreamingCityAssets, wireCityStreaming, writeCityPreload } from './city-streaming-build.mjs';
+import { wirePreloads, collectStaticImports, criticalCityAssets } from './preload-build.mjs';
 const url = path => new URL(path, import.meta.url);
 const digest = value => createHash('sha256').update(value).digest('hex');
 let original;
@@ -22,7 +23,10 @@ try {
 }
 const cityAssets = splitStreamingCityAssets(original);
 const initialFeed = await readInitialEventFeed(url('./data/'));
-let html = wireStartup(wireCityStreaming(wireInitialEventSeed(renderGame(cityAssets.html), initialFeed)))
+// city-streaming.js is imported by wireCityStreaming, hosted-bootstrap.js by the head script below.
+const preloadModules = await collectStaticImports(url('./'), ['./hosted-bootstrap.js', './city-streaming.js', ...ADDON_MODULES]);
+let html = wirePreloads(wireStartup(wireCityStreaming(wireInitialEventSeed(renderGame(cityAssets.html), initialFeed))),
+  { modules: preloadModules, assets: [...criticalCityAssets(cityAssets), './data/tech-week-first.json'] })
   .replace('<head>', '<head>\n<script>window.__SF_HOST_READY__ = import("./hosted-bootstrap.js"); window.__SF_HOST_READY__.catch(e => { console.error(e); document.body.insertAdjacentText("afterbegin", "Chrona connection failed: " + e.message); });</script>')
   .replace('<script id="tw-layer">', '<script type="module" id="tw-layer">\nawait window.__SF_HOST_READY__;');
 // Rebuild dist from scratch: a stale copy left beside a fresh one could be
