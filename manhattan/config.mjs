@@ -71,7 +71,7 @@ export const WORLD = {
   harbor: { lat: 40.7470, lng: -73.9585 },     // holding pattern over the East River, off the UN
   mast: { lat: 40.7536, lng: -73.9832 },       // leaderboard mast in Bryant Park
   flagship: { lat: 40.7484, lng: -73.9857, y: 520 },  // week banner above the Empire State Building
-  spawn: { lat: 40.7550, lng: -73.9840, heading: -2.4 },  // a new bird enters over Bryant Park, facing the Empire State
+  spawn: { lat: 40.7550, lng: -73.9840, heading: -0.35 },  // a new bird enters over Bryant Park, facing the Empire State (velocity = sin h, 0, cos h; z south)
   featured: { lat: 40.7536, lng: -73.9832, y: 210 },      // the host's own ship, parked over Bryant Park
   core: { lat: 40.7536, lng: -73.9832, radius: 700 },     // Midtown core: where ships with no address of their own fly
   downtownView: { lat: 40.7527, lng: -73.9820, y: 140 },  // the "Midtown" camera view target

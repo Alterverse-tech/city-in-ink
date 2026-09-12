@@ -1,0 +1,102 @@
+{
+  "generatedAt": "2026-09-12T13:03:39.732Z",
+  "world": "Shanghai",
+  "origin": {
+    "lon": 121.486,
+    "lat": 31.24
+  },
+  "projection": {
+    "metersLat": 111320,
+    "metersLon": 95178.86724210533,
+    "convention": "x=east, y=up, z=south"
+  },
+  "terrain": {
+    "bounds": {
+      "minX": -2284.2928138106145,
+      "maxX": 3997.5124241685753,
+      "minZ": -1892.4400000003354,
+      "maxZ": 3005.6399999997184
+    },
+    "nx": 315,
+    "nz": 246,
+    "heightScale": 0.1,
+    "heights": "/data/terrain-heights.i16",
+    "landMask": "/data/terrain-land.u8"
+  },
+  "buildings": {
+    "sourceFeatures": 8609,
+    "renderedBuildings": 8607,
+    "vertices": 280385,
+    "indices": 452451,
+    "position": "/data/buildings-refined-position.f32",
+    "positionScale": 1,
+    "normal": "/data/buildings-refined-normal.i8",
+    "tone": "/data/buildings-refined-tone.u8",
+    "index": "/data/buildings-refined-index.u32",
+    "facade": "/data/buildings-refined-facade.u16",
+    "positionType": "Float32",
+    "facadeUnits": "decimetres; family integer",
+    "familyCounts": {
+      "stone": 3781,
+      "concrete": 1335,
+      "brick": 3423,
+      "glass": 33,
+      "granite": 35
+    },
+    "courtyards": 20,
+    "tallestMetres": 632,
+    "materialAssignment": "Illustrative families inferred from construction year and building height with a stable seed; not surveyed facade colors",
+    "setbacks": "Towers above 90 m are stepped back on a seeded rule; the named landmarks follow their published massing. Footprints and roof heights stay as surveyed."
+  },
+  "roads": {
+    "sourceFeatures": 4518,
+    "vertices": 89972,
+    "indices": 134958,
+    "position": "/data/roads-position.i16",
+    "positionScale": 0.3,
+    "normal": "/data/roads-normal.i8",
+    "tone": "/data/roads-tone.u8",
+    "index": "/data/roads-index.u32"
+  },
+  "sources": [
+    {
+      "name": "OpenStreetMap · buildings and building parts",
+      "url": "https://www.openstreetmap.org/copyright",
+      "licence": "ODbL",
+      "endpoint": "https://overpass.openstreetmap.fr/api/interpreter"
+    },
+    {
+      "name": "OpenStreetMap · highways",
+      "url": "https://www.openstreetmap.org/copyright",
+      "licence": "ODbL",
+      "endpoint": "https://overpass.openstreetmap.fr/api/interpreter"
+    },
+    {
+      "name": "OpenStreetMap · water (Huangpu River, Suzhou Creek)",
+      "url": "https://www.openstreetmap.org/copyright",
+      "licence": "ODbL",
+      "endpoint": "https://overpass.openstreetmap.fr/api/interpreter"
+    },
+    {
+      "name": "Overpass API (overpass.openstreetmap.fr)",
+      "url": "https://overpass.openstreetmap.fr/",
+      "licence": "ODbL (data)"
+    },
+    {
+      "name": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/copyright",
+      "licence": "ODbL"
+    },
+    {
+      "name": "Overpass API (overpass.openstreetmap.fr)",
+      "url": "https://overpass.openstreetmap.fr/",
+      "licence": "ODbL (data)"
+    }
+  ],
+  "box": {
+    "south": 31.213,
+    "north": 31.257,
+    "west": 121.462,
+    "east": 121.528
+  }
+}
