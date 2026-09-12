@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T07:54:38.257Z",
+  "generatedAt": "2026-09-12T12:54:29.247Z",
   "world": "Manhattan Midtown",
   "origin": {
     "lon": -73.9855,
@@ -46,7 +46,7 @@
     "courtyards": 157,
     "tallestMetres": 472,
     "materialAssignment": "Illustrative families inferred from construction year and building height with a stable seed; not surveyed facade colors",
-    "setbacks": "Towers above 90 m are stepped back on a seeded rule; the named landmarks follow their published massing. Footprints and roof heights stay surveyed."
+    "setbacks": "Towers above 90 m are stepped back on a seeded rule; the named landmarks follow their published massing. Footprints and roof heights stay as surveyed."
   },
   "roads": {
     "sourceFeatures": 4549,
@@ -62,25 +62,40 @@
     {
       "name": "NYC Open Data · Building Footprints",
       "id": "5zhs-2jue",
-      "url": "https://data.cityofnewyork.us/d/5zhs-2jue",
-      "fields": "the_geom, height_roof (ft), ground_elevation, construction_year"
+      "url": "https://data.cityofnewyork.us/d/5zhs-2jue"
     },
     {
       "name": "NYC Open Data · Centerline (CSCL)",
       "id": "inkn-q76z",
-      "url": "https://data.cityofnewyork.us/d/inkn-q76z",
-      "fields": "the_geom, rw_type, streetwidth (ft)"
+      "url": "https://data.cityofnewyork.us/d/inkn-q76z"
     },
     {
       "name": "NYC Open Data · Borough Boundaries",
       "id": "gthc-hcne",
-      "url": "https://data.cityofnewyork.us/d/gthc-hcne",
-      "use": "land mask on the New York side"
+      "url": "https://data.cityofnewyork.us/d/gthc-hcne"
     },
     {
       "name": "USGS 3DEP bare-earth elevation (metres)",
-      "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
-      "use": "terrain grid 359×274 at 20 m; land west of the state line where the bare-earth height is above 0.6 m"
+      "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"
+    },
+    {
+      "name": "NYC Open Data · Building Footprints",
+      "id": "5zhs-2jue",
+      "url": "https://data.cityofnewyork.us/d/5zhs-2jue"
+    },
+    {
+      "name": "NYC Open Data · Centerline (CSCL)",
+      "id": "inkn-q76z",
+      "url": "https://data.cityofnewyork.us/d/inkn-q76z"
+    },
+    {
+      "name": "NYC Open Data · Borough Boundaries",
+      "id": "gthc-hcne",
+      "url": "https://data.cityofnewyork.us/d/gthc-hcne"
+    },
+    {
+      "name": "USGS 3DEP bare-earth elevation (metres)",
+      "url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"
     }
   ],
   "box": {

@@ -75,9 +75,9 @@ tech-week-source.mjs
 data/                                      Saved public event data (tech-week-enriched.json 3.8 MB,
                                            tech-week-calendar.json 1.1 MB, …). See data/README.md.
 delivery.json                              Chrona delivery metadata for the hosted build.
-manhattan/                                 A second game over Midtown Manhattan in the same ink, built apart
-                                           from this one: `npm run build:manhattan` → dist-manhattan/.
-                                           See manhattan/README.md.
+world-kit/, manhattan/, shibuya/, shanghai/  Parallel worlds: the same game over other cities, built apart from
+                                           this one (`npm run build:manhattan` → dist-manhattan/, and so on).
+                                           See world-kit/README.md and each city's README.
 ```
 
 Generated and ignored: `dist/`, `dist-local/`, `dist-artifact/`, `node_modules/`, `.chrona/`. Never commit `.chrona/` — it holds the Chrona workspace binding.

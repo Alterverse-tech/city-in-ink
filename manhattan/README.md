@@ -36,22 +36,24 @@ the SF world. Nothing here is a surveyed facade colour.
 ## Files
 
 ```
-config.mjs           the crawl box, projection origin, landmarks, and the Tech Week
-                     layer's places (harbour, mast, flagship, spawn, neighbourhoods)
-fetch-data.mjs       downloads the open data into .cache/ (gitignored)
-generate-city.mjs    .cache/ → city/*.gz in the engine's resource format
-earcut.mjs           roof triangulation (ear clipping with hole bridging)
+config.mjs           the crawl box, projection origin, landmarks, the Tech Week layer's
+                     places (harbour, mast, flagship, spawn, neighbourhoods), views,
+                     camera, tour, birds and road rules — the world-kit contract
+fetch-data.mjs       downloads the open data into .cache/ (gitignored) and writes the
+                     kit's normalised .cache/world-data.json
 city/                the generated resources + manifest.json (committed, ~6 MB)
 seed-events.json     the sample programme
-build.mjs            assembles dist-manhattan/ through the shared build pipeline
 ```
+
+The generator and the build live in `world-kit/` and are shared by every
+parallel world (`world-kit/README.md`).
 
 ## Regenerating the city
 
 ```sh
-node manhattan/fetch-data.mjs      # NYC Open Data + USGS, ~20 MB into manhattan/.cache/
-node manhattan/generate-city.mjs   # ~15 s → manhattan/city/
-npm run build:manhattan
+node manhattan/fetch-data.mjs          # NYC Open Data + USGS, ~20 MB into manhattan/.cache/
+node world-kit/generate.mjs manhattan   # ~15 s → manhattan/city/
+npm run build:manhattan                 # = node world-kit/build.mjs manhattan
 ```
 
 Behind a proxy, Node ≥ 24 needs `NODE_USE_ENV_PROXY=1`; on older Node the
@@ -59,7 +61,7 @@ fetch script falls back to `curl`, which reads the same proxy variables.
 
 ## How the build works
 
-`build.mjs` reassembles the original San Francisco game from `source/`, swaps
+`world-kit/build.mjs` reassembles the original San Francisco game from `source/`, swaps
 the inline city resources for `city/`, and patches the bundle with exact-match
 replacements — projection origin, landmark table, labels, camera views, the
 cinematic tour, spawn point, water plane, flight fence, texts — and the Tech

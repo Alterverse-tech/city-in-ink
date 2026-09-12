@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-09-12T07:54:38.257Z",
+  "generatedAt": "2026-09-12T12:54:29.247Z",
   "files": {
     "/data/city-manifest.json": {
       "file": "city-manifest.json.gz",
-      "bytes": 2336,
-      "compressed": 1180,
-      "sha256": "fd2b83ce9f22709f6ef1f686cc9cbff8f03d4d9744a4ef3000e3b4f9e9c923bd"
+      "bytes": 2550,
+      "compressed": 1059,
+      "sha256": "f2e26b2796f3683782333545a946ccc69290971d67035c877948012b6e7eaa8c"
     },
     "/data/terrain-heights.i16": {
       "file": "terrain-heights.i16.gz",
       "bytes": 196732,
-      "compressed": 57825,
-      "sha256": "65532bc292c1df212f9e7483a4f7b06f944d832f66469a6de74f912ceab370c4"
+      "compressed": 57824,
+      "sha256": "0034cfc92c692a11699f99c9a1d51d1fab571275e4a7a9e45e16f9e881db500f"
     },
     "/data/terrain-land.u8": {
       "file": "terrain-land.u8.gz",
@@ -22,8 +22,8 @@
     "/data/roads-position.i16": {
       "file": "roads-position.i16.gz",
       "bytes": 257736,
-      "compressed": 170677,
-      "sha256": "49fd02e4b2586aea8390081671d8b204ee99d893063035fac66bb41eccb813c3"
+      "compressed": 170672,
+      "sha256": "a4e43fb38683b173f6d345ed8fdc307660a95c51d9bb40a16c0fee173bd9ebbd"
     },
     "/data/roads-normal.i8": {
       "file": "roads-normal.i8.gz",
@@ -46,8 +46,8 @@
     "/data/buildings-refined-position.f32": {
       "file": "buildings-refined-position.f32.gz",
       "bytes": 9256500,
-      "compressed": 2319235,
-      "sha256": "d3cc3f671001154fbd081b6d9c1e3355b8032b2e790222b43de1761fb3da9288"
+      "compressed": 2319415,
+      "sha256": "fd12afbf672fde3e653066b7ab963bfbc0a5b9548273e678e4ce051b2406bed3"
     },
     "/data/buildings-refined-normal.i8": {
       "file": "buildings-refined-normal.i8.gz",
@@ -70,8 +70,8 @@
     "/data/buildings-refined-facade.u16": {
       "file": "buildings-refined-facade.u16.gz",
       "bytes": 6171000,
-      "compressed": 993275,
-      "sha256": "2605c592211c74fc34807a147dfb62adbec1a5bf147239395dd17b6a7ff0c948"
+      "compressed": 993279,
+      "sha256": "8a8fcc8e48cbeec285b8c959ac5c6291627d0e1da5c76a7781ae4d4eaf6c014c"
     }
   }
 }
