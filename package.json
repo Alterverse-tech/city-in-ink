@@ -7,6 +7,8 @@
     "build": "node build-hosted.mjs",
     "build:local": "node build-local.mjs",
     "build:artifact": "node build-artifact.mjs",
-    "build:manhattan": "node world-kit/build.mjs manhattan"
+    "build:manhattan": "node world-kit/build.mjs manhattan",
+    "build:shibuya": "node world-kit/build.mjs shibuya",
+    "build:shanghai": "node world-kit/build.mjs shanghai"
   }
 }

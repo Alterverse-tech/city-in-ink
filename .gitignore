@@ -10,3 +10,9 @@ dist-artifact/
 # Manhattan world: raw downloads and its build output
 manhattan/.cache/
 dist-manhattan/
+
+# Shanghai world: raw downloads and its build output
+shanghai/.cache/
+dist-shanghai/
+shibuya/.cache/
+dist-shibuya/
